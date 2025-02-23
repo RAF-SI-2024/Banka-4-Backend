@@ -10,12 +10,11 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(BaseException.class)
-    public ResponseEntity<Map<String, Object>> handleBaseException(BaseException ex) {
+    @ExceptionHandler(BaseApiException.class)
+    public ResponseEntity<Map<String, Object>> handleBaseException(BaseApiException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("failed", ex.isFailed());
-        response.put("code", ex.getCode().name());
-        response.put("message", ex.getMessage());
+        response.put("code", ex.getCode());
 
         if (ex.getExtra() != null) {
             response.put("extra", ex.getExtra());
