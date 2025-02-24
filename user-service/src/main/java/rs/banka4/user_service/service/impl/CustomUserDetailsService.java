@@ -33,7 +33,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (role.equals("employee")) {
             Optional<Employee> employee = employeeRepository.findByEmail(username);
             if (employee.isPresent()) {
-                return employee.get();
+                Employee emp = employee.get();
+                return org.springframework.security.core.userdetails.User.withUsername(emp.getEmail())
+                        .password(emp.getPassword())
+                        .build();
             }
 
             throw new UsernameNotFoundException("Employee not found with email: " + username);
@@ -41,7 +44,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         Optional<Client> client = clientRepository.findByEmail(username);
         if (client.isPresent()) {
-            return client.get();
+            Client cl = client.get();
+            return org.springframework.security.core.userdetails.User.withUsername(cl.getEmail())
+                    .password(cl.getPassword())
+                    .build();
         }
 
         throw new UsernameNotFoundException("Client not found with email: " + username);
