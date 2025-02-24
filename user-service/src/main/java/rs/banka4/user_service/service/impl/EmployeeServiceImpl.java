@@ -7,6 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.LoginDto;
 import rs.banka4.user_service.exceptions.IncorrectCredentials;
+import rs.banka4.user_service.exceptions.RefreshTokenExpired;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
@@ -45,4 +46,25 @@ public class EmployeeServiceImpl implements EmployeeService {
         return ResponseEntity.ok(response);
     }
 
+    @Override
+    public ResponseEntity<?> refreshToken(String token) {
+        System.out.println("refresh token");
+        if (token == null || !token.startsWith("Bearer ")) {
+            throw new IncorrectCredentials();
+        }
+        String refreshToken = token.replace("Bearer ", "");
+        String username = jwtUtil.extractUsername(refreshToken);
+
+        if (jwtUtil.isTokenExpired(refreshToken)) {
+            throw new RefreshTokenExpired();
+        }
+
+        Employee employee = employeeRepository.findByEmail(username).orElseThrow(IncorrectCredentials::new);
+        String newAccessToken = jwtUtil.generateToken(employee);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("access-token", newAccessToken);
+
+        return ResponseEntity.ok(response);
+    }
 }

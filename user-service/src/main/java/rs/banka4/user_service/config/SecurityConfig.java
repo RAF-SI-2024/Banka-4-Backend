@@ -24,6 +24,7 @@ public class SecurityConfig {
     private static final String[] WHITE_LIST_URL = {
             "/auth/employee/login",
             "/auth/client/login",
+            "/auth/refresh-token"
     };
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, AuthenticationProvider authenticationProvider){
