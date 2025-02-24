@@ -8,13 +8,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
-public class GlobalExceptionHandler {
+public class ErrorResponseHandler {
 
     @ExceptionHandler(BaseApiException.class)
-    public ResponseEntity<Map<String, Object>> handleBaseException(BaseApiException ex) {
+    public ResponseEntity<Map<String, Object>> handleErrorResponse(BaseApiException ex) {
         Map<String, Object> response = new HashMap<>();
-        response.put("failed", ex.isFailed());
-        response.put("code", ex.getCode());
+        response.put("failed", true);
+        response.put("code", ex.getClass().getName());
 
         if (ex.getExtra() != null) {
             response.put("extra", ex.getExtra());

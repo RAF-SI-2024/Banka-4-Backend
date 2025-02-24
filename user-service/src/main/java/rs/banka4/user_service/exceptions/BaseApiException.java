@@ -1,22 +1,18 @@
 package rs.banka4.user_service.exceptions;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 
 @Getter
-@Setter
+@EqualsAndHashCode(callSuper = false)
+@ToString
+@RequiredArgsConstructor
 public class BaseApiException extends RuntimeException {
-    private final boolean failed = true;
-    private final Class<? extends BaseApiException> code = getClass();
-    private final Map<String, Object> extra;
     private final HttpStatus status;
-
-    public BaseApiException(HttpStatus status, Map<String, Object> extra) {
-        super();
-        this.status = status;
-        this.extra = extra;
-    }
+    private final Map<String, Object> extra;
 }
