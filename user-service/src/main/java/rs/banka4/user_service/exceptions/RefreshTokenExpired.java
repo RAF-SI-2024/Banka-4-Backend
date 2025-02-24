@@ -6,6 +6,6 @@ import java.util.Map;
 
 public class RefreshTokenExpired extends BaseApiException {
     public RefreshTokenExpired() {
-        super(HttpStatus.CONFLICT, Map.of("message", "Refresh token has expired"));
+        super(HttpStatus.CONFLICT, null);
     }
 }

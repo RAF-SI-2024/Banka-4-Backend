@@ -2,10 +2,13 @@ package rs.banka4.user_service.service.abstraction;
 
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.dto.LoginDto;
+import rs.banka4.user_service.dto.LoginResponseDto;
+import rs.banka4.user_service.dto.MeResponseDto;
+import rs.banka4.user_service.dto.RefreshTokenResponseDto;
 
 public interface EmployeeService {
-    ResponseEntity<?> login(LoginDto loginDto);
-    ResponseEntity<?> refreshToken(String token);
-    ResponseEntity<?> getMe(String authorization);
-    ResponseEntity<?> logout(String authorization);
+    ResponseEntity<LoginResponseDto> login(LoginDto loginDto);
+    ResponseEntity<RefreshTokenResponseDto> refreshToken(String token);
+    ResponseEntity<MeResponseDto> getMe(String authorization);
+    ResponseEntity<Void> logout(String authorization);
 }

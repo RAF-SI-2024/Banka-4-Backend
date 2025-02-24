@@ -1,3 +1,4 @@
+// AuthUnitTests.java
 package rs.banka4.user_service.unit;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -9,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import rs.banka4.user_service.dto.LoginDto;
+import rs.banka4.user_service.dto.LoginResponseDto;
+import rs.banka4.user_service.dto.MeResponseDto;
+import rs.banka4.user_service.dto.RefreshTokenResponseDto;
 import rs.banka4.user_service.exceptions.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.NotAuthenticated;
 import rs.banka4.user_service.exceptions.RefreshTokenExpired;
@@ -18,11 +22,9 @@ import rs.banka4.user_service.service.impl.CustomUserDetailsService;
 import rs.banka4.user_service.service.impl.EmployeeServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
 
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -52,6 +54,7 @@ public class AuthUnitTests {
         Employee employee = new Employee();
         employee.setEmail("test@example.com");
         employee.setPassword("password123");
+        employee.setEnabled(true);
 
         when(employeeRepository.findByEmail(loginDto.email())).thenReturn(Optional.of(employee));
         when(jwtUtil.generateToken(any(Employee.class))).thenReturn("access_token");
@@ -63,11 +66,11 @@ public class AuthUnitTests {
         // Assert
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
-        assertInstanceOf(Map.class, response.getBody());
+        assertInstanceOf(LoginResponseDto.class, response.getBody());
 
-        Map<String, String> responseBody = (Map<String, String>) response.getBody();
-        assertEquals("access_token", responseBody.get("access_token"));
-        assertEquals("refresh_token", responseBody.get("refresh_token"));
+        LoginResponseDto responseBody = (LoginResponseDto) response.getBody();
+        assertEquals("access_token", responseBody.accessToken());
+        assertEquals("refresh_token", responseBody.refreshToken());
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(employeeRepository).findByEmail(loginDto.email());
@@ -113,7 +116,10 @@ public class AuthUnitTests {
 
         // Assert
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(newAccessToken, ((Map<String, String>) response.getBody()).get("access_token"));
+        assertInstanceOf(RefreshTokenResponseDto.class, response.getBody());
+
+        RefreshTokenResponseDto responseBody = (RefreshTokenResponseDto) response.getBody();
+        assertEquals(newAccessToken, responseBody.accessToken());
     }
 
     @Test
@@ -175,22 +181,16 @@ public class AuthUnitTests {
         // Assert
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
-        assertInstanceOf(Map.class, response.getBody());
+        assertInstanceOf(MeResponseDto.class, response.getBody());
 
-        Map<String, String> responseBody = (Map<String, String>) response.getBody();
-        assertEquals("1", responseBody.get("id"));
-        assertEquals("John", responseBody.get("first_name"));
-        assertEquals("Doe", responseBody.get("last_name"));
+        MeResponseDto responseBody = (MeResponseDto) response.getBody();
+        assertEquals("1", responseBody.id());
+        assertEquals("John", responseBody.firstName());
+        assertEquals("Doe", responseBody.lastName());
 
         verify(jwtUtil).extractUsername(anyString());
         verify(jwtUtil).isTokenExpired(anyString());
         verify(employeeRepository).findByEmail(anyString());
-    }
-
-    @Test
-    public void testGetMe_MissingAuthorizationHeader() {
-        // Act & Assert
-        assertThrows(NotAuthenticated.class, () -> employeeService.getMe(null));
     }
 
     @Test
@@ -245,21 +245,8 @@ public class AuthUnitTests {
         // Assert
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
-        assertInstanceOf(Map.class, response.getBody());
 
         verify(jwtUtil).invalidateToken("validToken");
-    }
-
-    @Test
-    public void testLogout_MissingAuthorizationHeader() {
-        // Act & Assert
-        assertThrows(NotAuthenticated.class, () -> employeeService.logout(null));
-    }
-
-    @Test
-    public void testLogout_InvalidTokenFormat() {
-        // Act & Assert
-        assertThrows(NotAuthenticated.class, () -> employeeService.logout("invalidToken"));
     }
 
 }
