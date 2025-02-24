@@ -9,10 +9,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import rs.banka4.user_service.dto.LoginDto;
-import rs.banka4.user_service.dto.LoginResponseDto;
-import rs.banka4.user_service.dto.MeResponseDto;
-import rs.banka4.user_service.dto.RefreshTokenResponseDto;
+import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.exceptions.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.NotAuthenticated;
 import rs.banka4.user_service.exceptions.RefreshTokenExpired;
@@ -98,7 +95,7 @@ public class AuthUnitTests {
     @Test
     public void testRefreshToken_Success() {
         // Arrange
-        String token = "Bearer validRefreshToken";
+        String token = "validRefreshToken";
         String refreshToken = "validRefreshToken";
         String username = "test@example.com";
         String newAccessToken = "newAccessToken";
@@ -134,12 +131,12 @@ public class AuthUnitTests {
     @Test
     public void testRefreshToken_TokenExpired() {
         // Arrange
-        String token = "Bearer expiredRefreshToken";
+        String token = "expiredRefreshToken";
         String refreshToken = "expiredRefreshToken";
         String username = "test@example.com";
 
         when(jwtUtil.extractUsername(refreshToken)).thenReturn(username);
-        when(jwtUtil.isTokenExpired(refreshToken)).thenReturn(true);
+        when(jwtUtil.isTokenInvalidated(refreshToken)).thenReturn(true);
 
         // Act & Assert
         assertThrows(RefreshTokenExpired.class, () -> employeeService.refreshToken(token));
@@ -148,7 +145,7 @@ public class AuthUnitTests {
     @Test
     public void testRefreshToken_EmployeeNotFound() {
         // Arrange
-        String token = "Bearer validRefreshToken";
+        String token = "validRefreshToken";
         String refreshToken = "validRefreshToken";
         String username = "test@example.com";
 
@@ -237,10 +234,11 @@ public class AuthUnitTests {
     @Test
     public void testLogout_Success() {
         // Arrange
-        String token = "Bearer validToken";
+        String refreshToken = "validToken";
+        LogoutDto logoutDto = new LogoutDto(refreshToken);
 
         // Act
-        ResponseEntity<?> response = employeeService.logout(token);
+        ResponseEntity<?> response = employeeService.logout(logoutDto);
 
         // Assert
         assertNotNull(response);

@@ -30,8 +30,8 @@ public class EmployeeController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authorization) {
-        return employeeService.logout(authorization);
+    public ResponseEntity<Void> logout(@RequestBody LogoutDto logoutDto, @RequestHeader("Authorization") String authorization) {
+        return employeeService.logout(logoutDto);
     }
 
 }

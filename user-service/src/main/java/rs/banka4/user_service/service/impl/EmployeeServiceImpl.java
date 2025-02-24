@@ -5,10 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
-import rs.banka4.user_service.dto.LoginDto;
-import rs.banka4.user_service.dto.LoginResponseDto;
-import rs.banka4.user_service.dto.MeResponseDto;
-import rs.banka4.user_service.dto.RefreshTokenResponseDto;
+import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.exceptions.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.NotActivated;
 import rs.banka4.user_service.exceptions.NotAuthenticated;
@@ -50,13 +47,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public ResponseEntity<RefreshTokenResponseDto> refreshToken(String token) {
-        if (token == null || !token.startsWith("Bearer ")) {
-            throw new IncorrectCredentials();
-        }
-        String refreshToken = token.replace("Bearer ", "");
-        String username = jwtUtil.extractUsername(refreshToken);
+        String username = jwtUtil.extractUsername(token);
 
-        if (jwtUtil.isTokenExpired(refreshToken)) {
+        if (jwtUtil.isTokenInvalidated(token)) {
             throw new RefreshTokenExpired();
         }
 
@@ -70,7 +63,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public ResponseEntity<MeResponseDto> getMe(String authorization) {
-        CustomUserDetailsService.role = "employee";
         String token = authorization.replace("Bearer ", "");
         String username = jwtUtil.extractUsername(token);
         if (jwtUtil.isTokenExpired(token)) {
@@ -79,15 +71,28 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         Employee employee = employeeRepository.findByEmail(username).orElseThrow(NotAuthenticated::new);
 
-        MeResponseDto response = new MeResponseDto(employee.getId(), employee.getFirstName(), employee.getLastName());
+        MeResponseDto response = new MeResponseDto(
+                employee.getId(),
+                employee.getFirstName(),
+                employee.getLastName(),
+                employee.getDateOfBirth(),
+                employee.getGender(),
+                employee.getEmail(),
+                employee.getPhone(),
+                employee.getAddress(),
+                employee.getUsername(),
+                employee.getPosition(),
+                employee.getDepartment(),
+                employee.getPrivileges()
+        );
 
         return ResponseEntity.ok(response);
     }
 
     @Override
-    public ResponseEntity<Void> logout(String authorization) {
-        String token = authorization.replace("Bearer ", "");
-        jwtUtil.invalidateToken(token);
+    public ResponseEntity<Void> logout(LogoutDto logoutDto) {
+        String refreshToken = logoutDto.refreshToken();
+        jwtUtil.invalidateToken(refreshToken);
 
         return ResponseEntity.ok().build();
     }

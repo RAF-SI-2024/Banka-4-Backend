@@ -11,10 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.models.Token;
+import rs.banka4.user_service.service.abstraction.TokenService;
 
 import java.security.Key;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 @Service
@@ -28,7 +29,11 @@ public class JwtUtil {
     @Value("${jwt.refresh.token.expiration}")
     private long refreshExpiration;
 
-    private final Set<String> invalidatedTokens = ConcurrentHashMap.newKeySet();
+    private final TokenService tokenService;
+
+    public JwtUtil(TokenService tokenService) {
+        this.tokenService = tokenService;
+    }
 
     public String extractUsername(String jwt) {
         return extractClaim(jwt, Claims::getSubject);
@@ -85,15 +90,19 @@ public class JwtUtil {
     }
 
     public boolean validateToken(String token, String username) {
-        return !invalidatedTokens.contains(token) && username.equals(extractUsername(token)) && !isTokenExpired(token);
+        return username.equals(extractUsername(token)) && !isTokenExpired(token);
     }
 
     public void invalidateToken(String token) {
-        invalidatedTokens.add(token);
+        tokenService.invalidateToken(token);
     }
 
     public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
+    }
+
+    public boolean isTokenInvalidated(String token) {
+        return tokenService.findByToken(token).isPresent() || isTokenExpired(token);
     }
 
     private Key getSignInKey() {

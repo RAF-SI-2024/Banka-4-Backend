@@ -1,11 +1,9 @@
 package rs.banka4.user_service.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotNull;
 
-public record RefreshTokenDto (
+public record LogoutDto(
         @JsonProperty("refresh_token")
-        @NotNull
         String refreshToken
 ) {
 }

@@ -88,11 +88,13 @@ public class Employee implements UserDetails {
     }
 
     public EnumSet<Privilege> getPrivileges() {
-        return EnumSet.copyOf(
-            Stream.of(Privilege.values())
-                    .filter(p -> (permissionBits & p.bit()) != 0)
-                    .toList()
-        );
+        var privileges = Stream.of(Privilege.values())
+                .filter(p -> (permissionBits & p.bit()) != 0)
+                .toList();
+        if (privileges.isEmpty()) {
+            return EnumSet.noneOf(Privilege.class);
+        }
+        return EnumSet.copyOf(privileges);
     }
 
     public void setPrivileges(Collection<Privilege> privileges) {
