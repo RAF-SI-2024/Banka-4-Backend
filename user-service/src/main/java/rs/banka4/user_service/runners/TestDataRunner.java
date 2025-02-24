@@ -10,7 +10,7 @@ import rs.banka4.user_service.repositories.EmployeeRepository;
 
 import java.time.LocalDate;
 
-@Profile({"default", "dev"})
+@Profile({"dev"})
 @Component
 public class TestDataRunner implements CommandLineRunner {
 
