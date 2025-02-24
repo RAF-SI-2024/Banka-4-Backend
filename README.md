@@ -17,3 +17,25 @@ to 10 seconds.
 By convention, for each of the services, the `dev` profile is activated.  This
 means that one can store development-specific properties in
 `application-dev.EXT`, where `EXT` is `yml` or `properties`.
+
+## Writing migrations
+This project uses
+[Flyway](https://documentation.red-gate.com/fd/migrations-271585107.html)
+([Spring specific
+docs](https://docs.spring.io/spring-boot/how-to/data-initialization.html#howto.data-initialization.migration-tool.flyway))
+to perform migrations on databases.
+
+<!-- TODO brief summary -->
+
+### Development container specifics
+This project uses Hibernate ORM.
+
+The development container provides configuration for Hibernate to emit DDL it
+believes is correct for the entities specified in the codebase to the standard
+error output of the service.  You can, hence, read the DDL Hibernate expects to
+see from the respective container logs in order to write migrations.
+
+The `db/migration` directory is ignored by Docker Watch.  This is because
+it is too easy to run partially-written migrations if they are watched, and it
+is difficult to reapply a migration.  When you're certain you've finished a
+migration, restart the respective service to start the migrations.
