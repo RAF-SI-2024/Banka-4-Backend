@@ -40,8 +40,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         String refreshToken = jwtUtil.generateRefreshToken(userDetailsService.loadUserByUsername(loginDto.email()));
 
         Map<String, String> response = new HashMap<>();
-        response.put("access-token", accessToken);
-        response.put("refresh-token", refreshToken);
+        response.put("access_token", accessToken);
+        response.put("refresh_token", refreshToken);
 
         return ResponseEntity.ok(response);
     }
@@ -63,7 +63,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         String newAccessToken = jwtUtil.generateToken(employee);
 
         Map<String, String> response = new HashMap<>();
-        response.put("access-token", newAccessToken);
+        response.put("access_token", newAccessToken);
 
         return ResponseEntity.ok(response);
     }
