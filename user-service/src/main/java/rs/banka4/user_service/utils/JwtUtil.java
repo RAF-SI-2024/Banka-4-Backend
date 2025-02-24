@@ -14,6 +14,7 @@ import rs.banka4.user_service.models.Employee;
 
 import java.security.Key;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 @Service
@@ -26,6 +27,8 @@ public class JwtUtil {
     private long jwtExpiration;
     @Value("${jwt.refresh.token.expiration}")
     private long refreshExpiration;
+
+    private final Set<String> invalidatedTokens = ConcurrentHashMap.newKeySet();
 
     public String extractUsername(String jwt) {
         return extractClaim(jwt, Claims::getSubject);
@@ -82,7 +85,11 @@ public class JwtUtil {
     }
 
     public boolean validateToken(String token, String username) {
-        return username.equals(extractUsername(token)) && !isTokenExpired(token);
+        return !invalidatedTokens.contains(token) && username.equals(extractUsername(token)) && !isTokenExpired(token);
+    }
+
+    public void invalidateToken(String token) {
+        invalidatedTokens.add(token);
     }
 
     public boolean isTokenExpired(String token) {

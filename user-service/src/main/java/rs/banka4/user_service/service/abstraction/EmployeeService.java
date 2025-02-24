@@ -7,4 +7,5 @@ public interface EmployeeService {
     ResponseEntity<?> login(LoginDto loginDto);
     ResponseEntity<?> refreshToken(String token);
     ResponseEntity<?> getMe(String authorization);
+    ResponseEntity<?> logout(String authorization);
 }

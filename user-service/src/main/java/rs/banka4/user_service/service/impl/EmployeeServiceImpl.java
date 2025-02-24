@@ -89,4 +89,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return ResponseEntity.ok(response);
     }
+
+    @Override
+    public ResponseEntity<?> logout(String authorization) {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            throw new NotAuthenticated();
+        }
+        String token = authorization.replace("Bearer ", "");
+        jwtUtil.invalidateToken(token);
+
+        Map<String, String> response = new HashMap<>();
+
+        return ResponseEntity.ok(response);
+    }
 }
