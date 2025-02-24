@@ -7,6 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.LoginDto;
 import rs.banka4.user_service.exceptions.IncorrectCredentials;
+import rs.banka4.user_service.exceptions.NotAuthenticated;
 import rs.banka4.user_service.exceptions.RefreshTokenExpired;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.repositories.EmployeeRepository;
@@ -48,7 +49,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public ResponseEntity<?> refreshToken(String token) {
-        System.out.println("refresh token");
         if (token == null || !token.startsWith("Bearer ")) {
             throw new IncorrectCredentials();
         }
@@ -64,6 +64,28 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         Map<String, String> response = new HashMap<>();
         response.put("access_token", newAccessToken);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<?> getMe(String authorization) {
+        CustomUserDetailsService.role = "employee";
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            throw new NotAuthenticated();
+        }
+        String token = authorization.replace("Bearer ", "");
+        String username = jwtUtil.extractUsername(token);
+        if (jwtUtil.isTokenExpired(token)) {
+            throw new NotAuthenticated();
+        }
+
+        Employee employee = employeeRepository.findByEmail(username).orElseThrow(NotAuthenticated::new);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("id", employee.getId());
+        response.put("first_name", employee.getFirstName());
+        response.put("last_name", employee.getLastName());
 
         return ResponseEntity.ok(response);
     }

@@ -25,4 +25,9 @@ public class EmployeeController {
         return employeeService.refreshToken(refreshTokenDto.refreshToken());
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<?> me(@RequestHeader("Authorization") String authorization){
+        return employeeService.getMe(authorization);
+    }
+
 }

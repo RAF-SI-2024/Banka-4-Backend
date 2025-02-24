@@ -41,8 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtUtils.validateToken(token, username)) {
-                String role = jwtUtils.extractUsername(token);
-                if (!Objects.equals(role, "client")) {
+                String role = jwtUtils.extractRole(token);
+                if (Objects.equals(role, "client")) {
                     CustomUserDetailsService.role = "client";
                 } else {
                     CustomUserDetailsService.role = "employee";
