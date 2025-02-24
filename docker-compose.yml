@@ -60,6 +60,8 @@ services:
       POSTGRES_PASSWORD: lmaolmao123
       POSTGRES_DB: user-service
       POSTGRES_USER: user-service
+    volumes:
+      - user_service_db_data:/var/lib/postgresql/data
     healthcheck:
       test: "pg_isready -d user-service -U user-service"
       interval: 3s
@@ -107,6 +109,8 @@ services:
       POSTGRES_PASSWORD: lmaolmao123
       POSTGRES_DB: notification-service
       POSTGRES_USER: notification-service
+    volumes:
+      - notification_service_db_data:/var/lib/postgresql/data
     healthcheck:
       test: "pg_isready -d notification-service -U notification-service"
       interval: 3s
@@ -124,3 +128,6 @@ services:
 volumes:
   user_service_gradle:
   notification_service_gradle:
+  # Database storage persistence.
+  notification_service_db_data:
+  user_service_db_data:
