@@ -38,6 +38,8 @@ services:
         - action: sync+restart
           path: ./user-service/src
           target: /code/src
+          ignore:
+            - main/resources/db/migration
         - action: sync+restart
           path: ./user-service/build.gradle.kts
           target: /code/build.gradle.kts
@@ -78,6 +80,8 @@ services:
         - action: sync+restart
           path: ./notification-service/src
           target: /code/src
+          ignore:
+            - main/resources/db/migration
         - action: sync+restart
           path: ./notification-service/build.gradle.kts
           target: /code/build.gradle.kts
