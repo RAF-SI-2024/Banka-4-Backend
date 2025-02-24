@@ -18,7 +18,7 @@
 set -xe
 ( # Build
     cd /code
-    ./gradlew --no-daemon bootJar
+    ./gradlew --build-cache --no-daemon bootJar
 )
 
 cd /service

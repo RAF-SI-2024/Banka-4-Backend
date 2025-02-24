@@ -33,6 +33,11 @@ services:
         condition: service_healthy
       broker:
         condition: service_started
+    volumes:
+      - user_service_gradle:/home/service/.gradle
+    post_start:
+      - command: "chown -R service: /home/service/.gradle"
+        user: root
     develop:
       watch:
         - action: sync+restart
@@ -75,6 +80,11 @@ services:
         condition: service_healthy
       broker:
         condition: service_started
+    volumes:
+      - notification_service_gradle:/home/service/.gradle
+    post_start:
+      - command: "chown -R service: /home/service/.gradle"
+        user: root
     develop:
       watch:
         - action: sync+restart
@@ -110,3 +120,7 @@ services:
     ports:
       # Management interface.
       - "15672:15672"
+
+volumes:
+  user_service_gradle:
+  notification_service_gradle:
