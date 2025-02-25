@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.exceptions.*;
+import rs.banka4.user_service.mapper.BasicEmployeeMapper;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.Privilege;
 import rs.banka4.user_service.repositories.EmployeeRepository;
@@ -28,7 +29,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final CustomUserDetailsService userDetailsService;
     private final EmployeeRepository employeeRepository;
     private final JwtUtil jwtUtil;
-    private final PasswordEncoder passwordEncoder;
+    private final BasicEmployeeMapper basicEmployeeMapper;
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
@@ -112,7 +113,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         return ResponseEntity.ok(new PrivilegesDto(privileges));
     }
 
-    public ResponseEntity<CreateEmployeeResponse> createEmployee(CreateEmployeeDto dto) {
+    public ResponseEntity<Void> createEmployee(CreateEmployeeDto dto) {
         if(employeeRepository.existsByEmail(dto.email())) {
             throw new DuplicateEmail(dto.email());
         }
@@ -127,30 +128,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         });
 
 
-
-
-        Employee employee = new Employee();
-        employee.setFirstName(dto.firstName());
-        employee.setLastName(dto.lastName());
-        employee.setUsername(dto.username());
-        employee.setDateOfBirth(dto.dateOfBirth());
-        employee.setGender(dto.gender());
-        employee.setEmail(dto.email());
-        employee.setPhone(dto.phone());
-        employee.setAddress(dto.address());
-        //should be encoded i guess
-        employee.setPassword(passwordEncoder.encode(dto.password()));
-        employee.setPrivileges(dto.privilege());
-        employee.setPosition(dto.position());
-        employee.setPhone(dto.phone());
-        employee.setDepartment(dto.department());
-        //he should not enabled right away
-        employee.setEnabled(false);
-
+        Employee employee = basicEmployeeMapper.toEntity(dto);
         employeeRepository.save(employee);
-
-
-
-        return ResponseEntity.ok(new CreateEmployeeResponse(dto.username(), dto.email()));
+        return ResponseEntity.ok().build();
     }
 }

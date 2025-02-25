@@ -8,16 +8,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.dto.CreateEmployeeDto;
-import rs.banka4.user_service.dto.CreateEmployeeResponse;
 import rs.banka4.user_service.generator.EmployeeObjectMother;
+import rs.banka4.user_service.mapper.BasicEmployeeMapper;
 import rs.banka4.user_service.models.Employee;
-import rs.banka4.user_service.models.Privilege;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.exceptions.DuplicateEmail;
 import rs.banka4.user_service.exceptions.DuplicateUsername;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import rs.banka4.user_service.service.impl.EmployeeServiceImpl;
-
 
 public class EmployeeServiceTest {
 
@@ -25,7 +22,7 @@ public class EmployeeServiceTest {
     private EmployeeRepository employeeRepository;
 
     @Mock
-    private BCryptPasswordEncoder passwordEncoder;
+    private BasicEmployeeMapper employeeMapper;
 
     @InjectMocks
     private EmployeeServiceImpl employeeService;
@@ -52,21 +49,19 @@ public class EmployeeServiceTest {
     @Test
     void shouldCreateEmployee_whenValidDataIsProvided() {
         CreateEmployeeDto dto = EmployeeObjectMother.generateBasicCreateEmployeeDto();
+        Employee mockEmployee = new Employee();
+
         when(employeeRepository.existsByEmail(dto.email())).thenReturn(false);
         when(employeeRepository.existsByUsername(dto.username())).thenReturn(false);
 
-        when(passwordEncoder.encode(dto.password())).thenReturn("encodedPassword");
+        when(employeeMapper.toEntity(dto)).thenReturn(mockEmployee);
+        when(employeeRepository.save(any(Employee.class))).thenReturn(mockEmployee);
 
-        when(employeeRepository.save(any())).thenReturn(new Employee());
-
-        ResponseEntity<CreateEmployeeResponse> response = employeeService.createEmployee(dto);
+        ResponseEntity<Void> response = employeeService.createEmployee(dto);
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(dto.username(), response.getBody().username());
-        assertEquals(dto.email(), response.getBody().email());
-
-        verify(employeeRepository).save(any());
-        verify(passwordEncoder).encode(dto.password());
+        verify(employeeRepository).save(any(Employee.class));
+        verify(employeeMapper).toEntity(dto);
     }
 }

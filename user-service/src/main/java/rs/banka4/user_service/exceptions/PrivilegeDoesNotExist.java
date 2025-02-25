@@ -7,6 +7,6 @@ import java.util.Map;
 
 public class PrivilegeDoesNotExist extends BaseApiException {
     public PrivilegeDoesNotExist(Privilege privilege) {
-        super(HttpStatus.FORBIDDEN, Map.of("privilege", privilege));
+        super(HttpStatus.BAD_REQUEST, Map.of("privilege", privilege));
     }
 }
