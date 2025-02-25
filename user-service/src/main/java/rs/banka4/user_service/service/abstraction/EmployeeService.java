@@ -9,4 +9,5 @@ public interface EmployeeService {
     ResponseEntity<MeResponseDto> getMe(String authorization);
     ResponseEntity<Void> logout(LogoutDto logoutDto);
     ResponseEntity<PrivilegesDto> getPrivileges();
+    ResponseEntity<CreateEmployeeResponse> createEmployee(CreateEmployeeDto dto);
 }

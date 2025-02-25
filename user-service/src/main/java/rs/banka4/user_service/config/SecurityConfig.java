@@ -42,6 +42,8 @@ public class SecurityConfig {
                         .requestMatchers(WHITE_LIST_URL).permitAll()
                         .requestMatchers(HttpMethod.POST, "/employee/search").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/auth/employee/privileges").hasAuthority("ADMIN")
+                        //this handles the not authenticated
+                        .requestMatchers(HttpMethod.POST, "/employee").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(ses -> ses.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
