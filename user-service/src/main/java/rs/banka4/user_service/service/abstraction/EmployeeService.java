@@ -8,4 +8,5 @@ public interface EmployeeService {
     ResponseEntity<RefreshTokenResponseDto> refreshToken(String token);
     ResponseEntity<MeResponseDto> getMe(String authorization);
     ResponseEntity<Void> logout(LogoutDto logoutDto);
+    ResponseEntity<PrivilegesDto> getPrivileges();
 }

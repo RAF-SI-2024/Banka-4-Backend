@@ -40,7 +40,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .withPosition("Developer")
                     .withDepartment("IT")
                     .withEnabled(true)
-                    .withPermissionBits(0L);
+                    .withPermissionBits(1L);
 
             employeeRepository.save(employee);
         }

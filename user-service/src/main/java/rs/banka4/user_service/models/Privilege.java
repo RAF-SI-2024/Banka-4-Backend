@@ -4,7 +4,13 @@ import org.springframework.security.core.GrantedAuthority;
 
 public enum Privilege implements GrantedAuthority {
 
-    ADMIN, FILTER, SEARCH;
+    ADMIN,
+    FILTER,
+    SEARCH,
+    TRADE_STOCKS,
+    VIEW_STOCKS,
+    CONTRACTS,
+    NEW_INSURANCES;
 
     @Override
     public String getAuthority() {

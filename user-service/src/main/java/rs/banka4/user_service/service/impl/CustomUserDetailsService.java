@@ -36,6 +36,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 Employee emp = employee.get();
                 return org.springframework.security.core.userdetails.User.withUsername(emp.getEmail())
                         .password(emp.getPassword())
+                        .authorities(emp.getAuthorities())
                         .build();
             }
 
@@ -47,6 +48,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             Client cl = client.get();
             return org.springframework.security.core.userdetails.User.withUsername(cl.getEmail())
                     .password(cl.getPassword())
+                    .authorities(cl.getAuthorities())
                     .build();
         }
 

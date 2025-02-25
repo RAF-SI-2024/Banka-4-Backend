@@ -11,9 +11,14 @@ import rs.banka4.user_service.exceptions.NotActivated;
 import rs.banka4.user_service.exceptions.NotAuthenticated;
 import rs.banka4.user_service.exceptions.RefreshTokenExpired;
 import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.models.Privilege;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
 import rs.banka4.user_service.utils.JwtUtil;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -95,5 +100,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         jwtUtil.invalidateToken(refreshToken);
 
         return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<PrivilegesDto> getPrivileges() {
+        List<String> privileges = Stream.of(Privilege.values())
+                .map(Privilege::name)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(new PrivilegesDto(privileges));
     }
 }

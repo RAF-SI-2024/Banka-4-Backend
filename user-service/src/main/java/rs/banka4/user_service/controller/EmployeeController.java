@@ -34,4 +34,8 @@ public class EmployeeController {
         return employeeService.logout(logoutDto);
     }
 
+    @GetMapping("/employee/privileges")
+    public ResponseEntity<PrivilegesDto> getPrivileges(@RequestHeader("Authorization") String authorization) {
+        return employeeService.getPrivileges();
+    }
 }
