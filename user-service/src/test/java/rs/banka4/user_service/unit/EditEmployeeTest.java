@@ -3,7 +3,9 @@ package rs.banka4.user_service.unit;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDate;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -48,22 +50,21 @@ public class EditEmployeeTest {
         existingEmployee.setPassword("encodedOldPassword");
         existingEmployee.setPrivileges(EnumSet.of(Privilege.SEARCH));
 
-        employeeUpdateDto = new EmployeeUpdateDto();
-        employeeUpdateDto.setEmail("new.email@example.com");
-        employeeUpdateDto.setUsername("newUsername");
-        employeeUpdateDto.setPassword("newPassword");
-        employeeUpdateDto.setPrivilege(EnumSet.of(Privilege.SEARCH, Privilege.FILTER));
+        employeeUpdateDto = new EmployeeUpdateDto("jon", "jonon",
+                LocalDate.now(), "Male", "new.email@example.com", "newPassword", "newUsername",
+                "+12324335", "abc 12", List.of("SEARCH","FILTER"),"Nz","12");
+
     }
 
     @Test
     void shouldUpdateEmployeeSuccessfully() {
         when(employeeRepository.findById("123")).thenReturn(Optional.of(existingEmployee));
 
-        when(employeeRepository.existsByEmail(employeeUpdateDto.getEmail())).thenReturn(false);
-        when(employeeRepository.existsByUsername(employeeUpdateDto.getUsername())).thenReturn(false);
+        when(employeeRepository.existsByEmail(employeeUpdateDto.email())).thenReturn(false);
+        when(employeeRepository.existsByUsername(employeeUpdateDto.username())).thenReturn(false);
 
-        when(passwordEncoder.matches(employeeUpdateDto.getPassword(), existingEmployee.getPassword())).thenReturn(false);
-        when(passwordEncoder.encode(employeeUpdateDto.getPassword())).thenReturn("encodedNewPassword");
+        when(passwordEncoder.matches(employeeUpdateDto.password(), existingEmployee.getPassword())).thenReturn(false);
+        when(passwordEncoder.encode(employeeUpdateDto.password())).thenReturn("encodedNewPassword");
 
         employeeService.updateEmployee("123", employeeUpdateDto);
 
@@ -79,7 +80,6 @@ public class EditEmployeeTest {
     }
 
 
-
     @Test
     void shouldThrowExceptionWhenEmployeeNotFound() {
         when(employeeRepository.findById("123")).thenReturn(Optional.empty());
@@ -92,7 +92,7 @@ public class EditEmployeeTest {
     @Test
     void shouldThrowExceptionWhenEmailAlreadyExists() {
         when(employeeRepository.findById("123")).thenReturn(Optional.of(existingEmployee));
-        when(employeeRepository.existsByEmail(employeeUpdateDto.getEmail())).thenReturn(true);
+        when(employeeRepository.existsByEmail(employeeUpdateDto.email())).thenReturn(true);
 
         assertThrows(DuplicateEmail.class, () -> {
             employeeService.updateEmployee("123", employeeUpdateDto);
@@ -102,7 +102,7 @@ public class EditEmployeeTest {
     @Test
     void shouldThrowExceptionWhenUsernameAlreadyExists() {
         when(employeeRepository.findById("123")).thenReturn(Optional.of(existingEmployee));
-        when(employeeRepository.existsByUsername(employeeUpdateDto.getUsername())).thenReturn(true);
+        when(employeeRepository.existsByUsername(employeeUpdateDto.username())).thenReturn(true);
 
         assertThrows(DuplicateUsername.class, () -> {
             employeeService.updateEmployee("123", employeeUpdateDto);
