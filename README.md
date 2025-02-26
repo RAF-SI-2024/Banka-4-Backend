@@ -26,6 +26,22 @@ docker compose exec user_service_db psql -U user-service user-service
 docker compose exec notification_service_db psql -U notification-service notification-service
 ```
 
+### Developer-specific Spring properties
+If you wish to add some developer-specific properties (such as, for instance,
+email credentials for an SMTP server you were using to test something), you
+can place `application-local.properties` or `application-local.yml` in the
+resources directory.
+
+Please do note that these profiles will also be copied into any builds you make
+and also into the tests you run locally, and so, care should be taken not to
+interfere with the testsuite.
+
+The aforementioned files are already ignored.
+
+> [!CAUTION]
+> **PLEASE USE THIS FEATURE SPARINGLY**, it will lead to differences between
+> developer machines, which are very annoying.
+
 ## Writing migrations
 This project uses
 [Flyway](https://documentation.red-gate.com/fd/migrations-271585107.html)

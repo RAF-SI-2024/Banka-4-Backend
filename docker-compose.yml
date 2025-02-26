@@ -27,7 +27,7 @@ services:
       - "8080:8080"
     command:
       - /code/build/libs/user-service-0.0.1-SNAPSHOT.jar
-      - --spring.profiles.active=dev
+      - --spring.profiles.active=dev,local
     depends_on:
       user_service_db:
         condition: service_healthy
@@ -76,7 +76,7 @@ services:
         SERVICE: notification-service
     command:
       - /code/build/libs/notification-service-0.0.1-SNAPSHOT.jar
-      - --spring.profiles.active=dev
+      - --spring.profiles.active=dev,local
     depends_on:
       notification_service_db:
         condition: service_healthy
