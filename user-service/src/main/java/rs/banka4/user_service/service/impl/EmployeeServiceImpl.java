@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.exceptions.*;
 import rs.banka4.user_service.mapper.BasicEmployeeMapper;
+import rs.banka4.user_service.mapper.EmployeeMapper;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.Privilege;
 import rs.banka4.user_service.repositories.EmployeeRepository;
@@ -37,6 +38,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final BasicEmployeeMapper basicEmployeeMapper;
     private final PasswordEncoder passwordEncoder;
 
+    private final EmployeeMapper employeeMapper;
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
@@ -185,5 +187,31 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPassword(passwordEncoder.encode(password));
         employeeRepository.save(employee);
     }
+
+    public ResponseEntity<Void> updateEmployee(String id, EmployeeUpdateDto employeeUpdateDto) {
+
+        var employee = employeeRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Employee not found with id: "+id));
+
+        if (employeeRepository.existsByEmail(employeeUpdateDto.getEmail()) && !employee.getEmail().equals(employeeUpdateDto.getEmail())) {
+            throw new DuplicateEmail(employeeUpdateDto.getEmail());
+        }
+
+        if (employeeRepository.existsByUsername(employeeUpdateDto.getUsername()) && !employee.getUsername().equals(employeeUpdateDto.getUsername())) {
+            throw new DuplicateUsername(employeeUpdateDto.getUsername());
+        }
+
+        Set<Privilege> validPrivileges = EnumSet.allOf(Privilege.class);
+        employeeUpdateDto.getPrivilege().forEach(privilege -> {
+            if (!validPrivileges.contains(privilege)) {
+                throw new PrivilegeDoesNotExist(privilege);
+            }
+        });
+        employeeMapper.updateEmployeeFromDto(employeeUpdateDto,employee,passwordEncoder);
+        employeeRepository.save(employee);
+
+        return ResponseEntity.ok().build();
+
+    }
+
 
 }

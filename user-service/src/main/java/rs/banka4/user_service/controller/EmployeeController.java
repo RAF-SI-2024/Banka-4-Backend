@@ -51,4 +51,8 @@ public class EmployeeController {
                                                           @RequestHeader("Authorization") String authorization) {
         return employeeService.getAll(firstName, lastName, email, position, PageRequest.of(page, size));
     }
+    @PutMapping("/employee/{id}")
+    public ResponseEntity<Void> updateEmployee(@PathVariable String id,@RequestBody EmployeeUpdateDto employeeUpdateDto){
+        return employeeService.updateEmployee(id,employeeUpdateDto);
+    }
 }

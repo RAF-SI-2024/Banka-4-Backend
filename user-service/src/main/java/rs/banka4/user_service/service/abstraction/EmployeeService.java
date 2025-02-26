@@ -20,4 +20,5 @@ public interface EmployeeService {
     void activateEmployeeAccount(Employee employee, String password);
     Optional<Employee> findEmployee(String email);
 
+    ResponseEntity<Void> updateEmployee(String id, EmployeeUpdateDto employeeUpdateDto);
 }
