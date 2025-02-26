@@ -40,4 +40,8 @@ public class EmployeeController {
                                                           @RequestParam(defaultValue = "10") int size) {
         return employeeService.getAll(firstName, lastName, email, position, PageRequest.of(page, size));
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateEmployee(@PathVariable String id, @RequestBody @Valid EmployeeUpdateDto employeeUpdateDto){
+        return employeeService.updateEmployee(id,employeeUpdateDto);
+    }
 }
