@@ -21,34 +21,30 @@ public class EmailService {
 
     private final JavaMailSender emailSender;
 
-    @Value("${application.mail.sent.from}")
-    private String fromUsr;
-
     public void sendEmail(String to, String subject, String body) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
         helper.setTo(to);
-        helper.setFrom(fromUsr);
         helper.setSubject(subject);
         helper.setText(body, true);
         emailSender.send(message);
     }
 
-    @RabbitListener(queues = "email_queue")
+    @RabbitListener(queues = "${rabbitmq.queue.email.name}")
     public void processEmailMessage(EmailDetailDto emailDetailDto) throws MessagingException {
-        String to = emailDetailDto.to();
-        String subject = emailDetailDto.subject();
+        String to = emailDetailDto.recipient();
+        String subject = setSubject(emailDetailDto.topic());
         String body = generateEmailBody(emailDetailDto);
         sendEmail(to, subject, body);
     }
 
     public String generateEmailBody(EmailDetailDto emailDetailDto) {
-        String templateName = emailDetailDto.templateName();
+        String templateName = emailDetailDto.topic();
         String template = loadEmailTemplate(templateName);
 
         String body = template;
-        if (emailDetailDto.dynamicValue() != null) {
-            for (Map.Entry<String, Object> entry : emailDetailDto.dynamicValue().entrySet()) {
+        if (emailDetailDto.params() != null) {
+            for (Map.Entry<String, Object> entry : emailDetailDto.params().entrySet()) {
                 body = body.replace("{{" + entry.getKey() + "}}", entry.getValue().toString());
             }
         }
@@ -57,11 +53,20 @@ public class EmailService {
     }
 
     public String loadEmailTemplate(String templateName) {
-        ClassPathResource resource = new ClassPathResource("templates/emails/" + templateName + ".html");
+        ClassPathResource resource = new ClassPathResource("templates/" + templateName + ".html");
         try {
             return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Error loading email template " + templateName, e);
         }
+    }
+
+    private String setSubject(String topic) {
+        // In future maybe we have more than two html for sending email
+        return switch (topic) {
+            case "account-activation" -> Subjects.ACTIVATION.getSubject();
+            case "password-reset" -> Subjects.PASSWORD_RESET.getSubject();
+            default -> "";
+        };
     }
 }
