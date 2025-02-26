@@ -15,6 +15,7 @@ import rs.banka4.user_service.exceptions.NotAuthenticated;
 import rs.banka4.user_service.exceptions.RefreshTokenExpired;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.repositories.EmployeeRepository;
+import rs.banka4.user_service.service.abstraction.AuthService;
 import rs.banka4.user_service.service.impl.CustomUserDetailsService;
 import rs.banka4.user_service.service.impl.EmployeeServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
@@ -34,6 +35,8 @@ public class AuthUnitTests {
     private CustomUserDetailsService userDetailsService;
     @Mock
     private EmployeeRepository employeeRepository;
+    @Mock
+    private AuthService authService;
     @Mock
     private JwtUtil jwtUtil;
     @InjectMocks
@@ -109,7 +112,7 @@ public class AuthUnitTests {
         when(jwtUtil.generateToken(employee)).thenReturn(newAccessToken);
 
         // Act
-        ResponseEntity<?> response = employeeService.refreshToken(token);
+        ResponseEntity<?> response = authService.refreshToken(token);
 
         // Assert
         assertEquals(200, response.getStatusCodeValue());
@@ -125,7 +128,7 @@ public class AuthUnitTests {
         String token = "invalidToken";
 
         // Act & Assert
-        assertThrows(IncorrectCredentials.class, () -> employeeService.refreshToken(token));
+        assertThrows(IncorrectCredentials.class, () -> authService.refreshToken(token));
     }
 
     @Test
@@ -139,7 +142,7 @@ public class AuthUnitTests {
         when(jwtUtil.isTokenInvalidated(refreshToken)).thenReturn(true);
 
         // Act & Assert
-        assertThrows(RefreshTokenExpired.class, () -> employeeService.refreshToken(token));
+        assertThrows(RefreshTokenExpired.class, () -> authService.refreshToken(token));
     }
 
     @Test
@@ -154,7 +157,7 @@ public class AuthUnitTests {
         when(employeeRepository.findByEmail(username)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(IncorrectCredentials.class, () -> employeeService.refreshToken(token));
+        assertThrows(IncorrectCredentials.class, () -> authService.refreshToken(token));
     }
 
     @Test
@@ -238,7 +241,7 @@ public class AuthUnitTests {
         LogoutDto logoutDto = new LogoutDto(refreshToken);
 
         // Act
-        ResponseEntity<?> response = employeeService.logout(logoutDto);
+        ResponseEntity<?> response = authService.logout(logoutDto);
 
         // Assert
         assertNotNull(response);

@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import rs.banka4.user_service.dto.EmployeeDto;
 import rs.banka4.user_service.mapper.EmployeeMapper;
 import rs.banka4.user_service.models.Employee;
@@ -42,17 +43,28 @@ public class EmployeeServiceTests {
 
     private EmployeeDto employeeDto;
 
+    private PasswordEncoder passwordEncoder;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
         // Prepare mock data
-        employee = new Employee(
-                "1", "John", "Doe", LocalDate.of(1990, 1, 1), "Male",
-                "john.doe@example.com", "123-456-7890", "123 Street",
-                "password", "john.doe@example.com", "Developer",
-                "IT", true, 0L
-        );
+        employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .dateOfBirth(LocalDate.of(1990, 1, 1))
+                .gender("Male")
+                .email("john.doe@example.com")
+                .phone("123-456-7890")
+                .address("123 Main St")
+                .password(passwordEncoder.encode("password"))
+                .username("johndoe")
+                .position("Developer")
+                .department("IT")
+                .enabled(true)
+                .permissionBits(1L)
+                .build();
 
         employeeDto = new EmployeeDto(
                 "1", "John", "Doe", LocalDate.of(1990, 1, 1), "Male",

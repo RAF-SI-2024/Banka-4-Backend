@@ -1,4 +1,4 @@
-package rs.banka4.user_service.controller;
+package rs.banka4.user_service.utils;
 
 import rs.banka4.user_service.dto.NotificationTransferDto;
 

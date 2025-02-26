@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Employee;
-import rs.banka4.user_service.models.Token;
+import rs.banka4.user_service.models.SecuredUser;
 import rs.banka4.user_service.service.abstraction.TokenService;
 
 import java.security.Key;
@@ -60,14 +60,14 @@ public class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", client.getId());
         claims.put("role", "client");
-        return generateToken(claims, client, jwtExpiration);
+        return generateToken(claims, new SecuredUser(client), jwtExpiration);
     }
 
     public String generateToken(Employee employee) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", employee.getId());
         claims.put("role", "employee");
-        return generateToken(claims, employee, jwtExpiration);
+        return generateToken(claims, new SecuredUser(employee), jwtExpiration);
     }
 
     public String generateRefreshToken(UserDetails userDetails) {

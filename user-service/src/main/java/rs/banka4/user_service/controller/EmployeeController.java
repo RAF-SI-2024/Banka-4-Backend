@@ -10,38 +10,28 @@ import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/employee")
 @RequiredArgsConstructor
 public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-    @PostMapping("/employee/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody @Valid LoginDto loginDto) {
-        return employeeService.login(loginDto);
-    }
-
-    @PostMapping("/refresh-token")
-    public ResponseEntity<RefreshTokenResponseDto> refreshToken(@RequestBody RefreshTokenDto refreshTokenDto) {
-        return employeeService.refreshToken(refreshTokenDto.refreshToken());
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<MeResponseDto> me(@RequestHeader("Authorization") String authorization){
-        return employeeService.getMe(authorization);
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestBody LogoutDto logoutDto, @RequestHeader("Authorization") String authorization) {
-        return employeeService.logout(logoutDto);
-    }
-
-    @GetMapping("/employee/privileges")
+    @GetMapping("/privileges")
     public ResponseEntity<PrivilegesDto> getPrivileges(@RequestHeader("Authorization") String authorization) {
         return employeeService.getPrivileges();
     }
 
-    @GetMapping
+    @GetMapping("/me")
+    public ResponseEntity<MeResponseDto> me(@RequestHeader("Authorization") String authorization) {
+        return employeeService.getMe(authorization);
+    }
+
+    @PostMapping()
+    public ResponseEntity<Void> createEmployee(@RequestBody @Valid CreateEmployeeDto createEmployeeDto) {
+        return employeeService.createEmployee(createEmployeeDto);
+    }
+
+    @GetMapping("/search")
     public ResponseEntity<Page<EmployeeDto>> getEmployees(@RequestParam(required = false) String firstName,
                                                           @RequestParam(required = false) String lastName,
                                                           @RequestParam(required = false) String email,

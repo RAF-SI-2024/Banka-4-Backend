@@ -5,6 +5,6 @@ import rs.banka4.user_service.models.Token;
 
 import java.util.Optional;
 
-public interface TokenRepository extends JpaRepository<Token, Long> {
+public interface TokenRepository extends JpaRepository<Token, String> {
     Optional<Token> findByToken(String token);
 }

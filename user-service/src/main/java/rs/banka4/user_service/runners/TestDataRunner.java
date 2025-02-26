@@ -27,20 +27,21 @@ public class TestDataRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (employeeRepository.count() == 0) {
-            Employee employee = new Employee()
-                    .withFirstName("John")
-                    .withLastName("Doe")
-                    .withDateOfBirth(LocalDate.of(1990, 1, 1))
-                    .withGender("Male")
-                    .withEmail("john.doe@example.com")
-                    .withPhone("123-456-7890")
-                    .withAddress("123 Main St")
-                    .withPassword(passwordEncoder.encode("password"))
-                    .withUsername("johndoe")
-                    .withPosition("Developer")
-                    .withDepartment("IT")
-                    .withEnabled(true)
-                    .withPermissionBits(1L);
+            Employee employee = Employee.builder()
+                    .firstName("John")
+                    .lastName("Doe")
+                    .dateOfBirth(LocalDate.of(1990, 1, 1))
+                    .gender("Male")
+                    .email("john.doe@example.com")
+                    .phone("123-456-7890")
+                    .address("123 Main St")
+                    .password(passwordEncoder.encode("password"))
+                    .username("johndoe")
+                    .position("Developer")
+                    .department("IT")
+                    .enabled(true)
+                    .permissionBits(1L)
+                    .build();
 
             employeeRepository.save(employee);
         }

@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.models.SecuredUser;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 
@@ -30,26 +31,17 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        if (role.equals("employee")) {
+        if ("employee".equals(role)) {
             Optional<Employee> employee = employeeRepository.findByEmail(username);
             if (employee.isPresent()) {
-                Employee emp = employee.get();
-                return org.springframework.security.core.userdetails.User.withUsername(emp.getEmail())
-                        .password(emp.getPassword())
-                        .authorities(emp.getAuthorities())
-                        .build();
+                return new SecuredUser(employee.get());
             }
-
             throw new UsernameNotFoundException("Employee not found with email: " + username);
         }
 
         Optional<Client> client = clientRepository.findByEmail(username);
         if (client.isPresent()) {
-            Client cl = client.get();
-            return org.springframework.security.core.userdetails.User.withUsername(cl.getEmail())
-                    .password(cl.getPassword())
-                    .authorities(cl.getAuthorities())
-                    .build();
+            return new SecuredUser(client.get());
         }
 
         throw new UsernameNotFoundException("Client not found with email: " + username);

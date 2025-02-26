@@ -13,7 +13,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.LocalDateTime;
 
 @Getter
-@Entity(name = "tokens")
+@Entity(name = "verification_tokens")
 @Data
 @Validated
 @AllArgsConstructor

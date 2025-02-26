@@ -5,7 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.*;
@@ -40,39 +42,27 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
+        CustomUserDetailsService.role = "employee"; // Consider refactoring this into a more robust role management system
+
         try {
-            CustomUserDetailsService.role = "employee";
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password()));
-        } catch (Exception e) {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password())
+            );
+        } catch (BadCredentialsException e) {
             throw new IncorrectCredentials();
         }
 
-        Employee employee = employeeRepository.findByEmail(loginDto.email()).get();
+        Employee employee = employeeRepository.findByEmail(loginDto.email())
+                .orElseThrow(() -> new UsernameNotFoundException("Employee not found"));
 
-        if (!employee.isEnabled()) throw new NotActivated();
+        if (!employee.isEnabled()) {
+            throw new NotActivated();
+        }
 
         String accessToken = jwtUtil.generateToken(employee);
         String refreshToken = jwtUtil.generateRefreshToken(userDetailsService.loadUserByUsername(loginDto.email()));
 
-        LoginResponseDto response = new LoginResponseDto(accessToken, refreshToken);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @Override
-    public ResponseEntity<RefreshTokenResponseDto> refreshToken(String token) {
-        String username = jwtUtil.extractUsername(token);
-
-        if (jwtUtil.isTokenInvalidated(token)) {
-            throw new RefreshTokenExpired();
-        }
-
-        Employee employee = employeeRepository.findByEmail(username).orElseThrow(IncorrectCredentials::new);
-        String newAccessToken = jwtUtil.generateToken(employee);
-
-        RefreshTokenResponseDto response = new RefreshTokenResponseDto(newAccessToken);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new LoginResponseDto(accessToken, refreshToken));
     }
 
     @Override
@@ -101,14 +91,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         );
 
         return ResponseEntity.ok(response);
-    }
-
-    @Override
-    public ResponseEntity<Void> logout(LogoutDto logoutDto) {
-        String refreshToken = logoutDto.refreshToken();
-        jwtUtil.invalidateToken(refreshToken);
-
-        return ResponseEntity.ok().build();
     }
 
     @Override
