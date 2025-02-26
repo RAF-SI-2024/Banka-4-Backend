@@ -14,7 +14,8 @@ public interface EmployeeService {
     ResponseEntity<PrivilegesDto> getPrivileges();
     ResponseEntity<Void> createEmployee(CreateEmployeeDto dto);
     ResponseEntity<Page<EmployeeDto>> getAll(String firstName, String lastName, String email, String position, PageRequest pageRequest);
+
     void activateEmployeeAccount(Employee employee, String password);
-    Optional<Employee> findEmployee(String email);
+    Optional<Employee> findEmployeeByEmail(String email);
     ResponseEntity<Void> updateEmployee(String id, EmployeeUpdateDto employeeUpdateDto);
 }

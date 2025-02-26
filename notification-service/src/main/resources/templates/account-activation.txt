@@ -1,0 +1,11 @@
+Dear {{firstName}},
+
+Thank you for joining RAFeisen.
+
+Please click the link below to activate your account:
+{{baseUrl}}/i/s?t={{verificationCode}}
+
+If you did not request this, please ignore this email.
+
+Best regards,
+RAFeisen Team

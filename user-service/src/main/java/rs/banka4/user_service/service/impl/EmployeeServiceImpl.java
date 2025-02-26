@@ -148,8 +148,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         return ResponseEntity.ok(dtos);
     }
 
-    @Override
-    public Optional<Employee> findEmployee(String email) {
+    public Optional<Employee> findEmployeeByEmail(String email) {
         return employeeRepository.findByEmail(email);
     }
 

@@ -12,7 +12,6 @@ import java.util.UUID;
 public class VerificationCodeService {
 
     private final VerificationCodeRepository verificationCodeRepository;
-
     private final LocalDateTime expiration = LocalDateTime.now().plusDays(7);
 
     public VerificationCodeService(VerificationCodeRepository verificationCodeRepository) {

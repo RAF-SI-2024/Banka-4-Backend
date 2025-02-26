@@ -1,4 +1,3 @@
-// AuthUnitTests.java
 package rs.banka4.user_service.unit;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -6,248 +5,122 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import rs.banka4.user_service.dto.*;
-import rs.banka4.user_service.exceptions.IncorrectCredentials;
-import rs.banka4.user_service.exceptions.NotAuthenticated;
+import rs.banka4.user_service.dto.LogoutDto;
+import rs.banka4.user_service.dto.RefreshTokenResponseDto;
+import rs.banka4.user_service.dto.requests.EmployeeVerificationRequestDto;
+import rs.banka4.user_service.exceptions.NotFound;
+import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
 import rs.banka4.user_service.exceptions.jwt.RefreshTokenRevoked;
 import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.models.VerificationCode;
 import rs.banka4.user_service.repositories.EmployeeRepository;
-import rs.banka4.user_service.service.abstraction.AuthService;
-import rs.banka4.user_service.service.impl.CustomUserDetailsService;
-import rs.banka4.user_service.service.impl.EmployeeServiceImpl;
+import rs.banka4.user_service.service.abstraction.EmployeeService;
+import rs.banka4.user_service.service.impl.AuthServiceImpl;
+import rs.banka4.user_service.service.impl.VerificationCodeService;
 import rs.banka4.user_service.utils.JwtUtil;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class AuthUnitTests {
 
     @Mock
-    private AuthenticationManager authenticationManager;
-    @Mock
-    private CustomUserDetailsService userDetailsService;
+    private JwtUtil jwtUtil;
+
     @Mock
     private EmployeeRepository employeeRepository;
+
     @Mock
-    private AuthService authService;
+    private VerificationCodeService verificationCodeService;
+
     @Mock
-    private JwtUtil jwtUtil;
+    private RabbitTemplate rabbitTemplate;
+
+    @Mock
+    private EmployeeService employeeService;
+
     @InjectMocks
-    private EmployeeServiceImpl employeeService;
+    private AuthServiceImpl authService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testLoginSuccess() {
-        // Arrange
-        LoginDto loginDto = new LoginDto("test@example.com", "password123");
-        Employee employee = new Employee();
-        employee.setEmail("test@example.com");
-        employee.setPassword("password123");
-        employee.setEnabled(true);
+    void testLogout() {
+        LogoutDto logoutDto = new LogoutDto("some-refresh-token");
 
-        when(employeeRepository.findByEmail(loginDto.email())).thenReturn(Optional.of(employee));
-        when(jwtUtil.generateToken(any(Employee.class))).thenReturn("access_token");
-        when(jwtUtil.generateRefreshToken(any())).thenReturn("refresh_token");
+        ResponseEntity<Void> response = authService.logout(logoutDto);
 
-        // Act
-        ResponseEntity<?> response = employeeService.login(loginDto);
-
-        // Assert
-        assertNotNull(response);
+        verify(jwtUtil, times(1)).invalidateToken("some-refresh-token");
         assertEquals(200, response.getStatusCodeValue());
-        assertInstanceOf(LoginResponseDto.class, response.getBody());
-
-        LoginResponseDto responseBody = (LoginResponseDto) response.getBody();
-        assertEquals("access_token", responseBody.accessToken());
-        assertEquals("refresh_token", responseBody.refreshToken());
-
-        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(employeeRepository).findByEmail(loginDto.email());
-        verify(jwtUtil).generateToken(any(Employee.class));
-        verify(jwtUtil).generateRefreshToken(any());
     }
 
     @Test
-    public void testLoginFailure() {
-        // Arrange
-        LoginDto loginDto = new LoginDto("test@example.com", "wrongpassword");
-
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new IncorrectCredentials());
-
-        // Act & Assert
-        assertThrows(IncorrectCredentials.class, () -> employeeService.login(loginDto));
-
-        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(employeeRepository, never()).findByEmail(anyString());
-        verify(jwtUtil, never()).generateToken(any(Employee.class));
-        verify(jwtUtil, never()).generateRefreshToken(any());
-    }
-
-    @Test
-    public void testRefreshToken_Success() {
-        // Arrange
-        String token = "validRefreshToken";
-        String refreshToken = "validRefreshToken";
-        String username = "test@example.com";
-        String newAccessToken = "newAccessToken";
-
+    void testRefreshToken() {
+        String token = "some-token";
+        String username = "user@example.com";
         Employee employee = new Employee();
-        employee.setEmail(username);
+        String newAccessToken = "new-access-token";
 
-        when(jwtUtil.extractUsername(refreshToken)).thenReturn(username);
-        when(jwtUtil.isTokenExpired(refreshToken)).thenReturn(false);
+        when(jwtUtil.extractUsername(token)).thenReturn(username);
+        when(jwtUtil.isTokenInvalidated(token)).thenReturn(false);
         when(employeeRepository.findByEmail(username)).thenReturn(Optional.of(employee));
         when(jwtUtil.generateToken(employee)).thenReturn(newAccessToken);
 
-        // Act
-        ResponseEntity<?> response = authService.refreshToken(token);
+        ResponseEntity<RefreshTokenResponseDto> response = authService.refreshToken(token);
 
-        // Assert
         assertEquals(200, response.getStatusCodeValue());
-        assertInstanceOf(RefreshTokenResponseDto.class, response.getBody());
-
-        RefreshTokenResponseDto responseBody = (RefreshTokenResponseDto) response.getBody();
-        assertEquals(newAccessToken, responseBody.accessToken());
+        assertNotNull(response.getBody());
+        assertEquals(newAccessToken, response.getBody().accessToken());
     }
 
     @Test
-    public void testRefreshToken_InvalidTokenFormat() {
-        // Arrange
-        String token = "invalidToken";
+    void testRefreshTokenWithInvalidToken() {
+        String token = "some-token";
 
-        // Act & Assert
-        assertThrows(IncorrectCredentials.class, () -> authService.refreshToken(token));
-    }
+        when(jwtUtil.isTokenInvalidated(token)).thenReturn(true);
 
-    @Test
-    public void testRefreshToken_TokenExpired() {
-        // Arrange
-        String token = "expiredRefreshToken";
-        String refreshToken = "expiredRefreshToken";
-        String username = "test@example.com";
-
-        when(jwtUtil.extractUsername(refreshToken)).thenReturn(username);
-        when(jwtUtil.isTokenInvalidated(refreshToken)).thenReturn(true);
-
-        // Act & Assert
         assertThrows(RefreshTokenRevoked.class, () -> authService.refreshToken(token));
     }
 
     @Test
-    public void testRefreshToken_EmployeeNotFound() {
-        // Arrange
-        String token = "validRefreshToken";
-        String refreshToken = "validRefreshToken";
-        String username = "test@example.com";
+    void testVerifyAccountWithInvalidCode() {
+        EmployeeVerificationRequestDto request = new EmployeeVerificationRequestDto("invalid-code", "password");
 
-        when(jwtUtil.extractUsername(refreshToken)).thenReturn(username);
-        when(jwtUtil.isTokenExpired(refreshToken)).thenReturn(false);
-        when(employeeRepository.findByEmail(username)).thenReturn(Optional.empty());
+        when(verificationCodeService.validateVerificationCode("invalid-code")).thenReturn(Optional.empty());
 
-        // Act & Assert
-        assertThrows(IncorrectCredentials.class, () -> authService.refreshToken(token));
+        assertThrows(VerificationCodeExpiredOrInvalid.class, () -> authService.verifyAccount(request));
     }
 
     @Test
-    public void testGetMe_Success() {
-        // Arrange
-        String token = "Bearer validToken";
-        String username = "test@example.com";
+    void testForgotPassword() {
+        String email = "user@example.com";
+        VerificationCode verificationCode = new VerificationCode();
         Employee employee = new Employee();
-        employee.setId("1");
         employee.setFirstName("John");
-        employee.setLastName("Doe");
-        employee.setEmail(username);
 
-        when(jwtUtil.extractUsername(anyString())).thenReturn(username);
-        when(jwtUtil.isTokenExpired(anyString())).thenReturn(false);
-        when(employeeRepository.findByEmail(anyString())).thenReturn(Optional.of(employee));
+        when(verificationCodeService.createVerificationCode(email)).thenReturn(verificationCode);
+        when(employeeService.findEmployeeByEmail(email)).thenReturn(Optional.of(employee));
 
-        // Act
-        ResponseEntity<?> response = employeeService.getMe(token);
+        ResponseEntity<Void> response = authService.forgotPassword(email);
 
-        // Assert
-        assertNotNull(response);
+        verify(rabbitTemplate, times(1)).convertAndSend(anyString(), anyString(), Optional.ofNullable(any()));
         assertEquals(200, response.getStatusCodeValue());
-        assertInstanceOf(MeResponseDto.class, response.getBody());
-
-        MeResponseDto responseBody = (MeResponseDto) response.getBody();
-        assertEquals("1", responseBody.id());
-        assertEquals("John", responseBody.firstName());
-        assertEquals("Doe", responseBody.lastName());
-
-        verify(jwtUtil).extractUsername(anyString());
-        verify(jwtUtil).isTokenExpired(anyString());
-        verify(employeeRepository).findByEmail(anyString());
     }
 
     @Test
-    public void testGetMe_InvalidTokenFormat() {
-        // Act & Assert
-        assertThrows(NotAuthenticated.class, () -> employeeService.getMe("invalidToken"));
+    void testForgotPasswordWithNonExistentEmail() {
+        String email = "nonexistent@example.com";
+
+        when(employeeService.findEmployeeByEmail(email)).thenReturn(Optional.empty());
+
+        assertThrows(NotFound.class, () -> authService.forgotPassword(email));
     }
-
-    @Test
-    public void testGetMe_TokenExpired() {
-        // Arrange
-        String token = "Bearer expiredToken";
-        String username = "test@example.com";
-
-        when(jwtUtil.extractUsername(anyString())).thenReturn(username);
-        when(jwtUtil.isTokenExpired(anyString())).thenReturn(true);
-
-        // Act & Assert
-        assertThrows(NotAuthenticated.class, () -> employeeService.getMe(token));
-
-        verify(jwtUtil).extractUsername(anyString());
-        verify(jwtUtil).isTokenExpired(anyString());
-        verify(employeeRepository, never()).findByEmail(anyString());
-    }
-
-    @Test
-    public void testGetMe_EmployeeNotFound() {
-        // Arrange
-        String token = "Bearer validToken";
-        String username = "test@example.com";
-
-        when(jwtUtil.extractUsername(anyString())).thenReturn(username);
-        when(jwtUtil.isTokenExpired(anyString())).thenReturn(false);
-        when(employeeRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(NotAuthenticated.class, () -> employeeService.getMe(token));
-
-        verify(jwtUtil).extractUsername(anyString());
-        verify(jwtUtil).isTokenExpired(anyString());
-        verify(employeeRepository).findByEmail(anyString());
-    }
-
-    @Test
-    public void testLogout_Success() {
-        // Arrange
-        String refreshToken = "validToken";
-        LogoutDto logoutDto = new LogoutDto(refreshToken);
-
-        // Act
-        ResponseEntity<?> response = authService.logout(logoutDto);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-
-        verify(jwtUtil).invalidateToken("validToken");
-    }
-
 }

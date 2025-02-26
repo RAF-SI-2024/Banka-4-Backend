@@ -20,12 +20,15 @@ public class EmailService {
 
     private final JavaMailSender emailSender;
 
-    public void sendEmail(String to, String subject, String body) throws MessagingException {
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+    public void sendEmail(String to, String subject, String htmlBody, String textBody) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
         helper.setTo(to);
         helper.setSubject(subject);
-        helper.setText(body, true);
+        helper.setText(textBody, htmlBody);
         emailSender.send(message);
     }
 
@@ -33,26 +36,26 @@ public class EmailService {
     public void processEmailMessage(EmailDetailDto emailDetailDto) throws MessagingException {
         String to = emailDetailDto.recipient();
         String subject = setSubject(emailDetailDto.topic());
-        String body = generateEmailBody(emailDetailDto);
-        sendEmail(to, subject, body);
+        String htmlBody = generateEmailBody(emailDetailDto, "html");
+        String textBody = generateEmailBody(emailDetailDto, "txt");
+        sendEmail(to, subject, htmlBody, textBody);
     }
 
-    public String generateEmailBody(EmailDetailDto emailDetailDto) {
+    public String generateEmailBody(EmailDetailDto emailDetailDto, String format) {
         String templateName = emailDetailDto.topic();
-        String template = loadEmailTemplate(templateName);
+        String template = loadEmailTemplate(templateName, format);
 
         String body = template;
-        if (emailDetailDto.params() != null) {
-            for (Map.Entry<String, Object> entry : emailDetailDto.params().entrySet()) {
-                body = body.replace("{{" + entry.getKey() + "}}", entry.getValue().toString());
-            }
+        emailDetailDto.params().put("baseUrl", baseUrl);
+        for (Map.Entry<String, Object> entry : emailDetailDto.params().entrySet()) {
+            body = body.replace("{{" + entry.getKey() + "}}", entry.getValue().toString());
         }
 
         return body;
     }
 
-    public String loadEmailTemplate(String templateName) {
-        ClassPathResource resource = new ClassPathResource("templates/" + templateName + ".html");
+    public String loadEmailTemplate(String templateName, String format) {
+        ClassPathResource resource = new ClassPathResource("templates/" + templateName + "." + format);
         try {
             return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
