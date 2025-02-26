@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import rs.banka4.user_service.models.Privilege;
 
 import java.util.List;
 
@@ -40,6 +41,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(WHITE_LIST_URL).permitAll()
                         .requestMatchers(HttpMethod.POST, "/employee/search").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/auth/employee/privileges").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/employee").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(ses -> ses.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

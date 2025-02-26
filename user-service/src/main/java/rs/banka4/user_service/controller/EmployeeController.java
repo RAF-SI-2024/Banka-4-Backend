@@ -2,6 +2,8 @@ package rs.banka4.user_service.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.*;
@@ -34,4 +36,19 @@ public class EmployeeController {
         return employeeService.logout(logoutDto);
     }
 
+    @GetMapping("/employee/privileges")
+    public ResponseEntity<PrivilegesDto> getPrivileges(@RequestHeader("Authorization") String authorization) {
+        return employeeService.getPrivileges();
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<EmployeeDto>> getEmployees(@RequestParam(required = false) String firstName,
+                                                          @RequestParam(required = false) String lastName,
+                                                          @RequestParam(required = false) String email,
+                                                          @RequestParam(required = false) String position,
+                                                          @RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "10") int size,
+                                                          @RequestHeader("Authorization") String authorization) {
+        return employeeService.getAll(firstName, lastName, email, position, PageRequest.of(page, size));
+    }
 }
