@@ -29,7 +29,8 @@ public class SecurityConfig {
     private static final String[] WHITE_LIST_URL = {
             "/auth/employee/login",
             "/auth/client/login",
-            "/auth/refresh-token"
+            "/auth/refresh-token",
+            "/auth/employee/**"
     };
 
     @Bean
