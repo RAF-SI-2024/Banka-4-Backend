@@ -37,6 +37,8 @@ dependencies {
 	implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0")
 	implementation("com.github.vladimir-bukhtoyarov:bucket4j-jcache:4.10.0")
 	implementation("com.google.guava:guava:30.1-jre")
+	implementation("org.springframework.amqp:spring-amqp:3.2.3")
+	implementation("org.springframework.amqp:spring-rabbit:3.2.3")
 	runtimeOnly("javax.cache:cache-api:1.1.1")
 	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 	compileOnly("org.projectlombok:lombok")

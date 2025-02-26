@@ -20,6 +20,7 @@ import rs.banka4.user_service.utils.specification.EmployeeSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.EnumSet;
@@ -34,6 +35,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final JwtUtil jwtUtil;
     private final BasicEmployeeMapper basicEmployeeMapper;
+    private final PasswordEncoder passwordEncoder;
+
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
@@ -170,4 +173,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return ResponseEntity.ok(dtos);
     }
+
+    @Override
+    public Optional<Employee> findEmployee(String email) {
+        return employeeRepository.findByEmail(email);
+    }
+
+    @Override
+    public void activateEmployeeAccount(Employee employee, String password) {
+        employee.setEnabled(true);
+        employee.setPassword(passwordEncoder.encode(password));
+        employeeRepository.save(employee);
+    }
+
 }
