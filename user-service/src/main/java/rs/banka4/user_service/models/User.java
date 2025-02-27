@@ -10,6 +10,7 @@ import lombok.experimental.SuperBuilder;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.stream.Stream;
 
 @MappedSuperclass
@@ -55,11 +56,13 @@ public abstract class User {
     public long permissionBits;
 
     public EnumSet<Privilege> getPrivileges() {
-        return EnumSet.copyOf(
-                Stream.of(Privilege.values())
-                        .filter(p -> (permissionBits & p.bit()) != 0)
-                        .toList()
-        );
+        List<Privilege> privileges = Stream.of(Privilege.values())
+                .filter(p -> (permissionBits & p.bit()) != 0)
+                .toList();
+        if (privileges.isEmpty()) {
+            return EnumSet.noneOf(Privilege.class);
+        }
+        return EnumSet.copyOf(privileges);
     }
 
     public void setPrivileges(Collection<Privilege> privileges) {
