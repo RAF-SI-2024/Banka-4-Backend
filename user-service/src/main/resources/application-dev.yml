@@ -38,6 +38,11 @@ spring:
             scripts:
               action: create
               create-target: /dev/stderr
+springdoc:
+  api-docs:
+    path: /docs/api
+  swagger-ui:
+    path: /docs/ui
 
 jwt:
   secret:
