@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
@@ -52,8 +53,8 @@ public class EmployeeController {
             }
     )
     @GetMapping("/me")
-    public ResponseEntity<EmployeeResponseDto> me(@RequestHeader("Authorization") String authorization) {
-        return employeeService.getMe(authorization);
+    public ResponseEntity<EmployeeResponseDto> me(Authentication auth) {
+        return employeeService.getMe((String) auth.getCredentials());
     }
 
     @Operation(
