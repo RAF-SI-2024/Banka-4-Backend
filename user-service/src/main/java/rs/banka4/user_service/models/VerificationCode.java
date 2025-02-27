@@ -26,6 +26,7 @@ public class VerificationCode {
     private String code;
     private LocalDateTime expirationDate;
     private boolean used;
+    // TODO: Maybe use ID instead of email
     private String email;
 
     public VerificationCode() {}

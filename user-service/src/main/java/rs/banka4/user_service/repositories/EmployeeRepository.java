@@ -8,7 +8,7 @@ import rs.banka4.user_service.models.Employee;
 import java.util.Optional;
 
 @Repository
-public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSpecificationExecutor<Employee> {
+public interface EmployeeRepository extends JpaRepository<Employee, String>, JpaSpecificationExecutor<Employee> {
     Optional<Employee> findByEmail(String email);
     boolean existsByEmail(String email);
     boolean existsByUsername(String username);

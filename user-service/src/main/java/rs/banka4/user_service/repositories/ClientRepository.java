@@ -7,6 +7,6 @@ import rs.banka4.user_service.models.Client;
 import java.util.Optional;
 
 @Repository
-public interface ClientRepository extends JpaRepository<Client, Long> {
+public interface ClientRepository extends JpaRepository<Client, String> {
     Optional<Client> findByEmail(String email);
 }
