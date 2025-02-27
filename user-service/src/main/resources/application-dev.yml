@@ -22,6 +22,7 @@ spring:
     # Default credentials used in the dev Compose file.
     username: guest
     password: guest
+    host: broker
 
   # Generate DDL in create-ddl output
   jpa:

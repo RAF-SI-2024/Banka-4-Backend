@@ -1,7 +1,6 @@
 package rs.banka4.user_service.mapper;
 
 import org.mapstruct.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import rs.banka4.user_service.dto.UpdateEmployeeDto;
 import rs.banka4.user_service.exceptions.PrivilegeDoesNotExist;
 import rs.banka4.user_service.models.Employee;
@@ -16,10 +15,10 @@ public interface EmployeeMapper {
     UpdateEmployeeDto toDto(Employee employee);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateEmployeeFromDto(UpdateEmployeeDto dto, @MappingTarget Employee employee, @Context PasswordEncoder passwordEncoder);
+    void updateEmployeeFromDto(UpdateEmployeeDto dto, @MappingTarget Employee employee);
 
     @AfterMapping
-    default void afterUpdate(@MappingTarget Employee employee, UpdateEmployeeDto dto, @Context PasswordEncoder passwordEncoder) {
+    default void afterUpdate(@MappingTarget Employee employee, UpdateEmployeeDto dto) {
         if (dto.privilege() != null) {
             employee.setPrivileges(
                     dto.privilege().stream()
@@ -33,10 +32,6 @@ public interface EmployeeMapper {
                             .collect(Collectors.toSet())
             );
         }
-        if (dto.password() != null) {
-            if(!passwordEncoder.matches(dto.password(), employee.getPassword())){
-                employee.setPassword(passwordEncoder.encode(dto.password()));
-            }
-        }
+        employee.setActive(dto.active());
     }
 }

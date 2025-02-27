@@ -119,7 +119,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = basicEmployeeMapper.toEntity(dto);
         employeeRepository.save(employee);
 
-//        sendVerificationEmailToEmployee(employee.getFirstName(), employee.getEmail());
+        sendVerificationEmailToEmployee(employee.getFirstName(), employee.getEmail());
 
         return ResponseEntity.ok().build();
     }
@@ -170,9 +170,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPassword(passwordEncoder.encode(password));
         employeeRepository.save(employee);
     }
-    public ResponseEntity<Void> updateEmployee(String id, UpdateEmployeeDto updateEmployeeDto) {
 
-        var employee = employeeRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
+    public ResponseEntity<Void> updateEmployee(String id, UpdateEmployeeDto updateEmployeeDto) {
+        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
 
         if (employeeRepository.existsByEmail(updateEmployeeDto.email())) {
             throw new DuplicateEmail(updateEmployeeDto.email());
@@ -182,7 +182,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new DuplicateUsername(updateEmployeeDto.username());
         }
 
-        employeeMapper.updateEmployeeFromDto(updateEmployeeDto, employee, passwordEncoder);
+        employeeMapper.updateEmployeeFromDto(updateEmployeeDto, employee);
         employeeRepository.save(employee);
 
         return ResponseEntity.ok().build();

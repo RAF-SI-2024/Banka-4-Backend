@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 
 public record EmployeeVerificationRequestDto(
         @NotNull(message = "Password cannot be null")
-        @Size(min = 8, max = 32, message = "Password must be between 8 and 32 characters")
+        @Size(min = 8, message = "Password must be at least 8 characters long")
         String password,
         @NotNull(message = "Verification code cannot be null")
         String verificationCode

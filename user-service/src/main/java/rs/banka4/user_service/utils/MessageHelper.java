@@ -11,13 +11,13 @@ public class MessageHelper {
         Map<String, Object> params = new HashMap<>();
         params.put("firstName", firstName);
         params.put("verificationCode", verificationCode);
-        return new NotificationTransferDto("FORGOT_PASSWORD", emailReceiver, params);
+        return new NotificationTransferDto("password-reset", emailReceiver, params);
     }
 
     public static NotificationTransferDto createAccountActivationMessage(String emailReceiver, String firstName, String verificationCode) {
         Map<String, Object> params = new HashMap<>();
         params.put("firstName", firstName);
         params.put("verificationCode", verificationCode);
-        return new NotificationTransferDto("ACCOUNT_ACTIVATION", emailReceiver, params);
+        return new NotificationTransferDto("account-activation", emailReceiver, params);
     }
 }

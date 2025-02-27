@@ -51,7 +51,7 @@ public class EditEmployeeTest {
         existingEmployee.setPrivileges(EnumSet.of(Privilege.SEARCH));
 
         updateEmployeeDto = new UpdateEmployeeDto("jon", "jonon",
-                LocalDate.now(), "Male", "new.email@example.com", "newPassword", "newUsername",
+                LocalDate.now(), "Male", "new.email@example.com", "newUsername",
                 "+12324335", "abc 12", List.of("SEARCH","FILTER"),"Nz","12", true);
 
     }
@@ -63,14 +63,11 @@ public class EditEmployeeTest {
         when(employeeRepository.existsByEmail(updateEmployeeDto.email())).thenReturn(false);
         when(employeeRepository.existsByUsername(updateEmployeeDto.username())).thenReturn(false);
 
-        when(passwordEncoder.matches(updateEmployeeDto.password(), existingEmployee.getPassword())).thenReturn(false);
-        when(passwordEncoder.encode(updateEmployeeDto.password())).thenReturn("encodedNewPassword");
-
         employeeService.updateEmployee("123", updateEmployeeDto);
 
         verify(passwordEncoder, times(1)).encode("newPassword");
 
-        verify(employeeMapper).updateEmployeeFromDto(updateEmployeeDto, existingEmployee, passwordEncoder);
+        verify(employeeMapper).updateEmployeeFromDto(updateEmployeeDto, existingEmployee);
 
         assertEquals("new.email@example.com", existingEmployee.getEmail());
         assertEquals("encodedNewPassword", existingEmployee.getPassword());

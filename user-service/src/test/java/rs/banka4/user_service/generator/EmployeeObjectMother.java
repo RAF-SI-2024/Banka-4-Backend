@@ -11,6 +11,6 @@ public class EmployeeObjectMother {
         return new CreateEmployeeDto(
                 "John", "Doe", "johndoe", LocalDate.of(1990, 1, 1),
                 "Male", "john.doe@example.com", "+1234567890", "123 Main St",
-                List.of(Privilege.SEARCH.name()), "Developer", "IT");
+                List.of(Privilege.SEARCH.name()), "Developer", "IT", true);
     }
 }
