@@ -39,6 +39,9 @@ dependencies {
 	implementation("com.google.guava:guava:30.1-jre")
 	implementation("org.springframework.amqp:spring-amqp:3.2.3")
 	implementation("org.springframework.amqp:spring-rabbit:3.2.3")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
+	implementation("org.springdoc:springdoc-openapi-starter-common:2.8.5")
+
 	runtimeOnly("javax.cache:cache-api:1.1.1")
 	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 	compileOnly("org.projectlombok:lombok")
