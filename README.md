@@ -42,6 +42,10 @@ The aforementioned files are already ignored.
 > **PLEASE USE THIS FEATURE SPARINGLY**, it will lead to differences between
 > developer machines, which are very annoying.
 
+### Swagger UI
+A Swagger UI for the user service is available on `/docs/swagger-ui` on the
+usual port.
+
 ## Writing migrations
 This project uses
 [Flyway](https://documentation.red-gate.com/fd/migrations-271585107.html)
