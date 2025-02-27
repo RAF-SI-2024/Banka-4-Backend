@@ -14,7 +14,7 @@ public class RabbitMqConfig {
 
     @Bean
     public Exchange notificationExchange() {
-        return ExchangeBuilder.directExchange(EXCHANGE_NAME).durable(true).build();
+        return ExchangeBuilder.topicExchange(EXCHANGE_NAME).durable(true).build();
     }
 
     @Bean

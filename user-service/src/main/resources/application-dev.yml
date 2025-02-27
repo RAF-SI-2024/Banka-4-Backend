@@ -22,6 +22,7 @@ spring:
     # Default credentials used in the dev Compose file.
     username: guest
     password: guest
+    host: broker
 
   # Generate DDL in create-ddl output
   jpa:
@@ -41,3 +42,14 @@ spring:
 jwt:
   secret:
     key: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+
+rabbitmq:
+  queue:
+    email:
+      name: notification-queue
+  exchange:
+    email:
+      name: notification-queue
+  binding:
+    email:
+      name: notification-queue

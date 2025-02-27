@@ -118,7 +118,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = basicEmployeeMapper.toEntity(dto);
         employeeRepository.save(employee);
 
-        sendVerificationEmailToEmployee(employee.getFirstName(), employee.getEmail());
+//        sendVerificationEmailToEmployee(employee.getFirstName(), employee.getEmail());
 
         return ResponseEntity.ok().build();
     }
@@ -167,6 +167,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPassword(passwordEncoder.encode(password));
         employeeRepository.save(employee);
     }
+
     public ResponseEntity<Void> updateEmployee(String id, EmployeeUpdateDto employeeUpdateDto) {
 
         var employee = employeeRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
@@ -189,9 +190,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     private void sendVerificationEmailToEmployee(String firstName, String email) {
         VerificationCode verificationCode = verificationCodeService.createVerificationCode(email);
 
-        NotificationTransferDto message = MessageHelper.createAccountActivationMessage(email,
+        NotificationTransferDto message = MessageHelper.createAccountActivationMessage(
+                email,
                 firstName,
-                verificationCode.getCode());
+                verificationCode.getCode()
+        );
 
         rabbitTemplate.convertAndSend(
                 RabbitMqConfig.EXCHANGE_NAME,
