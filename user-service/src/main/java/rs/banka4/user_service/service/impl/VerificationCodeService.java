@@ -1,6 +1,7 @@
 package rs.banka4.user_service.service.impl;
 
 import org.springframework.stereotype.Service;
+import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
 import rs.banka4.user_service.models.VerificationCode;
 import rs.banka4.user_service.repositories.VerificationCodeRepository;
 
@@ -31,7 +32,7 @@ public class VerificationCodeService {
             VerificationCode verificationCode = optionalCode.get();
             // Code is invalid if already used or expired
             if (verificationCode.isUsed() || verificationCode.getExpirationDate().isBefore(LocalDateTime.now())) {
-                return Optional.empty();
+                throw new VerificationCodeExpiredOrInvalid();
             }
             return Optional.of(verificationCode);
         }
