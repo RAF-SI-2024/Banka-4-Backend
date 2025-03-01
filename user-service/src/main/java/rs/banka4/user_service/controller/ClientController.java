@@ -32,7 +32,7 @@ public class ClientController {
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successfully retrieved client details",
-                            content = @Content(schema = @Schema(implementation = EmployeeResponseDto.class))),
+                            content = @Content(schema = @Schema(implementation = ClientDto.class))),
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token"),
                     @ApiResponse(responseCode = "403", description = "Forbidden - Access denied due to invalid token")
             }
