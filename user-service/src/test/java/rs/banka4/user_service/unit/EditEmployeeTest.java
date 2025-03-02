@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import rs.banka4.user_service.dto.UpdateEmployeeDto;
+import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
 import rs.banka4.user_service.mapper.EmployeeMapper;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.Privilege;

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.http.ResponseEntity;
-import rs.banka4.user_service.dto.CreateEmployeeDto;
+import rs.banka4.user_service.dto.requests.CreateEmployeeDto;
 import rs.banka4.user_service.generator.EmployeeObjectMother;
 import rs.banka4.user_service.mapper.BasicEmployeeMapper;
 import rs.banka4.user_service.models.Employee;

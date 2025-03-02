@@ -2,7 +2,7 @@ package rs.banka4.user_service.mapper;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import rs.banka4.user_service.dto.CreateEmployeeDto;
+import rs.banka4.user_service.dto.requests.CreateEmployeeDto;
 import rs.banka4.user_service.exceptions.PrivilegeDoesNotExist;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.Privilege;

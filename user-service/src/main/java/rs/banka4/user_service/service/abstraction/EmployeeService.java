@@ -4,6 +4,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.dto.*;
+import rs.banka4.user_service.dto.requests.CreateEmployeeDto;
+import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
 import rs.banka4.user_service.models.Employee;
 
 import java.util.Optional;

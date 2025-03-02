@@ -1,7 +1,7 @@
 package rs.banka4.user_service.mapper;
 
 import org.mapstruct.*;
-import rs.banka4.user_service.dto.UpdateEmployeeDto;
+import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
 import rs.banka4.user_service.exceptions.PrivilegeDoesNotExist;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.Privilege;

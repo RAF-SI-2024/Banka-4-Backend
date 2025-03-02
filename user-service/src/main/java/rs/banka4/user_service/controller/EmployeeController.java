@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.*;
+import rs.banka4.user_service.dto.requests.CreateEmployeeDto;
+import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
 
 @RestController

@@ -4,7 +4,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.models.User;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 

@@ -1,14 +1,13 @@
-package rs.banka4.user_service.dto;
+package rs.banka4.user_service.dto.requests;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import rs.banka4.user_service.models.Privilege;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
+
 @Schema(description = "DTO for creating employee")
 public record CreateEmployeeDto(
         @Schema(description = "Employee's first name", example = "Ognjen")
