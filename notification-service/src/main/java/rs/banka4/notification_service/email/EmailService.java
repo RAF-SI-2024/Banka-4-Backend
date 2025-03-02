@@ -2,8 +2,11 @@ package rs.banka4.notification_service.email;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -14,23 +17,35 @@ import org.springframework.util.StreamUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class EmailService {
+    private static final Logger LOGGER
+        = LoggerFactory.getLogger(EmailService.class);
+    private final Optional<JavaMailSender> emailSender;
+    private final String baseUrl;
 
-    private final JavaMailSender emailSender;
-
-    @Value("${app.base-url}")
-    private String baseUrl;
+    public EmailService(@Autowired(required = false) JavaMailSender emailSender,
+                        @Value("${app.base-url:BASEURL}") String baseUrl) {
+        this.emailSender = Optional.ofNullable(emailSender);
+        this.baseUrl = baseUrl;
+    }
 
     public void sendEmail(String to, String subject, String htmlBody, String textBody) throws MessagingException {
-        MimeMessage message = emailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(textBody, htmlBody);
-        emailSender.send(message);
+        LOGGER.debug("Sending email with subject {}\nHTML:\n{}\n\nTXT:\n{}",
+                     subject, htmlBody, textBody);
+        if (emailSender.isPresent()) {
+            var sender = emailSender.get();
+            MimeMessage message = sender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(textBody, htmlBody);
+            sender.send(message);
+        } else {
+            LOGGER.warn("Mailer not configured - not sending mail");
+        }
     }
 
     @RabbitListener(queues = "${rabbitmq.queue.email.name}")

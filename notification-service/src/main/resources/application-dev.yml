@@ -49,3 +49,7 @@ rabbitmq:
   binding:
     email:
       name: notification-queue
+
+logging:
+  level:
+    rs.banka4: DEBUG
