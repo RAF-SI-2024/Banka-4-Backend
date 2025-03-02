@@ -1,7 +1,10 @@
 package rs.banka4.user_service.models;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.With;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Set;
@@ -14,8 +17,15 @@ import java.util.Set;
 @With
 public class Client extends User {
 
-    @ElementCollection
-    @CollectionTable(name = "client_linked_accounts", joinColumns = @JoinColumn(name = "client_id"))
-    @Column(name = "linked_account")
-    private Set<String> linkedAccounts;
+    @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
+    private Set<Account> accounts;
+
+    @ManyToMany
+    @JoinTable(
+            name = "client_contacts",
+            joinColumns = @JoinColumn(name = "client_id"),
+            inverseJoinColumns = @JoinColumn(name = "contact_id")
+    )
+    private Set<Client> contacts;
+
 }
