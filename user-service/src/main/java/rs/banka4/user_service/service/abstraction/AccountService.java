@@ -15,4 +15,7 @@ public interface AccountService {
     ResponseEntity<AccountDto> getAccount(String token, String id);
     ResponseEntity<Void> createAccount(CreateAccountDto createAccountDto);
     ResponseEntity<Page<AccountDto>> getAll(String firstName, String lastName, String id, PageRequest pageRequest);
+    ResponseEntity<Page<AccountDto>> getAllChecking(PageRequest pageRequest);
+    ResponseEntity<Page<AccountDto>> getAllFx(PageRequest pageRequest);
+
 }
