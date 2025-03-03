@@ -1,4 +1,4 @@
-package rs.banka4.user_service.unit;
+package rs.banka4.user_service.unit.filters;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
