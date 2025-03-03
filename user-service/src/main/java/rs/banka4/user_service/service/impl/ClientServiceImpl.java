@@ -1,6 +1,7 @@
 package rs.banka4.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -11,19 +12,20 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import rs.banka4.user_service.config.RabbitMqConfig;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreateClientDto;
 import rs.banka4.user_service.dto.requests.UpdateClientDto;
-import rs.banka4.user_service.exceptions.IncorrectCredentials;
-import rs.banka4.user_service.exceptions.NotActivated;
-import rs.banka4.user_service.exceptions.NotAuthenticated;
-import rs.banka4.user_service.exceptions.NotFound;
+import rs.banka4.user_service.exceptions.*;
 import rs.banka4.user_service.mapper.BasicClientMapper;
+import rs.banka4.user_service.mapper.ClientMapper;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Privilege;
+import rs.banka4.user_service.models.VerificationCode;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.utils.JwtUtil;
+import rs.banka4.user_service.utils.MessageHelper;
 
 import java.time.LocalDate;
 import java.util.EnumSet;
@@ -38,6 +40,9 @@ public class ClientServiceImpl implements ClientService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
+    private final ClientMapper clientMapper;
+    private final VerificationCodeService verificationCodeService;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
@@ -103,6 +108,17 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ResponseEntity<Void> createClient(CreateClientDto createClientDto) {
+
+        if(clientRepository.existsByEmail(createClientDto.email())){
+            throw new DuplicateEmail(createClientDto.email());
+        }
+
+        var clnt = clientMapper.toEntity(createClientDto);
+
+        clientRepository.save(clnt);
+
+        sendVerificationEmailToClient(createClientDto.firstName(),createClientDto.email());
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -128,5 +144,23 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ResponseEntity<Void> updateClient(String id, UpdateClientDto updateClientDto) {
         return null;
+    }
+
+    private void sendVerificationEmailToClient(String firstName, String email) {
+        VerificationCode verificationCode = verificationCodeService.createVerificationCode(email);
+
+        if (verificationCode == null || verificationCode.getCode() == null) {
+            throw new IllegalStateException("Failed to generate verification code for email: " + email);
+        }
+
+        NotificationTransferDto message = MessageHelper.createAccountActivationMessage(email,
+                firstName,
+                verificationCode.getCode());
+
+        rabbitTemplate.convertAndSend(
+                RabbitMqConfig.EXCHANGE_NAME,
+                RabbitMqConfig.ROUTING_KEY,
+                message
+        );
     }
 }
