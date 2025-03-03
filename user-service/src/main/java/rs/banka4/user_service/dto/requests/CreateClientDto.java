@@ -19,10 +19,6 @@ public record CreateClientDto(
         @NotBlank(message = "Last name is required")
         String lastName,
 
-        @Schema(description = "Client's username", example = "funfa2c1t")
-        @NotBlank(message = "Username is required")
-        String username,
-
         @Schema(description = "Client's date of birth", example = "1990-05-15")
         @NotNull(message = "Date of birth is required")
         LocalDate dateOfBirth,
