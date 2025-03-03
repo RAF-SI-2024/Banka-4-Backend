@@ -5,9 +5,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import rs.banka4.user_service.models.Privilege;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Schema(description = "DTO for creating Client")
 public record CreateClientDto(
@@ -42,10 +44,7 @@ public record CreateClientDto(
 
         @Schema(description = "Client's privileges", example = "[\"TRADE_STOCKS\", \"CONTRACTS\"]")
         @NotNull(message = "Privileges are required")
-        List<String> privilege,
+        Set<Privilege> privilege
 
-        @Schema(description = "Client's accounts", example = "[{}]")
-        @Valid
-        List<CreateAccountDto> accounts
 ) {
 }
