@@ -10,14 +10,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreateClientDto;
 import rs.banka4.user_service.dto.requests.UpdateClientDto;
-import rs.banka4.user_service.exceptions.IncorrectCredentials;
-import rs.banka4.user_service.exceptions.NotActivated;
-import rs.banka4.user_service.exceptions.NotAuthenticated;
-import rs.banka4.user_service.exceptions.NotFound;
+import rs.banka4.user_service.exceptions.*;
 import rs.banka4.user_service.mapper.BasicClientMapper;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Privilege;
@@ -28,6 +26,7 @@ import rs.banka4.user_service.utils.JwtUtil;
 import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -38,6 +37,7 @@ public class ClientServiceImpl implements ClientService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
@@ -129,4 +129,17 @@ public class ClientServiceImpl implements ClientService {
     public ResponseEntity<Void> updateClient(String id, UpdateClientDto updateClientDto) {
         return null;
     }
+
+    @Override
+    public void activateClientAccount(Client client, String password) {
+        client.setEnabled(true);
+        client.setPassword(passwordEncoder.encode(password));
+        clientRepository.save(client);
+    }
+
+    @Override
+    public Optional<Client> findClientByEmail(String email) {
+        return clientRepository.findByEmail(email);
+    }
+
 }

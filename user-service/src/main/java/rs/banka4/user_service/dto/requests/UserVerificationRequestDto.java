@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "Verify employee DTO")
-public record EmployeeVerificationRequestDto(
+public record UserVerificationRequestDto(
         @NotNull(message = "Password cannot be null")
         @Size(min = 8, message = "Password must be at least 8 characters long")
         @Schema(description = "User's password", example = "password")

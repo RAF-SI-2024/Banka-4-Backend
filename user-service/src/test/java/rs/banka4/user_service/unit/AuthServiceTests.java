@@ -9,7 +9,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.dto.LogoutDto;
 import rs.banka4.user_service.dto.RefreshTokenResponseDto;
-import rs.banka4.user_service.dto.requests.EmployeeVerificationRequestDto;
+import rs.banka4.user_service.dto.requests.UserVerificationRequestDto;
 import rs.banka4.user_service.exceptions.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.NotFound;
 import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
@@ -136,7 +136,7 @@ public class AuthServiceTests {
     @Test
     void testVerifyAccountWithValidCode() {
         // Arrange
-        EmployeeVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "valid-code");
+        UserVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "valid-code");
         VerificationCode verificationCode = AuthObjectMother.generateVerificationCode("user@example.com", "valid-code", false, LocalDateTime.now().plusDays(1));
         Employee employee = AuthObjectMother.generateEmployee("John", "Doe", "john.doe@example.com", "Developer");
 
@@ -155,7 +155,7 @@ public class AuthServiceTests {
     @Test
     void testVerifyAccountWithInvalidCode() {
         // Arrange
-        EmployeeVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "invalid-code");
+        UserVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "invalid-code");
 
         when(verificationCodeService.validateVerificationCode("invalid-code")).thenReturn(Optional.empty());
 
@@ -166,7 +166,7 @@ public class AuthServiceTests {
     @Test
     void testVerifyAccountWithUsedCode() {
         // Arrange
-        EmployeeVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "used-code");
+        UserVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "used-code");
 
         when(verificationCodeService.validateVerificationCode("used-code")).thenThrow(new VerificationCodeExpiredOrInvalid());
 
