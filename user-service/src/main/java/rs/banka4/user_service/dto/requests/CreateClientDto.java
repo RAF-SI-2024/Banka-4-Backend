@@ -50,6 +50,9 @@ public record CreateClientDto(
 
         @Schema(description = "Client's accounts", example = "[{}]")
         @Valid
-        List<CreateAccountDto> accounts
+        List<CreateAccountDto> accounts,
+
+        @Schema(description = "Client's company", example = "{}")
+        CreateCompanyDto company
 ) {
 }
