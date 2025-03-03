@@ -97,4 +97,19 @@ public class AccountController {
             @RequestBody @Valid CreateAccountDto createAccountDto) {
         return accountService.createAccount(createAccountDto);
     }
+    @Operation(summary = "Get all checking accounts with pagination")
+    @GetMapping("/checking")
+    public ResponseEntity<Page<AccountDto>> getAllChecking(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return accountService.getAllChecking(PageRequest.of(page, size));
+    }
+
+    @Operation(summary = "Get all FX accounts with pagination")
+    @GetMapping("/fx")
+    public ResponseEntity<Page<AccountDto>> getAllFx(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return accountService.getAllFx(PageRequest.of(page, size));
+    }
 }
