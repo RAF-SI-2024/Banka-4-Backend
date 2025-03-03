@@ -15,13 +15,18 @@ import rs.banka4.user_service.utils.JwtUtil;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtils;
     private final CustomUserDetailsService userDetailsService;
+    private final List<Pattern> WHITE_LIST_URL_PATTERNS = List.of(
+            Pattern.compile("/docs/.*")
+    );
 
     public JwtAuthenticationFilter(JwtUtil jwtUtils, CustomUserDetailsService userDetailsService) {
         this.jwtUtils = jwtUtils;
@@ -37,7 +42,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = null;
 
         boolean isWhitelisted = Arrays.stream(SecurityConfig.WHITE_LIST_URL)
-                .anyMatch(url -> request.getRequestURI().startsWith(url));
+                .anyMatch(url -> request.getRequestURI().startsWith(url)) ||
+                WHITE_LIST_URL_PATTERNS.stream()
+                        .anyMatch(pattern -> pattern.matcher(request.getRequestURI()).matches());
 
         if (!isWhitelisted) {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
