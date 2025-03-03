@@ -78,8 +78,8 @@ services:
       - /code/build/libs/notification-service-0.0.1-SNAPSHOT.jar
       - --spring.profiles.active=dev,local
     depends_on:
-      notification_service_db:
-        condition: service_healthy
+      # notification_service_db:
+      #   condition: service_healthy
       broker:
         condition: service_started
     volumes:
@@ -101,20 +101,20 @@ services:
           path: ./notification-service/settings.gradle.kts
           target: /code/settings.gradle.kts
 
-  notification_service_db:
-    image: postgres:17
-    restart: unless-stopped
-    shm_size: 128mb
-    environment:
-      POSTGRES_PASSWORD: lmaolmao123
-      POSTGRES_DB: notification-service
-      POSTGRES_USER: notification-service
-    volumes:
-      - notification_service_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: "pg_isready -d notification-service -U notification-service"
-      interval: 3s
-      start_period: 3s
+  # notification_service_db:
+  #   image: postgres:17
+  #   restart: unless-stopped
+  #   shm_size: 128mb
+  #   environment:
+  #     POSTGRES_PASSWORD: lmaolmao123
+  #     POSTGRES_DB: notification-service
+  #     POSTGRES_USER: notification-service
+  #   volumes:
+  #     - notification_service_db_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: "pg_isready -d notification-service -U notification-service"
+  #     interval: 3s
+  #     start_period: 3s
 
   # Central message broker.  The version below provides the management
   # interface to ease development.  Uses default credentials of guest / guest.
@@ -129,5 +129,5 @@ volumes:
   user_service_gradle:
   notification_service_gradle:
   # Database storage persistence.
-  notification_service_db_data:
+  # notification_service_db_data:
   user_service_db_data:
