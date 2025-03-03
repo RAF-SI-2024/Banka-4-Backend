@@ -9,10 +9,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreateAccountDto;
+import rs.banka4.user_service.models.Account;
 import rs.banka4.user_service.models.AccountType;
 import rs.banka4.user_service.models.Currency;
 import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.service.abstraction.AccountService;
+import rs.banka4.user_service.mapper.BasicAccountMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,6 +27,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
+    private final BasicAccountMapper accountMapper;
+    private final AccountRepository accountRepository;
     CurrencyDto currencyDto = new CurrencyDto(
             "11111111-2222-3333-4444-555555555555",
             "Serbian Dinar",
@@ -101,6 +106,20 @@ public class AccountServiceImpl implements AccountService {
         List<AccountDto> accountDtos = List.of(account1, account2);
         Page<AccountDto> accountPage = new PageImpl<>(accountDtos, pageRequest, accountDtos.size());
         return ResponseEntity.ok(accountPage);
+    }
+
+    @Override
+    public ResponseEntity<Page<AccountDto>> getAllChecking(PageRequest pageRequest) {
+        Page<Account> checkingAccounts = accountRepository.findAllByCurrency_Code(Currency.Code.RSD, pageRequest);
+        Page<AccountDto> checkingDtos = checkingAccounts.map(accountMapper::toDto);
+        return ResponseEntity.ok(checkingDtos);
+    }
+
+    @Override
+    public ResponseEntity<Page<AccountDto>> getAllFx(PageRequest pageRequest) {
+        Page<Account> fxAccounts = accountRepository.findAllByCurrency_CodeNot(Currency.Code.RSD, pageRequest);
+        Page<AccountDto> fxDtos = fxAccounts.map(accountMapper::toDto);
+        return ResponseEntity.ok(fxDtos);
     }
 
     @Override
