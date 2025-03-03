@@ -89,13 +89,14 @@ public class AuthServiceTests {
     @Test
     void testRefreshTokenSuccess() {
         // Arrange
-        String token = "some-token";
+        String token = "valid-token";
         String username = "user@example.com";
         Employee employee = AuthObjectMother.generateEmployee("John", "Doe", "john.doe@example.com", "Developer");
         String newAccessToken = "new-access-token";
 
         when(jwtUtil.extractUsername(token)).thenReturn(username);
         when(jwtUtil.isTokenInvalidated(token)).thenReturn(false);
+        when(jwtUtil.extractRole(token)).thenReturn("employee");
         when(employeeRepository.findByEmail(username)).thenReturn(Optional.of(employee));
         when(jwtUtil.generateToken(employee)).thenReturn(newAccessToken);
 
@@ -111,16 +112,18 @@ public class AuthServiceTests {
     @Test
     void testRefreshTokenWithNonExistentUser() {
         // Arrange
-        String token = "some-token";
+        String token = "valid-token";
         String username = "nonexistent@example.com";
 
         when(jwtUtil.extractUsername(token)).thenReturn(username);
+        when(jwtUtil.extractRole(token)).thenReturn("employee");
         when(jwtUtil.isTokenInvalidated(token)).thenReturn(false);
         when(employeeRepository.findByEmail(username)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(IncorrectCredentials.class, () -> authService.refreshToken(token));
     }
+
 
     @Test
     void testRefreshTokenWithInvalidToken() {

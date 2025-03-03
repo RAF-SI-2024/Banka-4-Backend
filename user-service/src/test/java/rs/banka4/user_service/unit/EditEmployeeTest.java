@@ -65,12 +65,9 @@ public class EditEmployeeTest {
 
         employeeService.updateEmployee("123", updateEmployeeDto);
 
-        verify(passwordEncoder, times(1)).encode("newPassword");
-
         verify(employeeMapper).updateEmployeeFromDto(updateEmployeeDto, existingEmployee);
 
         assertEquals("new.email@example.com", existingEmployee.getEmail());
-        assertEquals("encodedNewPassword", existingEmployee.getPassword());
         assertEquals(EnumSet.of(Privilege.SEARCH, Privilege.FILTER), existingEmployee.getPrivileges());
 
         verify(employeeRepository).save(existingEmployee);

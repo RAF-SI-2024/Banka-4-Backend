@@ -9,10 +9,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import rs.banka4.user_service.exceptions.jwt.NoJwtProvided;
 import rs.banka4.user_service.service.impl.CustomUserDetailsService;
 import rs.banka4.user_service.utils.JwtUtil;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Objects;
 
 @Component
@@ -27,16 +29,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         final String authorizationHeader = request.getHeader("Authorization");
         String username = null;
         String token = null;
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7);
-            username = jwtUtils.extractUsername(token);
+        boolean isWhitelisted = Arrays.stream(SecurityConfig.WHITE_LIST_URL)
+                .anyMatch(url -> request.getRequestURI().startsWith(url));
+
+        if (!isWhitelisted) {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                token = authorizationHeader.substring(7);
+                username = jwtUtils.extractUsername(token);
+            } else {
+                throw new NoJwtProvided();
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
