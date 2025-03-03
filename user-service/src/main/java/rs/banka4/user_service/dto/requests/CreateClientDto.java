@@ -11,17 +11,15 @@ import java.util.List;
 
 @Schema(description = "DTO for creating Client")
 public record CreateClientDto(
+        @Schema(description = "Client ID", example = "1fad2c01-f82f-41a6-822c-8ca1b3232575")
+        String id,
         @Schema(description = "Client's first name", example = "Ognjen")
         @NotBlank(message = "First name is required")
-        String firstName,
+        String name,
 
         @Schema(description = "Client's last name", example = "Jukic")
         @NotBlank(message = "Last name is required")
-        String lastName,
-
-        @Schema(description = "Client's username", example = "funfa2c1t")
-        @NotBlank(message = "Username is required")
-        String username,
+        String surname,
 
         @Schema(description = "Client's date of birth", example = "1990-05-15")
         @NotNull(message = "Date of birth is required")
@@ -42,14 +40,6 @@ public record CreateClientDto(
 
         @Schema(description = "Client's address", example = "123 Grove Street, City, Country")
         @NotBlank(message = "Address is required")
-        String address,
-
-        @Schema(description = "Client's privileges", example = "[\"TRADE_STOCKS\", \"CONTRACTS\"]")
-        @NotNull(message = "Privileges are required")
-        List<String> privilege,
-
-        @Schema(description = "Client's accounts", example = "[{}]")
-        @Valid
-        List<CreateAccountDto> accounts
+        String address
 ) {
 }
