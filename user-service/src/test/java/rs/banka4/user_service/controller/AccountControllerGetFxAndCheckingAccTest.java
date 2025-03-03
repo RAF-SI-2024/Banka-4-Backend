@@ -43,10 +43,13 @@ class AccountControllerGetFxAndCheckingAccTest {
 
         AccountDto checkingAccount = new AccountDto("id1", "1234567890", null, null, null, null, null, true, null, null, null, rsdCurrency, null, null, null);
         AccountDto fxAccount = new AccountDto("id2", "0987654321", null, null, null, null, null, true, null, null, null, eurCurrency, null, null, null);
+        AccountDto fxAccount2 = new AccountDto("id4", "5566778899", null, null, null, null, null, true, null, null, null, eurCurrency, null, null, null);
+        AccountDto checkingAccount2 = new AccountDto("id3", "1122334455", null, null, null, null, null, true, null, null, null, rsdCurrency, null, null, null);
 
-        checkingAccounts = new PageImpl<>(List.of(checkingAccount));
-        fxAccounts = new PageImpl<>(List.of(fxAccount));
+        checkingAccounts = new PageImpl<>(List.of(checkingAccount, checkingAccount2));
+        fxAccounts = new PageImpl<>(List.of(fxAccount, fxAccount2));
     }
+
     @Test
     void getAllChecking_ShouldReturnOnlyCheckingAccounts() {
         PageRequest pageRequest = PageRequest.of(0, 10);
@@ -58,8 +61,10 @@ class AccountControllerGetFxAndCheckingAccTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isEmpty());
-        assertEquals(1, response.getBody().getContent().size());
-        assertEquals(Currency.Code.RSD, response.getBody().getContent().get(0).currency().code());
+        assertEquals(2, response.getBody().getContent().size());
+        response.getBody().getContent().forEach(account ->
+                assertEquals(Currency.Code.RSD, account.currency().code())
+        );
         verify(accountService, times(1)).getAllChecking(pageRequest);
     }
 
@@ -74,31 +79,61 @@ class AccountControllerGetFxAndCheckingAccTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isEmpty());
-        assertEquals(1, response.getBody().getContent().size());
-        assertNotEquals(Currency.Code.RSD, response.getBody().getContent().get(0).currency().code());
+        assertEquals(2, response.getBody().getContent().size());
+        response.getBody().getContent().forEach(account ->
+                assertNotEquals(Currency.Code.RSD, account.currency().code())
+        );
         verify(accountService, times(1)).getAllFx(pageRequest);
     }
+
     @Test
-    void getAllChecking() {
+    void getAllChecking_ShouldReturnForbidden() {
         PageRequest pageRequest = PageRequest.of(0, 10);
-        when(accountService.getAllChecking(pageRequest)).thenReturn(ResponseEntity.ok(Page.empty()));
+        when(accountService.getAllChecking(pageRequest)).thenReturn(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
 
         ResponseEntity<Page<AccountDto>> response = accountController.getAllChecking(0, 10);
 
         assertNotNull(response);
-        assertNotNull(response.getBody());
-        verify(accountService, times(1)).getAllChecking(pageRequest);
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     @Test
-    void getAllFx() {
+    void getAllFx_ShouldReturnUnauthorized() {
         PageRequest pageRequest = PageRequest.of(0, 10);
-        when(accountService.getAllFx(pageRequest)).thenReturn(ResponseEntity.ok(Page.empty()));
+        when(accountService.getAllFx(pageRequest)).thenReturn(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
 
         ResponseEntity<Page<AccountDto>> response = accountController.getAllFx(0, 10);
 
         assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+    @Test
+    void getAllChecking_ShouldRespectPagination() {
+        PageRequest pageRequest = PageRequest.of(1, 1);
+        when(accountService.getAllChecking(pageRequest)).thenReturn(ResponseEntity.ok(new PageImpl<>(List.of(checkingAccounts.getContent().get(1)), pageRequest, checkingAccounts.getTotalElements())));
+
+        ResponseEntity<Page<AccountDto>> response = accountController.getAllChecking(1, 1);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals("id3", response.getBody().getContent().get(0).id());
+        verify(accountService, times(1)).getAllChecking(pageRequest);
+    }
+
+    @Test
+    void getAllFx_ShouldRespectPagination() {
+        PageRequest pageRequest = PageRequest.of(0, 1);
+        when(accountService.getAllFx(pageRequest)).thenReturn(ResponseEntity.ok(new PageImpl<>(List.of(fxAccounts.getContent().get(0)), pageRequest, fxAccounts.getTotalElements())));
+
+        ResponseEntity<Page<AccountDto>> response = accountController.getAllFx(0, 1);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals("id2", response.getBody().getContent().get(0).id());
         verify(accountService, times(1)).getAllFx(pageRequest);
     }
 
