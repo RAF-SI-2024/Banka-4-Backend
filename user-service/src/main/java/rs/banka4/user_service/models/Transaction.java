@@ -23,36 +23,38 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Column(nullable = false, unique = true)
+    private String transactionNumber;
+
     @ManyToOne(optional = false)
-    private Account account;
+    @JoinColumn(name = "from_account_id", nullable = false)
+    private Account fromAccount;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "to_account_id", nullable = false)
+    private Account toAccount;
 
     @Column(nullable = false)
-    private LocalDateTime transactionDateTime;
-
-    @Column(nullable = false, unique = true)
-    private String orderReference;
+    private BigDecimal amount;
 
     @ManyToOne(optional = false)
-    private Client client;
+    @JoinColumn(name = "currency_id", nullable = false)
+    private Currency currency;
+
+    @Column(nullable = false, length = 255)
+    private String recipient;
+
+    @Column(nullable = true, length = 3)
+    private String paymentCode;
+
+    @Column(nullable = true, length = 50)
+    private String referenceNumber;
 
     @Column(nullable = false, length = 500)
-    private String transactionDescription;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Currency.Code currency;
+    private String paymentPurpose;
 
     @Column(nullable = false)
-    private BigDecimal depositAmount = BigDecimal.ZERO;
-
-    @Column(nullable = false)
-    private BigDecimal withdrawalAmount = BigDecimal.ZERO;
-
-    @Column(nullable = false)
-    private BigDecimal reservedAmount = BigDecimal.ZERO;
-
-    @Column(nullable = false)
-    private BigDecimal reservedUsedAmount = BigDecimal.ZERO;
+    private LocalDateTime paymentDateTime;
 
     @Override
     public final boolean equals(Object o) {
