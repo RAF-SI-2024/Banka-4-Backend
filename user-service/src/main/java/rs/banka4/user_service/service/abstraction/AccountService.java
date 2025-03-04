@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface AccountService {
     ResponseEntity<List<AccountDto>> getAccountsForClient(String token);
     ResponseEntity<List<AccountDto>> getRecentRecipientsFor(String token);
-    ResponseEntity<AccountDto> getAccount(String token, String id);
+    ResponseEntity<AccountDto> getAccount(UUID id);
     ResponseEntity<Void> createAccount(CreateAccountDto createAccountDto);
     ResponseEntity<Page<AccountDto>> getAll(String firstName, String lastName, String id, PageRequest pageRequest);
 }

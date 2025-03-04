@@ -24,6 +24,7 @@ import rs.banka4.user_service.service.abstraction.AccountService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/account")
@@ -57,8 +58,8 @@ public class AccountController {
             }
     )
     @GetMapping("/{id}")
-    public ResponseEntity<AccountDto> getAccount(@PathVariable String id, Authentication auth) {
-        return this.accountService.getAccount(auth.getCredentials().toString(), id);
+    public ResponseEntity<AccountDto> getAccount(@PathVariable UUID id) {
+        return this.accountService.getAccount(id);
     }
 
     @Operation(

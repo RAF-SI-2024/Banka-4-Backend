@@ -9,9 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreateAccountDto;
+import rs.banka4.user_service.mapper.BasicAccountMapper;
 import rs.banka4.user_service.models.AccountType;
 import rs.banka4.user_service.models.Currency;
 import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.service.abstraction.AccountService;
 
 import java.math.BigDecimal;
@@ -24,8 +26,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
+    private final AccountRepository accountRepository;
+    private final BasicAccountMapper basicAccountMapper;
+
     CurrencyDto currencyDto = new CurrencyDto(
-            "11111111-2222-3333-4444-555555555555",
+            UUID.fromString("11111111-2222-3333-4444-555555555555"),
             "Serbian Dinar",
             "RSD",
             "Currency used in Serbia",
@@ -35,7 +40,7 @@ public class AccountServiceImpl implements AccountService {
     );
 
     CompanyDto companyDto = new CompanyDto(
-            "cccccccc-4444-dddd-5555-eeee6666ffff",
+            UUID.fromString("cccccccc-4444-dddd-5555-eeee6666ffff"),
             "Acme Corp",
             "123456789",
             "987654321",
@@ -43,7 +48,7 @@ public class AccountServiceImpl implements AccountService {
     );
 
     AccountDto account1 = new AccountDto(
-            "11111111-2222-3333-4444-555555555555",
+            UUID.fromString("35bc1ef6-f6d0-4405-bcdb-7dc0686b7b87"),
             "1234567890",
             new BigDecimal("1000.00"),
             new BigDecimal("800.00"),
@@ -61,7 +66,7 @@ public class AccountServiceImpl implements AccountService {
     );
 
     AccountDto account2 = new AccountDto(
-            "22222222-3333-4444-5555-666666666666",
+            UUID.fromString("35bc1ef6-f6d0-4405-bcdb-7dc0686b7b86"),
             "0987654321",
             new BigDecimal("5000.00"),
             new BigDecimal("4500.00"),
@@ -87,8 +92,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<AccountDto> getAccount(String token, String id){
-        return ResponseEntity.ok(account1);
+    public ResponseEntity<AccountDto> getAccount(UUID id) {
+        return accountRepository.findById(id)
+                .map(basicAccountMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Override
