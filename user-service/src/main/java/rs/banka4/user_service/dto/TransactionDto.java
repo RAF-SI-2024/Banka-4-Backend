@@ -1,46 +1,34 @@
 package rs.banka4.user_service.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import rs.banka4.user_service.models.Currency;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-@Schema(description = "DTO for transactions")
+@Schema(description = "DTO for transaction details")
 public record TransactionDto(
-
-        @Schema(description = "Transaction ID")
-        UUID id,
-
-        @Schema(description = "Account ID associated with the transaction")
-        UUID accountId,
-
-        @Schema(description = "Transaction date and time")
-        LocalDateTime transactionDateTime,
-
-        @Schema(description = "Reference to the order")
-        String orderReference,
-
-        @Schema(description = "Client ID who performed the transaction")
-        UUID clientId,
-
-        @Schema(description = "Description of the transaction")
-        String transactionDescription,
-
-        @Schema(description = "Transaction currency")
-        Currency.Code currency,
-
-        @Schema(description = "Deposit amount")
-        BigDecimal depositAmount,
-
-        @Schema(description = "Withdrawal amount")
-        BigDecimal withdrawalAmount,
-
-        @Schema(description = "Reserved amount for securities purchase")
-        BigDecimal reservedAmount,
-
-        @Schema(description = "Reserved funds used for the transaction")
-        BigDecimal reservedUsedAmount
-) {
-}
+    @Schema(description = "Transaction ID", example = "e2a1f6f3-9f74-4b8a-bc9a-2f3a5c6d7e8f")
+    String id,
+    @Schema(description = "Transaction number", example = "1265463698391")
+    String transactionNumber,
+    @Schema(description = "From account number", example = "102-39443942389")
+    String fromAccount,
+    @Schema(description = "To account number", example = "102-394438340549")
+    String toAccount,
+    @Schema(description = "Payment amount", example = "1.00")
+    BigDecimal amount,
+    @Schema(description = "Currency of transaction", example = "EUR")
+    String currency,
+    @Schema(description = "Recipient name", example = "Pera Perić")
+    String recipient,
+    @Schema(description = "Payment code (3-digit, e.g., 2xx)", example = "289")
+    String paymentCode,
+    @Schema(description = "Reference number", example = "1176926")
+    String referenceNumber,
+    @Schema(description = "Payment purpose (optional)", example = "za privatni čas")
+    String paymentPurpose,
+    @Schema(description = "Payment date and time", example = "2023-05-01T12:30:00")
+    LocalDateTime paymentDateTime,
+    @Schema(description = "Payment status", example = "REALIZED")
+    PaymentStatus status
+) { }

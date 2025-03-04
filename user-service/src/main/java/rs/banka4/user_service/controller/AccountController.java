@@ -15,14 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.AccountDto;
-import rs.banka4.user_service.dto.PaymentDto;
-import rs.banka4.user_service.dto.PaymentStatus;
 import rs.banka4.user_service.dto.requests.CreateAccountDto;
-import rs.banka4.user_service.dto.requests.CreatePaymentDto;
 import rs.banka4.user_service.service.abstraction.AccountService;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
