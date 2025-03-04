@@ -12,12 +12,14 @@ import rs.banka4.user_service.dto.RefreshTokenResponseDto;
 import rs.banka4.user_service.dto.requests.UserVerificationRequestDto;
 import rs.banka4.user_service.exceptions.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.NotFound;
+import rs.banka4.user_service.exceptions.UserNotFound;
 import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
 import rs.banka4.user_service.exceptions.jwt.RefreshTokenRevoked;
 import rs.banka4.user_service.generator.AuthObjectMother;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.VerificationCode;
 import rs.banka4.user_service.repositories.EmployeeRepository;
+import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
 import rs.banka4.user_service.service.impl.AuthServiceImpl;
 import rs.banka4.user_service.service.impl.VerificationCodeService;
@@ -36,6 +38,8 @@ public class AuthServiceTests {
     private JwtUtil jwtUtil;
     @Mock
     private EmployeeRepository employeeRepository;
+    @Mock
+    private ClientService clientService;
     @Mock
     private VerificationCodeService verificationCodeService;
     @Mock
@@ -201,9 +205,10 @@ public class AuthServiceTests {
         String email = "nonexistent@example.com";
 
         when(employeeService.findEmployeeByEmail(email)).thenReturn(Optional.empty());
+        when(clientService.findClientByEmail(email)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(NotFound.class, () -> authService.forgotPassword(email));
+        assertThrows(UserNotFound.class, () -> authService.forgotPassword(email));
     }
 
     @Test
