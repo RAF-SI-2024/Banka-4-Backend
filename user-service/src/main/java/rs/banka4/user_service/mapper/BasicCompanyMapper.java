@@ -10,7 +10,7 @@ public class BasicCompanyMapper {
     CompanyDto toDto(Company company){
         if(company == null) return null;
         return new CompanyDto(
-                company.getId().toString(),
+                company.getId(),
                 company.getName(),
                 company.getTin(),
                 company.getCrn(),

@@ -7,7 +7,7 @@ public class BasicCurrencyMapper {
 
     public CurrencyDto toDto(Currency currency){
         return new CurrencyDto(
-                currency.getId().toString(),
+                currency.getId(),
                 currency.getName(),
                 currency.getSymbol(),
                 currency.getDescription(),

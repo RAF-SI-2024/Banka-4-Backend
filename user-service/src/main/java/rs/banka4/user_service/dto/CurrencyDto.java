@@ -4,11 +4,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import rs.banka4.user_service.models.Currency;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Schema(description = "DTO for currency details")
 public record CurrencyDto(
         @Schema(description = "Currency ID", example = "11111111-2222-3333-4444-555555555555")
-        String id,
+        UUID id,
         @Schema(description = "Name", example = "Serbian Dinar")
         String name,
         @Schema(description = "Symbol", example = "RSD")

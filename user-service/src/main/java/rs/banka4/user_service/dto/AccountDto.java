@@ -6,11 +6,12 @@ import rs.banka4.user_service.models.AccountType;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Schema(description = "DTO for account details")
 public record AccountDto(
         @Schema(description = "Account ID", example = "11111111-2222-3333-4444-555555555555")
-        String id,
+        UUID id,
 
         @Schema(description = "Account number", example = "1234567890")
         String accountNumber,

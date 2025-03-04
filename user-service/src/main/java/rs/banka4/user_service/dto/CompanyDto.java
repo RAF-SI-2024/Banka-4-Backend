@@ -2,10 +2,12 @@ package rs.banka4.user_service.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.UUID;
+
 @Schema(description = "DTO for company details")
 public record CompanyDto(
         @Schema(description = "Company ID", example = "cccccccc-4444-dddd-5555-eeee6666ffff")
-        String id,
+        UUID id,
         @Schema(description = "Name", example = "Acme Corp")
         String name,
         @Schema(description = "TIN", example = "123456789")

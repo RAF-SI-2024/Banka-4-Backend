@@ -21,7 +21,7 @@ public class BasicAccountMapper {
 
     public AccountDto toDto(Account account){
         return new AccountDto(
-                account.getId().toString(),
+                account.getId(),
                 account.getAccountNumber(),
                 account.getBalance(),
                 account.getAvailableBalance(),
