@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -34,20 +33,35 @@ public class Transaction {
     @JoinColumn(name = "to_account_id", nullable = false)
     private Account toAccount;
 
-    @Column(nullable = false)
-    private BigDecimal amount;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "amount", column = @Column(name = "from_amount", nullable = false)),
+            @AttributeOverride(name = "currency", column = @Column(name = "from_currency_id", nullable = false)) // Ensure unique name
+    })
+    private MonetaryAmount from;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "currency_id", nullable = false)
-    private Currency currency;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "amount", column = @Column(name = "to_amount", nullable = false)),
+            @AttributeOverride(name = "currency", column = @Column(name = "to_currency_id", nullable = false)) // Ensure unique name
+    })
+    private MonetaryAmount to;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "amount", column = @Column(name = "fee_amount")),
+            @AttributeOverride(name = "currency", column = @Column(name = "fee_currency_id")) // Ensure unique name
+    })
+    private MonetaryAmount fee;
+
 
     @Column(nullable = false, length = 255)
     private String recipient;
 
-    @Column(nullable = true, length = 3)
+    @Column(length = 3)
     private String paymentCode;
 
-    @Column(nullable = true, length = 50)
+    @Column(length = 50)
     private String referenceNumber;
 
     @Column(nullable = false, length = 500)
