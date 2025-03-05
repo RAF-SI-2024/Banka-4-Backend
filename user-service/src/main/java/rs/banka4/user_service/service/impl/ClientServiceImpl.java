@@ -97,24 +97,13 @@ public class ClientServiceImpl implements ClientService {
         ClientDto response = basicClientMapper.entityToDto(client);
         return ResponseEntity.ok(response);
     }
-
     @Override
     public ResponseEntity<ClientDto> getClient(String id) {
-        ClientDto clientDto = new ClientDto(
-                id,
-                "MockFirstName",
-                "MockLastName",
-                LocalDate.of(1985, 5, 20),
-                "Male",
-                "mock.email@example.com",
-                "987-654-3210",
-                "123 Mockingbird Lane",
-                EnumSet.noneOf(Privilege.class),
-                List.of()
-        );
-        return ResponseEntity.ok(clientDto);
-    }
 
+        var client = clientRepository.findById(id).orElseThrow(() -> new UserNotFound(id));;
+
+        return ResponseEntity.ok(clientMapper.toDto(client));
+    }
     @Override
     public ClientDto findClient(String id) {
         var c =clientRepository.findById(id);
