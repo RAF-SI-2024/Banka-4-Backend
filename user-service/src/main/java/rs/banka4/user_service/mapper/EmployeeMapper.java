@@ -1,6 +1,7 @@
 package rs.banka4.user_service.mapper;
 
 import org.mapstruct.*;
+import rs.banka4.user_service.dto.EmployeeResponseDto;
 import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
 import rs.banka4.user_service.exceptions.PrivilegeDoesNotExist;
 import rs.banka4.user_service.models.Employee;
@@ -13,6 +14,8 @@ public interface EmployeeMapper {
     Employee toEntity(UpdateEmployeeDto dto);
 
     UpdateEmployeeDto toDto(Employee employee);
+
+    Employee toEntity(EmployeeResponseDto employeeResponseDto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEmployeeFromDto(UpdateEmployeeDto dto, @MappingTarget Employee employee);

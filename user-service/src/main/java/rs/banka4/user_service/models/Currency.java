@@ -1,8 +1,10 @@
 package rs.banka4.user_service.models;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
+import rs.banka4.user_service.exceptions.InvalidCurrency;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -15,7 +17,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString(exclude = "countries")
 @Builder
 public class Currency {
 
@@ -38,15 +39,18 @@ public class Currency {
     @Enumerated(EnumType.STRING)
     private Code code;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "currency_countries", joinColumns = @JoinColumn(name = "currency_id"))
-    @Column(name = "country")
-    @Builder.Default
-    private Set<String> countries = new HashSet<>();
-
     public enum Code {
-        RSD, EUR, USD, CHF, JPY, AUD, CAD
+        RSD, EUR, USD, CHF, JPY, AUD, CAD;
+        @JsonCreator
+        public static Code fromString(String raw) {
+            try {
+                return Code.valueOf(raw);
+            } catch (IllegalArgumentException | NullPointerException e) {
+                throw new InvalidCurrency("Invalid currency code: " + raw);
+            }
+        }
     }
+
 
     @Override
     public final boolean equals(Object o) {

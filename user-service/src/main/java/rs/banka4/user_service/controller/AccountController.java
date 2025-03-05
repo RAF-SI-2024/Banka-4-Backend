@@ -94,7 +94,7 @@ public class AccountController {
     public ResponseEntity<Void> createAccount(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Details of the new account to create", required = true)
-            @RequestBody @Valid CreateAccountDto createAccountDto) {
-        return accountService.createAccount(createAccountDto);
+            @RequestBody @Valid CreateAccountDto createAccountDto, Authentication auth) {
+        return accountService.createAccount(createAccountDto, (String) auth.getCredentials());
     }
 }
