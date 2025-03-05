@@ -101,15 +101,15 @@ public class AccountController {
     @GetMapping("/checking")
     public ResponseEntity<Page<AccountDto>> getAllChecking(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return accountService.getAllChecking(PageRequest.of(page, size));
+            @RequestParam(defaultValue = "10") int size, Authentication auth) {
+        return accountService.getAllChecking(auth, PageRequest.of(page, size));
     }
 
     @Operation(summary = "Get all FX accounts with pagination")
     @GetMapping("/fx")
     public ResponseEntity<Page<AccountDto>> getAllFx(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return accountService.getAllFx(PageRequest.of(page, size));
+            @RequestParam(defaultValue = "10") int size, Authentication auth) {
+        return accountService.getAllFx(auth, PageRequest.of(page, size));
     }
 }
