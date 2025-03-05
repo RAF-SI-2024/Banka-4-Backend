@@ -9,20 +9,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreateAccountDto;
-import rs.banka4.user_service.models.AccountType;
+import rs.banka4.user_service.models.Account;
 import rs.banka4.user_service.models.Currency;
-import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.service.abstraction.AccountService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
+
+    private final AccountRepository accountRepository;
 
     CurrencyDto currencyDto = new CurrencyDto(
             "11111111-2222-3333-4444-555555555555",
@@ -101,6 +102,11 @@ public class AccountServiceImpl implements AccountService {
         List<AccountDto> accountDtos = List.of(account1, account2);
         Page<AccountDto> accountPage = new PageImpl<>(accountDtos, pageRequest, accountDtos.size());
         return ResponseEntity.ok(accountPage);
+    }
+
+    @Override
+    public Account getAccountByAccountNumber(String accountNumber) {
+        return accountRepository.findByAccountNumber(accountNumber);
     }
 
     @Override

@@ -12,32 +12,38 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.*;
+import rs.banka4.user_service.dto.requests.ClientContactRequest;
 import rs.banka4.user_service.dto.requests.CreateClientDto;
 import rs.banka4.user_service.dto.requests.UpdateClientDto;
-import rs.banka4.user_service.exceptions.IncorrectCredentials;
-import rs.banka4.user_service.exceptions.NotActivated;
-import rs.banka4.user_service.exceptions.NotAuthenticated;
-import rs.banka4.user_service.exceptions.NotFound;
+import rs.banka4.user_service.exceptions.*;
 import rs.banka4.user_service.mapper.BasicClientMapper;
+import rs.banka4.user_service.mapper.ContactMapper;
+import rs.banka4.user_service.models.Account;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Privilege;
 import rs.banka4.user_service.repositories.ClientRepository;
+import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.ClientService;
+import rs.banka4.user_service.utils.AuthUtils;
 import rs.banka4.user_service.utils.JwtUtil;
 
 import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
+
     private final ClientRepository clientRepository;
+    private final AccountService accountService;
     private final BasicClientMapper basicClientMapper;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
+    private final ContactMapper contactMapper;
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
@@ -81,7 +87,6 @@ public class ClientServiceImpl implements ClientService {
 
         ClientDto response = basicClientMapper.entityToDto(client);
         return ResponseEntity.ok(response);
-
     }
 
     @Override
@@ -102,7 +107,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ResponseEntity<Void> createClient(CreateClientDto createClientDto) {
+    public ResponseEntity<Void> createClient(CreateClientDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -128,5 +133,34 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ResponseEntity<Void> updateClient(String id, UpdateClientDto updateClientDto) {
         return null;
+    }
+
+    @Override
+    public ResponseEntity<Page<ClientContactDto>> getAllContacts(Pageable pageable) {
+        Client client = clientRepository.findById(AuthUtils.getLoggedUserId()).orElseThrow(NotFound::new);
+
+        List<ClientContactDto> contactDtos = client.getSavedContacts().stream()
+                .map(contactMapper::toClientContactDto)
+                .toList();
+
+        return ResponseEntity.ok(new PageImpl<>(contactDtos, pageable, contactDtos.size()));
+    }
+
+    @Override
+    public ResponseEntity<Void> createContact(ClientContactRequest request) {
+        Client client = clientRepository.findById(AuthUtils.getLoggedUserId()).orElseThrow(NotFound::new);
+        client.getAccounts().add(accountService.getAccountByAccountNumber(request.accountNumber()));
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteContact(String accountNumber) {
+        Client client = clientRepository.findById(AuthUtils.getLoggedUserId()).orElseThrow(NotFound::new);
+        Account account = accountService.getAccountByAccountNumber(accountNumber);
+
+        clientRepository.deleteContactFromClient(client.getId(), String.valueOf(account.getId()));
+
+        return ResponseEntity.noContent().build();
     }
 }

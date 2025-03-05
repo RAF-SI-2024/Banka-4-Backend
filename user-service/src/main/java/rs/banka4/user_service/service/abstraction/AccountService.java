@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.dto.AccountDto;
 import rs.banka4.user_service.dto.requests.CreateAccountDto;
+import rs.banka4.user_service.models.Account;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,4 +16,5 @@ public interface AccountService {
     ResponseEntity<AccountDto> getAccount(String token, String id);
     ResponseEntity<Void> createAccount(CreateAccountDto createAccountDto);
     ResponseEntity<Page<AccountDto>> getAll(String firstName, String lastName, String id, PageRequest pageRequest);
+    Account getAccountByAccountNumber(String accountNumber);
 }
