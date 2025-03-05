@@ -16,9 +16,27 @@ public record CreateTransactionDto(
         @Schema(description = "To account number", example = "102-394438340549")
         String toAccount,
 
-        @NotNull(message = "Payment amount is required and cannot be null.")
-        @Schema(description = "Payment amount", example = "1.00 EUR (fromAccount currency is used)")
-        BigDecimal amount,
+        @NotNull(message = "From amount is required and cannot be null.")
+        @Schema(description = "From amount", example = "1.00")
+        BigDecimal fromAmount,
+
+        @NotBlank(message = "From currency is required and cannot be blank.")
+        @Schema(description = "From currency", example = "EUR")
+        String fromCurrency,
+
+        @NotNull(message = "To amount is required and cannot be null.")
+        @Schema(description = "To amount", example = "1.00")
+        BigDecimal toAmount,
+
+        @NotBlank(message = "To currency is required and cannot be blank.")
+        @Schema(description = "To currency", example = "RSD")
+        String toCurrency,
+
+        @Schema(description = "Fee amount (optional)", example = "0.10")
+        BigDecimal feeAmount,
+
+        @Schema(description = "Fee currency (optional)", example = "EUR")
+        String feeCurrency,
 
         @NotBlank(message = "Recipient name is required and cannot be blank.")
         @Schema(description = "Recipient name", example = "Pera Perić")
