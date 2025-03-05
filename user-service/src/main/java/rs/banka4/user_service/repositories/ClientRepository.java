@@ -15,7 +15,7 @@ public interface ClientRepository extends JpaRepository<Client, String> {
     boolean existsByEmail(String email);
 
     @Modifying
-    @Query("DELETE FROM Client c JOIN c.savedContacts a WHERE c.id = :clientId AND a.id = :accountId")
+    @Query(value = "DELETE FROM client_contacts WHERE client_id = :clientId AND account_id = :accountId", nativeQuery = true)
     void deleteContactFromClient(@Param("clientId") String clientId, @Param("accountId") String accountId);
 
 }

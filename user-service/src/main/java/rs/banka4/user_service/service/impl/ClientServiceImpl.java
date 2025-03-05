@@ -12,6 +12,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import rs.banka4.user_service.config.RabbitMqConfig;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.ClientContactRequest;
@@ -40,6 +41,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
     private final AccountService accountService;

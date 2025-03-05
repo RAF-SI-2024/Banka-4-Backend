@@ -2,6 +2,7 @@ package rs.banka4.user_service.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -29,17 +30,12 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
-@RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
     private final ClientService clientService;
-
     private final CompanyService companyService;
-
     private final CurrencyRepository currencyRepository;
-
     private final CompanyMapper companyMapper;
-
     private final AccountRepository accountRepository;
     private final ClientRepository clientRepository;
     private final JwtUtil jwtUtil;
@@ -98,6 +94,17 @@ public class AccountServiceImpl implements AccountService {
             companyDto
     );
 
+    public AccountServiceImpl(@Lazy ClientService clientService, CompanyService companyService, CurrencyRepository currencyRepository, CompanyMapper companyMapper,
+                              AccountRepository accountRepository, ClientRepository clientRepository, JwtUtil jwtUtil, EmployeeRepository employeeRepository) {
+        this.clientService = clientService;
+        this.companyService = companyService;
+        this.currencyRepository = currencyRepository;
+        this.companyMapper = companyMapper;
+        this.accountRepository = accountRepository;
+        this.clientRepository = clientRepository;
+        this.jwtUtil = jwtUtil;
+        this.employeeRepository = employeeRepository;
+    }
 
     @Override
     public ResponseEntity<List<AccountDto>> getAccountsForClient(String token) {
