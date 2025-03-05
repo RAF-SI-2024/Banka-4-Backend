@@ -11,4 +11,5 @@ public interface CurrencyRepository extends JpaRepository<Currency, UUID> {
 
     Currency findByCode(Currency.Code code);
 
+    Currency findByCode(Currency.Code code);
 }
