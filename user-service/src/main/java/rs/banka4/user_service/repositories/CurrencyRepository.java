@@ -10,5 +10,4 @@ import java.util.UUID;
 public interface CurrencyRepository extends JpaRepository<Currency, UUID> {
 
     Currency findByCode(Currency.Code code);
-
 }

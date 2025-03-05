@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Schema(description = "DTO for creating payment order")
-public record CreatePaymentDto(
+public record CreateTransactionDto(
         @NotBlank(message = "From account number is required and cannot be blank.")
         @Schema(description = "From account number", example = "102-39443942389")
         String fromAccount,
@@ -16,9 +16,13 @@ public record CreatePaymentDto(
         @Schema(description = "To account number", example = "102-394438340549")
         String toAccount,
 
-        @NotNull(message = "Payment amount is required and cannot be null.")
-        @Schema(description = "Payment amount", example = "1.00 EUR (fromAccount currency is used)")
-        BigDecimal amount,
+        @NotNull(message = "From amount is required and cannot be null.")
+        @Schema(description = "From amount", example = "1.00")
+        BigDecimal fromAmount,
+
+        @NotBlank(message = "From currency is required and cannot be blank.")
+        @Schema(description = "From currency", example = "EUR")
+        String fromCurrency,
 
         @NotBlank(message = "Recipient name is required and cannot be blank.")
         @Schema(description = "Recipient name", example = "Pera Perić")
