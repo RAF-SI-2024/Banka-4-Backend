@@ -2,38 +2,38 @@ package rs.banka4.user_service.models;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
-import org.springframework.validation.annotation.Validated;
 
-import java.util.List;
+import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
-@Entity(name = "employees")
+@Entity
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
-@Validated
 @AllArgsConstructor
-@SuperBuilder
-public class Employee extends User {
+@Table(name="authentication_events")
+public class AuthenticationEvent {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
 
-    @Column(nullable = false, unique = true)
-    private String username;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AuthenticationEventType type;
 
     @Column(nullable = false)
-    private String department;
+    private Boolean didAuthenticate;
 
-    @Column(nullable = false)
-    private String position;
+    @CreationTimestamp
+    private Instant createdAt;
 
-    @Column(nullable = false)
-    private boolean active;
-
-    @OneToMany
-    @JoinColumn(name = "employee_id", unique = true)
-    private List<AuthenticationEvent> authenticationEvents;
+    @UpdateTimestamp
+    private Instant updatedAt;
 
     @Override
     public final boolean equals(Object o) {
@@ -42,8 +42,8 @@ public class Employee extends User {
         Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
-        Employee employee = (Employee) o;
-        return getId() != null && Objects.equals(getId(), employee.getId());
+        AuthenticationEvent that = (AuthenticationEvent) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
     }
 
     @Override

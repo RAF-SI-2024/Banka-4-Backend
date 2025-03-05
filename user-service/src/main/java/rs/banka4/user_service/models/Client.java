@@ -6,6 +6,7 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -32,6 +33,10 @@ public class Client extends User {
     )
     @ToString.Exclude
     private Set<Client> contacts;
+
+    @OneToMany
+    @JoinColumn(name = "client_id", unique = true)
+    private List<AuthenticationEvent> authenticationEvents;
 
     @Override
     public final boolean equals(Object o) {
