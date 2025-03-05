@@ -17,6 +17,13 @@ configurations {
 	compileOnly {
 		extendsFrom(configurations.annotationProcessor.get())
 	}
+
+	/* Prevent accidentally using JUnit 4 (dependency of Testcontainers).  */
+	testCompileClasspath {
+		exclude(group = "junit", module = "junit")
+		exclude(group = "org.junit.vintage",
+		        module = "junit-vintage-engine")
+	}
 }
 
 repositories {
@@ -46,13 +53,22 @@ dependencies {
 
 	runtimeOnly("javax.cache:cache-api:1.1.1")
 	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
-	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
+
+	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+	testAnnotationProcessor("org.projectlombok:lombok")
+	testCompileOnly("org.projectlombok:lombok")
+
+	testImplementation("org.testcontainers:postgresql:1.19.8")
+	testImplementation("org.testcontainers:junit-jupiter:1.20.6")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
+	testImplementation("org.springframework.boot:spring-boot-testcontainers")
+
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

@@ -1,0 +1,17 @@
+# Test-specific configuration.  !!!! DO NOT USE IN PRODUCTION !!!!
+jwt:
+  secret:
+    key: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+
+spring:
+  jpa:
+    hibernate:
+      # Force Hibernate to crash us if the migrations are wrong.
+      ddl-auto: validate
+  flyway:
+    clean-disabled: false
+
+logging:
+  level:
+    # Enable logs useful for tests.
+    rs.banka4: DEBUG
