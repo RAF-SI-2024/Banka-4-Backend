@@ -15,10 +15,23 @@ public record TransactionDto(
     String fromAccount,
     @Schema(description = "To account number", example = "102-394438340549")
     String toAccount,
-    @Schema(description = "Payment amount", example = "1.00")
-    BigDecimal amount,
-    @Schema(description = "Currency of transaction", example = "EUR")
-    String currency,
+    @Schema(description = "From amount", example = "1.00")
+    BigDecimal fromAmount,
+
+    @Schema(description = "From currency", example = "EUR")
+    String fromCurrency,
+
+    @Schema(description = "To amount", example = "1.00")
+    BigDecimal toAmount,
+
+    @Schema(description = "To currency", example = "RSD")
+    String toCurrency,
+
+    @Schema(description = "Fee amount", example = "0.10")
+    BigDecimal feeAmount,
+
+    @Schema(description = "Fee currency", example = "EUR")
+    String feeCurrency,
     @Schema(description = "Recipient name", example = "Pera Perić")
     String recipient,
     @Schema(description = "Payment code (3-digit, e.g., 2xx)", example = "289")
