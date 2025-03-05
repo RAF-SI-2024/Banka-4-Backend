@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.TransactionDto;
 import rs.banka4.user_service.dto.PaymentStatus;
-import rs.banka4.user_service.dto.requests.CreatePaymentDto;
+import rs.banka4.user_service.dto.requests.CreateTransactionDto;
 import rs.banka4.user_service.service.abstraction.PaymentService;
 
 import java.math.BigDecimal;
@@ -23,7 +23,7 @@ public class PaymentServiceImpl implements PaymentService {
 
 
     @Override
-    public ResponseEntity<TransactionDto> createPayment(CreatePaymentDto createPaymentDto){
+    public ResponseEntity<TransactionDto> createPayment(CreateTransactionDto createTransactionDto){
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Schema(description = "DTO for creating payment order")
-public record CreatePaymentDto(
+public record CreateTransactionDto(
         @NotBlank(message = "From account number is required and cannot be blank.")
         @Schema(description = "From account number", example = "102-39443942389")
         String fromAccount,
