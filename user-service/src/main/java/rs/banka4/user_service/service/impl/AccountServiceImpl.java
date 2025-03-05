@@ -244,7 +244,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Account getAccountByAccountNumber(String accountNumber) {
-        return accountRepository.findByAccountNumber(accountNumber);
+        return accountRepository.findAccountByAccountNumber(accountNumber).orElseThrow(NotFound::new);
     }
 
     @Override
