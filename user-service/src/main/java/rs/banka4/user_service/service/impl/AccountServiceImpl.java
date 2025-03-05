@@ -6,20 +6,21 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreateAccountDto;
-import rs.banka4.user_service.models.Account;
-import rs.banka4.user_service.models.AccountType;
-import rs.banka4.user_service.models.Currency;
-import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.models.*;
 import rs.banka4.user_service.repositories.AccountRepository;
+import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.mapper.BasicAccountMapper;
+import rs.banka4.user_service.utils.JwtUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,8 +28,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
+    private final JwtUtil jwtUtil;
     private final BasicAccountMapper accountMapper;
     private final AccountRepository accountRepository;
+    private final ClientRepository clientRepository;
     CurrencyDto currencyDto = new CurrencyDto(
             "11111111-2222-3333-4444-555555555555",
             "Serbian Dinar",
@@ -108,16 +111,42 @@ public class AccountServiceImpl implements AccountService {
         return ResponseEntity.ok(accountPage);
     }
 
+
     @Override
-    public ResponseEntity<Page<AccountDto>> getAllChecking(PageRequest pageRequest) {
-        Page<Account> checkingAccounts = accountRepository.findAllByCurrency_Code(Currency.Code.RSD, pageRequest);
+    public ResponseEntity<Page<AccountDto>> getAllChecking(Authentication auth, PageRequest pageRequest) {
+        String email = jwtUtil.extractUsername(auth.getCredentials().toString());
+        Optional<Client> clientOpt = clientRepository.findByEmail(email);
+
+        Page<Account> checkingAccounts;
+
+        if (jwtUtil.extractRole(auth.getCredentials().toString()).equals("employee")) {
+            checkingAccounts = accountRepository.findAllByCurrency_Code(Currency.Code.RSD, pageRequest);
+        } else if (clientOpt.isPresent()) {
+            checkingAccounts = accountRepository.findAllByClientAndCurrency_Code(clientOpt.get(), Currency.Code.RSD, pageRequest);
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+
         Page<AccountDto> checkingDtos = checkingAccounts.map(accountMapper::toDto);
         return ResponseEntity.ok(checkingDtos);
     }
-
     @Override
-    public ResponseEntity<Page<AccountDto>> getAllFx(PageRequest pageRequest) {
-        Page<Account> fxAccounts = accountRepository.findAllByCurrency_CodeNot(Currency.Code.RSD, pageRequest);
+    public ResponseEntity<Page<AccountDto>> getAllFx(Authentication auth, PageRequest pageRequest) {
+        String token = (String) auth.getCredentials();
+        String role = jwtUtil.extractRole(token);
+        Page<Account> fxAccounts;
+
+        if ("employee".equals(role)) {
+            fxAccounts = accountRepository.findAllByCurrency_CodeNot(Currency.Code.RSD, pageRequest);
+        } else if ("client".equals(role)) {
+            String username = jwtUtil.extractUsername(token);
+            Client client = clientRepository.findByEmail(username)
+                    .orElseThrow(() -> new IllegalArgumentException("Client not found"));
+            fxAccounts = accountRepository.findAllByClientAndCurrency_CodeNot(client, Currency.Code.RSD, pageRequest);
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+
         Page<AccountDto> fxDtos = fxAccounts.map(accountMapper::toDto);
         return ResponseEntity.ok(fxDtos);
     }
