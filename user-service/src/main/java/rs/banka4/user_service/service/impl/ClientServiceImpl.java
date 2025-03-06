@@ -2,9 +2,7 @@ package rs.banka4.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import rs.banka4.user_service.config.RabbitMqConfig;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.ClientContactRequest;
@@ -20,6 +19,7 @@ import rs.banka4.user_service.dto.requests.CreateClientDto;
 import rs.banka4.user_service.dto.requests.UpdateClientDto;
 import rs.banka4.user_service.exceptions.*;
 import rs.banka4.user_service.mapper.BasicClientMapper;
+import rs.banka4.user_service.mapper.BasicClientMapperForGetAll;
 import rs.banka4.user_service.mapper.ClientMapper;
 import rs.banka4.user_service.mapper.ContactMapper;
 import rs.banka4.user_service.models.Account;
@@ -32,6 +32,8 @@ import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.MessageHelper;
+import rs.banka4.user_service.utils.specification.ClientSpecification;
+import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -49,8 +51,51 @@ public class ClientServiceImpl implements ClientService {
     private final VerificationCodeService verificationCodeService;
     private final RabbitTemplate rabbitTemplate;
     private final EmployeeRepository employeeRepository;
+    private final BasicClientMapperForGetAll basicClientMapperForGetAll = new BasicClientMapperForGetAll();
+    private final StandardServletMultipartResolver standardServletMultipartResolver;
     private final ContactMapper contactMapper;
     private final PasswordEncoder passwordEncoder;
+
+
+    @Override
+    public ResponseEntity<Page<ClientDto>> getAll(String firstName, String lastName, String email,
+                                                  String sortBy, PageRequest pageRequest) {
+        if (pageRequest == null) {
+            throw new NullPageRequest();
+        }
+
+        SpecificationCombinator<Client> combinator = new SpecificationCombinator<>();
+
+        if (firstName != null && !firstName.isEmpty()) {
+            combinator.and(ClientSpecification.hasFirstName(firstName));
+        }
+        if (lastName != null && !lastName.isEmpty()) {
+            combinator.and(ClientSpecification.hasLastName(lastName));
+        }
+        if (email != null && !email.isEmpty()) {
+            combinator.and(ClientSpecification.hasEmail(email));
+        }
+
+        Sort sort;
+        if (sortBy == null || sortBy.isEmpty() || "default".equalsIgnoreCase(sortBy)
+                || "firstName".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("firstName");
+        } else if ("lastName".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("lastName");
+        } else if ("email".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("email");
+        } else {
+            throw new NonexistantSortByField(sortBy);
+        }
+
+        PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(),
+                pageRequest.getPageSize(),
+                sort);
+
+        Page<Client> clients = clientRepository.findAll(combinator.build(), pageRequestWithSort);
+        Page<ClientDto> dtos = clients.map(basicClientMapperForGetAll::toDto);
+        return ResponseEntity.ok(dtos);
+    }
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
@@ -129,26 +174,6 @@ public class ClientServiceImpl implements ClientService {
         sendVerificationEmailToClient(createClientDto.firstName(),createClientDto.email());
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
-
-
-    @Override
-    public ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email, String phone, Pageable pageable) {
-        ClientDto clientDto = new ClientDto(
-                UUID.randomUUID().toString(),
-                "MockedFirstName",
-                "MockedLastName",
-                LocalDate.of(1980, 3, 15),
-                "Female",
-                "mocked@example.com",
-                "123-123-1234",
-                "456 Mock Avenue",
-                EnumSet.noneOf(Privilege.class),
-                List.of()
-        );
-        Page<ClientDto> page = new PageImpl<>(List.of(clientDto), pageable, 1);
-        return ResponseEntity.ok(page);
     }
 
     @Override

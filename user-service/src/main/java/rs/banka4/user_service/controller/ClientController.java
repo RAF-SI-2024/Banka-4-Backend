@@ -135,10 +135,10 @@ public class ClientController {
             @RequestParam(required = false) @Parameter(description = "First name of the client") String firstName,
             @RequestParam(required = false) @Parameter(description = "Last name of the client") String lastName,
             @RequestParam(required = false) @Parameter(description = "Email address of the client") String email,
-            @RequestParam(required = false) @Parameter(description = "Phone number of the client") String phone,
+            @RequestParam(required = false) @Parameter(description = "Field to sort by") String sortBy,
             @RequestParam(defaultValue = "0") @Parameter(description = "Page number") int page,
             @RequestParam(defaultValue = "10") @Parameter(description = "Number of clients per page") int size) {
-        return clientService.getClients(firstName, lastName, email, phone, PageRequest.of(page, size));
+        return clientService.getAll(firstName, lastName, email, sortBy, PageRequest.of(page, size));
     }
 
     @Operation(
