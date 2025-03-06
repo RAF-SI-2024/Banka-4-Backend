@@ -11,8 +11,11 @@ import rs.banka4.user_service.dto.requests.CreateTransactionDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 public interface PaymentService {
     ResponseEntity<TransactionDto> createPayment(Authentication authentication, CreatePaymentDto createPaymentDto);
-    ResponseEntity<Page<TransactionDto>> getPaymentsForClient(String token, PaymentStatus paymentStatus, BigDecimal amount, LocalDate paymentDate, PageRequest pageRequest);
+    ResponseEntity<TransactionDto> createTransfer(Authentication authentication, CreatePaymentDto createPaymentDto);
+    ResponseEntity<Page<TransactionDto>> getAllPaymentsForClient(String token, PaymentStatus paymentStatus, BigDecimal amount, LocalDate paymentDate,  String accountNumber, PageRequest pageRequest);
+    ResponseEntity<TransactionDto> getTransactionById(String token, UUID transactionId);
 }

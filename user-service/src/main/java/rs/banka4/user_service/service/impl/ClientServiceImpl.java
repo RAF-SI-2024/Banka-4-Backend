@@ -15,30 +15,32 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.config.RabbitMqConfig;
 import rs.banka4.user_service.dto.*;
+import rs.banka4.user_service.dto.requests.ClientContactRequest;
 import rs.banka4.user_service.dto.requests.CreateClientDto;
 import rs.banka4.user_service.dto.requests.UpdateClientDto;
 import rs.banka4.user_service.exceptions.*;
 import rs.banka4.user_service.mapper.BasicClientMapper;
 import rs.banka4.user_service.mapper.ClientMapper;
+import rs.banka4.user_service.mapper.ContactMapper;
+import rs.banka4.user_service.models.Account;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Privilege;
 import rs.banka4.user_service.models.VerificationCode;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
+import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.MessageHelper;
 
 import java.time.LocalDate;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
+    private final AccountService accountService;
     private final BasicClientMapper basicClientMapper;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
@@ -48,6 +50,7 @@ public class ClientServiceImpl implements ClientService {
     private final RabbitTemplate rabbitTemplate;
     private final PasswordEncoder passwordEncoder;
     private final EmployeeRepository employeeRepository;
+    private final ContactMapper contactMapper;
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
@@ -183,6 +186,44 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Optional<Client> findClientByEmail(String email) {
         return clientRepository.findByEmail(email);
+    
+    @Override
+    public ResponseEntity<Page<ClientContactDto>> getAllContacts(String token, Pageable pageable) {
+        String email = jwtUtil.extractUsername(token);
+        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
+
+        List<ClientContactDto> contactDtos = client.getSavedContacts().stream()
+                .map(contactMapper::toClientContactDto)
+                .toList();
+
+        return ResponseEntity.ok(new PageImpl<>(contactDtos, pageable, contactDtos.size()));
+    }
+
+    @Override
+    public ResponseEntity<Void> createContact(String token, ClientContactRequest request) {
+        String email = jwtUtil.extractUsername(token);
+        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
+
+        client.getSavedContacts().add(accountService.getAccountByAccountNumber(request.accountNumber()));
+
+        clientRepository.save(client);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteContact(String token, String accountNumber) {
+        String email = jwtUtil.extractUsername(token);
+        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
+
+        Set<Account> updatedContacts = new HashSet<>(client.getSavedContacts());
+        updatedContacts.removeIf(account -> account.getAccountNumber().equals(accountNumber));
+        client.setSavedContacts(updatedContacts);
+
+        clientRepository.save(client);
+
+        System.out.printf("Deleted contact with account number: %s \n", accountNumber);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 
