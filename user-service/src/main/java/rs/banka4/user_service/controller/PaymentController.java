@@ -21,6 +21,7 @@ import rs.banka4.user_service.service.abstraction.PaymentService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/transaction")
@@ -81,10 +82,25 @@ public class PaymentController {
             @RequestParam(required = false) @Parameter(description = "Payment status") PaymentStatus status,
             @RequestParam(required = false) @Parameter(description = "Payment amount") BigDecimal amount,
             @RequestParam(required = false) @Parameter(description = "Payments on date") LocalDate date,
+            @RequestParam(required = false) @Parameter(description = "Account number") String accountNumber,
             @RequestParam(defaultValue = "0") @Parameter(description = "Page number") int page,
             @RequestParam(defaultValue = "10") @Parameter(description = "Number of employees per page") int size
             ){
-        return this.paymentService.getPaymentsForClient(auth.getCredentials().toString(), status, amount, date, PageRequest.of(page, size));
+        return this.paymentService.getAllPaymentsForClient(auth.getCredentials().toString(), status, amount, date, accountNumber, PageRequest.of(page, size));
+    }
+
+    @Operation(
+            summary = "Get Transaction by ID",
+            description = "Retrieves the transaction with the provided ID.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successfully retrieved transaction",
+                            content = @Content(schema = @Schema(implementation = TransactionDto.class))),
+                    @ApiResponse(responseCode = "404", description = "Not found - Transaction with the provided ID does not exist")
+            }
+    )
+    @GetMapping("/{id}")
+    public ResponseEntity<TransactionDto> getTransactionById(Authentication auth, @PathVariable UUID id){
+        return this.paymentService.getTransactionById(auth.getCredentials().toString(), id);
     }
 
 }

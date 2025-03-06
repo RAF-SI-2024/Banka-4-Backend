@@ -3,6 +3,7 @@ package rs.banka4.user_service.models;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
+import rs.banka4.user_service.dto.PaymentStatus;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -74,6 +75,10 @@ public class Transaction {
 
     @Column(nullable = false)
     private LocalDateTime paymentDateTime;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentStatus status;
 
     @Override
     public final boolean equals(Object o) {
