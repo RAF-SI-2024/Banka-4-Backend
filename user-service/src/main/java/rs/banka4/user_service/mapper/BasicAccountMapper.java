@@ -1,5 +1,6 @@
 package rs.banka4.user_service.mapper;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.stereotype.Component;
 import rs.banka4.user_service.dto.AccountDto;
@@ -12,12 +13,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Component
+@RequiredArgsConstructor
 public class BasicAccountMapper {
 
-    private BasicEmployeeMapper employeeMapper;
-    private BasicClientMapper clientMapper;
-    private BasicCompanyMapper basicCompanyMapper;
-    private BasicCurrencyMapper basicCurrencyMapper;
+    private final BasicEmployeeMapper employeeMapper;
+    private final BasicClientMapper clientMapper;
+    private final BasicCompanyMapper basicCompanyMapper;
+    private final BasicCurrencyMapper basicCurrencyMapper;
 
     public AccountDto toDto(Account account){
         return new AccountDto(

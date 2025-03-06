@@ -1,8 +1,10 @@
 package rs.banka4.user_service.mapper;
 
+import org.springframework.stereotype.Component;
 import rs.banka4.user_service.dto.CurrencyDto;
 import rs.banka4.user_service.models.Currency;
 
+@Component
 public class BasicCurrencyMapper {
 
     public CurrencyDto toDto(Currency currency){
@@ -12,8 +14,7 @@ public class BasicCurrencyMapper {
                 currency.getSymbol(),
                 currency.getDescription(),
                 currency.isActive(),
-                currency.getCode(),
-                currency.getCountries()
+                currency.getCode()
         );
     }
 }

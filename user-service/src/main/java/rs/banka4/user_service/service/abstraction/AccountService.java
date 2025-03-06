@@ -8,15 +8,11 @@ import rs.banka4.user_service.dto.AccountDto;
 import rs.banka4.user_service.dto.requests.CreateAccountDto;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface AccountService {
     ResponseEntity<List<AccountDto>> getAccountsForClient(String token);
     ResponseEntity<List<AccountDto>> getRecentRecipientsFor(String token);
     ResponseEntity<AccountDto> getAccount(String token, String id);
     ResponseEntity<Void> createAccount(CreateAccountDto createAccountDto);
-    ResponseEntity<Page<AccountDto>> getAll(String firstName, String lastName, String id, PageRequest pageRequest);
-    ResponseEntity<Page<AccountDto>> getAllChecking(Authentication auth, PageRequest pageRequest);
-    ResponseEntity<Page<AccountDto>> getAllFx(Authentication auth, PageRequest pageRequest);
-
+    ResponseEntity<Page<AccountDto>> getAll(Authentication auth, String firstName, String lastName, String accountNumber, PageRequest pageRequest);
 }

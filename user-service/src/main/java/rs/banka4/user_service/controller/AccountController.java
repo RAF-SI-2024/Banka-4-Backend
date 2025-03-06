@@ -15,14 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.AccountDto;
-import rs.banka4.user_service.dto.PaymentDto;
-import rs.banka4.user_service.dto.PaymentStatus;
 import rs.banka4.user_service.dto.requests.CreateAccountDto;
-import rs.banka4.user_service.dto.requests.CreatePaymentDto;
 import rs.banka4.user_service.service.abstraction.AccountService;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -38,11 +33,11 @@ public class AccountController {
             Authentication auth,
             @RequestParam(required = false) @Parameter(description = "First name of client") String firstName,
             @RequestParam(required = false) @Parameter(description = "Last name of client") String lastName,
-            @RequestParam(required = false) @Parameter(description = "Account id") String id,
+            @RequestParam(required = false) @Parameter(description = "Account number") String accountNumber,
             @RequestParam(defaultValue = "0") @Parameter(description = "Page number") int page,
             @RequestParam(defaultValue = "10") @Parameter(description = "Number of employees per page") int size
-    ){
-        return this.accountService.getAll(firstName, lastName, id, PageRequest.of(page, size));
+    ) {
+        return this.accountService.getAll(auth, firstName, lastName, accountNumber, PageRequest.of(page, size));
     }
 
     @Operation(
@@ -96,20 +91,5 @@ public class AccountController {
                     description = "Details of the new account to create", required = true)
             @RequestBody @Valid CreateAccountDto createAccountDto) {
         return accountService.createAccount(createAccountDto);
-    }
-    @Operation(summary = "Get all checking accounts with pagination")
-    @GetMapping("/checking")
-    public ResponseEntity<Page<AccountDto>> getAllChecking(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size, Authentication auth) {
-        return accountService.getAllChecking(auth, PageRequest.of(page, size));
-    }
-
-    @Operation(summary = "Get all FX accounts with pagination")
-    @GetMapping("/fx")
-    public ResponseEntity<Page<AccountDto>> getAllFx(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size, Authentication auth) {
-        return accountService.getAllFx(auth, PageRequest.of(page, size));
     }
 }

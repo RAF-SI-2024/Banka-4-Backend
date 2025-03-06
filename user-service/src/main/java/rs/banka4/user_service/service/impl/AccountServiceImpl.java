@@ -16,6 +16,9 @@ import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.mapper.BasicAccountMapper;
 import rs.banka4.user_service.utils.JwtUtil;
+import rs.banka4.user_service.utils.specification.AccountSpecification;
+import rs.banka4.user_service.utils.specification.EmployeeSpecification;
+import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,8 +41,7 @@ public class AccountServiceImpl implements AccountService {
             "RSD",
             "Currency used in Serbia",
             true,
-            Currency.Code.RSD,
-            Set.of("Serbia", "Montenegro")
+            Currency.Code.RSD
     );
 
     CompanyDto companyDto = new CompanyDto(
@@ -105,50 +107,28 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<Page<AccountDto>> getAll(String firstName, String lastName, String id, PageRequest pageRequest) {
-        List<AccountDto> accountDtos = List.of(account1, account2);
-        Page<AccountDto> accountPage = new PageImpl<>(accountDtos, pageRequest, accountDtos.size());
-        return ResponseEntity.ok(accountPage);
-    }
-
-
-    @Override
-    public ResponseEntity<Page<AccountDto>> getAllChecking(Authentication auth, PageRequest pageRequest) {
+    public ResponseEntity<Page<AccountDto>> getAll(Authentication auth, String firstName, String lastName, String accountNumber, PageRequest pageRequest) {
         String email = jwtUtil.extractUsername(auth.getCredentials().toString());
-        Optional<Client> clientOpt = clientRepository.findByEmail(email);
+        String role = jwtUtil.extractRole(auth.getCredentials().toString());
 
-        Page<Account> checkingAccounts;
+        SpecificationCombinator<Account> combinator = new SpecificationCombinator<>();
 
-        if (jwtUtil.extractRole(auth.getCredentials().toString()).equals("employee")) {
-            checkingAccounts = accountRepository.findAllByCurrency_Code(Currency.Code.RSD, pageRequest);
-        } else if (clientOpt.isPresent()) {
-            checkingAccounts = accountRepository.findAllByClientAndCurrency_Code(clientOpt.get(), Currency.Code.RSD, pageRequest);
-        } else {
-            return ResponseEntity.badRequest().build();
+        if (firstName != null && !firstName.isEmpty()) {
+            combinator.and(AccountSpecification.hasFirstName(firstName));
+        }
+        if (lastName != null && !lastName.isEmpty()) {
+            combinator.and(AccountSpecification.hasLastName(lastName));
+        }
+        if (accountNumber != null && !accountNumber.isEmpty()) {
+            combinator.and(AccountSpecification.hasAccountNumber(accountNumber));
+        }
+        if (role.equals("client")) {
+            combinator.and(AccountSpecification.hasEmail(email));
         }
 
-        Page<AccountDto> checkingDtos = checkingAccounts.map(accountMapper::toDto);
-        return ResponseEntity.ok(checkingDtos);
-    }
-    @Override
-    public ResponseEntity<Page<AccountDto>> getAllFx(Authentication auth, PageRequest pageRequest) {
-        String token = (String) auth.getCredentials();
-        String role = jwtUtil.extractRole(token);
-        Page<Account> fxAccounts;
+        Page<Account> accounts = accountRepository.findAll(combinator.build(), pageRequest);
 
-        if ("employee".equals(role)) {
-            fxAccounts = accountRepository.findAllByCurrency_CodeNot(Currency.Code.RSD, pageRequest);
-        } else if ("client".equals(role)) {
-            String username = jwtUtil.extractUsername(token);
-            Client client = clientRepository.findByEmail(username)
-                    .orElseThrow(() -> new IllegalArgumentException("Client not found"));
-            fxAccounts = accountRepository.findAllByClientAndCurrency_CodeNot(client, Currency.Code.RSD, pageRequest);
-        } else {
-            return ResponseEntity.badRequest().build();
-        }
-
-        Page<AccountDto> fxDtos = fxAccounts.map(accountMapper::toDto);
-        return ResponseEntity.ok(fxDtos);
+        return ResponseEntity.ok(accounts.map(accountMapper::toDto));
     }
 
     @Override
