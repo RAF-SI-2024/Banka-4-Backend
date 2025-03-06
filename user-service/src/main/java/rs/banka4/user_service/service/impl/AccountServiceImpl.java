@@ -1,10 +1,9 @@
 package rs.banka4.user_service.service.impl;
 
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +25,6 @@ import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.specification.AccountSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
-import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
@@ -34,7 +32,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
     private final ClientService clientService;
@@ -46,6 +43,19 @@ public class AccountServiceImpl implements AccountService {
     private final JwtUtil jwtUtil;
     private final EmployeeRepository employeeRepository;
     private final AccountMapper accountMapper;
+
+    public AccountServiceImpl(@Lazy ClientService clientService, CompanyService companyService, CurrencyRepository currencyRepository, CompanyMapper companyMapper,
+                              AccountRepository accountRepository, ClientRepository clientRepository, JwtUtil jwtUtil, EmployeeRepository employeeRepository, AccountMapper accountMapper) {
+        this.clientService = clientService;
+        this.companyService = companyService;
+        this.currencyRepository = currencyRepository;
+        this.companyMapper = companyMapper;
+        this.accountRepository = accountRepository;
+        this.clientRepository = clientRepository;
+        this.jwtUtil = jwtUtil;
+        this.employeeRepository = employeeRepository;
+        this.accountMapper = accountMapper;
+    }
 
     CurrencyDto currencyDto = new CurrencyDto(
             "11111111-2222-3333-4444-555555555555",
@@ -283,5 +293,10 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<List<AccountDto>> getRecentRecipientsFor(String token) {
         List<AccountDto> accounts = List.of(account1, account2);
         return ResponseEntity.ok(accounts);
+    }
+
+    @Override
+    public Account getAccountByAccountNumber(String accountNumber) {
+        return accountRepository.findAccountByAccountNumber(accountNumber).orElseThrow(NotFound::new);
     }
 }

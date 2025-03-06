@@ -88,7 +88,7 @@ public class TestDataRunner implements CommandLineRunner {
                             .address("456 Elm St")
                             .password(passwordEncoder.encode("qwerty123"))
                             .accounts(Set.of())
-                            .contacts(Set.of())
+                            .savedContacts(Set.of())
                             .enabled(true)
                             .build();
                     return clientRepository.save(newClient);
@@ -105,7 +105,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .address("456 Elm St 2")
                     .password(passwordEncoder.encode("password123"))
                     .accounts(Set.of())
-                    .contacts(Set.of())
+                    .savedContacts(Set.of())
                     .enabled(true)
                     .build();
 

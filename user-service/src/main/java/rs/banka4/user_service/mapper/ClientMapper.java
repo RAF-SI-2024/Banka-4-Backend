@@ -21,7 +21,7 @@ public interface ClientMapper {
 
     @AfterMapping
     default void mapPrivileges(CreateClientDto dto, @MappingTarget Client client) {
-        client.setContacts(Set.of());
+        client.setSavedContacts(Set.of());
         client.setAccounts(Set.of());
         if (dto.privilege() != null) {
             client.setPrivileges(dto.privilege());

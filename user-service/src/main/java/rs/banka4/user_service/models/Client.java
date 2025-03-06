@@ -28,10 +28,10 @@ public class Client extends User {
     @JoinTable(
             name = "client_contacts",
             joinColumns = @JoinColumn(name = "client_id"),
-            inverseJoinColumns = @JoinColumn(name = "contact_id")
+            inverseJoinColumns = @JoinColumn(name = "account_id")
     )
     @ToString.Exclude
-    private Set<Client> contacts;
+    private Set<Account> savedContacts;
 
     @Override
     public final boolean equals(Object o) {
