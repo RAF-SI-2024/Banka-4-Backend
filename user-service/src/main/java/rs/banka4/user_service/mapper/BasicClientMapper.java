@@ -12,9 +12,16 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class BasicClientMapper {
+
+    private final AccountMapper accountMapper;
+
+    public BasicClientMapper(AccountMapper accountMapper) {
+        this.accountMapper = accountMapper;
+    }
 
     public ClientDto entityToDto(Client client) {
         if (client == null) return null;
@@ -31,7 +38,7 @@ public class BasicClientMapper {
                 client.phone,
                 client.address,
                 set,
-                linkedAccounts
+                client.getAccounts().stream().map(accountMapper::toDto).collect(Collectors.toSet()).stream().toList()
         );
         return dto;
     }

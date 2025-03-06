@@ -28,16 +28,39 @@ public class AccountController {
 
     private final AccountService accountService;
 
+    @Operation(
+            summary = "Search for accounts",
+            description = "Search for accounts based on client information such as first name, last name, account number. Supports pagination.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            parameters = {
+                    @Parameter(name = "firstName", description = "First name of the client", required = false),
+                    @Parameter(name = "lastName", description = "Last name of the client", required = false),
+                    @Parameter(name = "accountNumber", description = "Account number", required = false),
+                    @Parameter(name = "page", description = "Page number for pagination", required = false, schema = @Schema(defaultValue = "0")),
+                    @Parameter(name = "size", description = "Number of accounts per page", required = false, schema = @Schema(defaultValue = "10"))
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully retrieved the list of accounts",
+                            content = @Content(schema = @Schema(implementation = AccountDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - Invalid authentication token"
+                    ),
+            }
+    )
     @GetMapping("/search")
     public ResponseEntity<Page<AccountDto>> getAll(
             Authentication auth,
             @RequestParam(required = false) @Parameter(description = "First name of client") String firstName,
             @RequestParam(required = false) @Parameter(description = "Last name of client") String lastName,
-            @RequestParam(required = false) @Parameter(description = "Account id") String id,
+            @RequestParam(required = false) @Parameter(description = "Account number") String accountNumber,
             @RequestParam(defaultValue = "0") @Parameter(description = "Page number") int page,
             @RequestParam(defaultValue = "10") @Parameter(description = "Number of employees per page") int size
-    ){
-        return this.accountService.getAll(firstName, lastName, id, PageRequest.of(page, size));
+    ) {
+        return this.accountService.getAll(auth, firstName, lastName, accountNumber, PageRequest.of(page, size));
     }
 
     @Operation(

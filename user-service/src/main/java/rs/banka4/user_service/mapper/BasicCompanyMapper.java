@@ -23,7 +23,8 @@ public class BasicCompanyMapper {
                 company.getName(),
                 company.getTin(),
                 company.getCrn(),
-                company.getAddress()
+                company.getAddress(),
+                company.getActivityCode().getCode()
         );
     }
 }

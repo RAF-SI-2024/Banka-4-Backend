@@ -8,11 +8,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreateAccountDto;
 import rs.banka4.user_service.dto.requests.CreateCompanyDto;
 import rs.banka4.user_service.exceptions.*;
+import rs.banka4.user_service.mapper.AccountMapper;
 import rs.banka4.user_service.mapper.CompanyMapper;
 import rs.banka4.user_service.models.*;
 import rs.banka4.user_service.models.Currency;
@@ -21,28 +23,29 @@ import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.abstraction.CompanyService;
 import rs.banka4.user_service.utils.JwtUtil;
+import rs.banka4.user_service.utils.specification.AccountSpecification;
+import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
     private final ClientService clientService;
-
     private final CompanyService companyService;
-
     private final CurrencyRepository currencyRepository;
-
     private final CompanyMapper companyMapper;
-
     private final AccountRepository accountRepository;
     private final ClientRepository clientRepository;
     private final JwtUtil jwtUtil;
     private final EmployeeRepository employeeRepository;
+    private final AccountMapper accountMapper;
 
     CurrencyDto currencyDto = new CurrencyDto(
             "11111111-2222-3333-4444-555555555555",
@@ -58,7 +61,8 @@ public class AccountServiceImpl implements AccountService {
             "Acme Corp",
             "123456789",
             "987654321",
-            "123 Main St"
+            "123 Main St",
+            "441100"
     );
 
     AccountDto account1 = new AccountDto(
@@ -100,13 +104,29 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ResponseEntity<List<AccountDto>> getAccountsForClient(String token) {
-        List<AccountDto> accounts = List.of(account1, account2);
-        return ResponseEntity.ok(accounts);
+        String email = jwtUtil.extractUsername(token);
+
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new ClientNotFound(email));
+
+        List<Account> accounts = accountRepository.findAllByClient(client);
+
+        if (accounts.isEmpty()) {
+            throw new AccountNotFound();
+        }
+
+        List<AccountDto> accountDtos = accounts.stream()
+                .map(accountMapper::toDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(accountDtos);
     }
 
+
     @Override
-    public ResponseEntity<AccountDto> getAccount(String token, String id) {
-        return ResponseEntity.ok(account1);
+    public ResponseEntity<AccountDto> getAccount(String token, String accoutNumber) {
+        Optional<Account> account = accountRepository.findAccountByAccountNumber(accoutNumber);
+        return ResponseEntity.ok(account.map(accountMapper::toDto).orElseThrow(AccountNotFound::new));
     }
 
     private void connectCompanyToAccount(Account account, CreateAccountDto createAccountDto) {
@@ -235,10 +255,28 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<Page<AccountDto>> getAll(String firstName, String lastName, String id, PageRequest pageRequest) {
-        List<AccountDto> accountDtos = List.of(account1, account2);
-        Page<AccountDto> accountPage = new PageImpl<>(accountDtos, pageRequest, accountDtos.size());
-        return ResponseEntity.ok(accountPage);
+    public ResponseEntity<Page<AccountDto>> getAll(Authentication auth, String firstName, String lastName, String accountNumber, PageRequest pageRequest) {
+        String email = jwtUtil.extractUsername(auth.getCredentials().toString());
+        String role = jwtUtil.extractRole(auth.getCredentials().toString());
+
+        SpecificationCombinator<Account> combinator = new SpecificationCombinator<>();
+
+        if (firstName != null && !firstName.isEmpty()) {
+            combinator.and(AccountSpecification.hasFirstName(firstName));
+        }
+        if (lastName != null && !lastName.isEmpty()) {
+            combinator.and(AccountSpecification.hasLastName(lastName));
+        }
+        if (accountNumber != null && !accountNumber.isEmpty()) {
+            combinator.and(AccountSpecification.hasAccountNumber(accountNumber));
+        }
+        if (role.equals("client")) {
+            combinator.and(AccountSpecification.hasEmail(email));
+        }
+
+        Page<Account> accounts = accountRepository.findAll(combinator.build(), pageRequest);
+
+        return ResponseEntity.ok(accounts.map(accountMapper::toDto));
     }
 
     @Override

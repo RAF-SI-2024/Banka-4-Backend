@@ -15,5 +15,7 @@ public record CompanyDto(
         @Schema(description = "CRN", example = "987654321")
         String crn,
         @Schema(description = "Address", example = "123 Main St")
-        String address
+        String address,
+        @Schema(description = "Activity Code", example = "441100")
+        String activityCode
 ) { }

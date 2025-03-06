@@ -36,7 +36,8 @@ class CompanyServiceCreateTests {
                 "Acme Corp",
                 "123456789",
                 "987654321",
-                "123 Some Address"
+                "123 Some Address",
+                "12222"
         );
 
         when(companyRepository.existsByCrn(dto.crn())).thenReturn(false);
@@ -74,6 +75,7 @@ class CompanyServiceCreateTests {
                 "123456789",
                 "987654321",
                 "123 Some Address"
+                , "12222"
         );
 
         when(companyRepository.existsByCrn(dto.crn())).thenReturn(true);
@@ -93,6 +95,7 @@ class CompanyServiceCreateTests {
                 "123456789",
                 "987654321",
                 "123 Some Address"
+                , "12222"
         );
 
         when(companyRepository.existsByCrn(dto.crn())).thenReturn(false);

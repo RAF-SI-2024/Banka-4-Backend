@@ -3,14 +3,9 @@ package rs.banka4.user_service.mapper;
 import org.mapstruct.*;
 import rs.banka4.user_service.dto.ClientDto;
 import rs.banka4.user_service.dto.requests.CreateClientDto;
-import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
-import rs.banka4.user_service.exceptions.PrivilegeDoesNotExist;
 import rs.banka4.user_service.models.Client;
-import rs.banka4.user_service.models.Employee;
-import rs.banka4.user_service.models.Privilege;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Mapper(
         componentModel = MappingConstants.ComponentModel.SPRING,

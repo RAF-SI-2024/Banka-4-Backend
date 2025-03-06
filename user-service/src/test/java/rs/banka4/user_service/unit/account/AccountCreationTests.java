@@ -106,7 +106,8 @@ public class AccountCreationTests {
                 "Acme Corp",
                 "123456789",
                 "987654321",
-                "123 Some Address"
+                "123 Some Address",
+                "4441100"
         );
 
         createAccountDto = new CreateAccountDto(mockCreateClient,
@@ -155,7 +156,7 @@ public class AccountCreationTests {
                 "Acme Corp",
                 "123456789",
                 "987654321",
-                "123 Some Address");
+                "123 Some Address", "1222");
 
         when(companyMapper.toCreateDto(mockCompany)).thenReturn(createCompanyDto);
 
@@ -301,7 +302,7 @@ public class AccountCreationTests {
                 "Acme Corp",
                 "123456789",
                 "987654321",
-                "123 Some Address");
+                "123 Some Address", "12222");
 
         when(companyMapper.toCreateDto(mockCompany)).thenReturn(createCompanyDto);
 
@@ -341,7 +342,7 @@ public class AccountCreationTests {
                 "Acme Corp",
                 "123456789",
                 "987654321",
-                "123 Some Address");
+                "123 Some Address", "12222");
 
         when(companyMapper.toCreateDto(mockCompany)).thenReturn(createCompanyDto);
 
@@ -383,7 +384,7 @@ public class AccountCreationTests {
                 "Acme Corp",
                 "123456789",
                 "987654321",
-                "123 Some Address");
+                "123 Some Address", "12222");
 
         when(companyMapper.toCreateDto(mockCompany)).thenReturn(createCompanyDto);
 
@@ -429,7 +430,7 @@ public class AccountCreationTests {
                 "Acme Corp",
                 "123456789",
                 "987654321",
-                "123 Some Address"
+                "123 Some Address", "12222"
         );
 
         var createAccountDto = new CreateAccountDto(mockCreateClient,
@@ -450,7 +451,8 @@ public class AccountCreationTests {
                 "Acme Corp",
                 "123456789",
                 "987654321",
-                "123 Some Address"
+                "123 Some Address",
+                "12222"
         );
 
         when(clientMapper.toCreateDto(any(ClientDto.class))).thenReturn(createClientDto);

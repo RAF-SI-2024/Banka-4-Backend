@@ -24,6 +24,7 @@ import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Privilege;
 import rs.banka4.user_service.models.VerificationCode;
 import rs.banka4.user_service.repositories.ClientRepository;
+import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.MessageHelper;
@@ -46,6 +47,7 @@ public class ClientServiceImpl implements ClientService {
     private final VerificationCodeService verificationCodeService;
     private final RabbitTemplate rabbitTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final EmployeeRepository employeeRepository;
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
@@ -93,11 +95,10 @@ public class ClientServiceImpl implements ClientService {
     }
     @Override
     public ResponseEntity<ClientDto> getClient(String id) {
-
         var client = clientRepository.findById(id).orElseThrow(() -> new UserNotFound(id));;
-
         return ResponseEntity.ok(clientMapper.toDto(client));
     }
+
     @Override
     public ClientDto findClient(String id) {
         var c =clientRepository.findById(id);
@@ -149,7 +150,27 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ResponseEntity<Void> updateClient(String id, UpdateClientDto updateClientDto) {
-        return null;
+        Optional<Client> clientOptional = clientRepository.findById(id);
+
+        if (clientOptional.isEmpty()) { // TODO: do no let other users edit other users
+            throw new ClientNotFound(id);
+        }
+
+        if (clientRepository.existsByEmail(updateClientDto.email()) || employeeRepository.existsByEmail(updateClientDto.email())) {
+            throw new DuplicateEmail(updateClientDto.email());
+        }
+
+        Client client = clientOptional.get();
+        client.setFirstName(updateClientDto.firstName());
+        client.setLastName(updateClientDto.lastName());
+        client.setDateOfBirth(updateClientDto.dateOfBirth());
+        client.setGender(updateClientDto.gender());
+        client.setEmail(updateClientDto.email());
+        client.setPhone(updateClientDto.phone());
+        client.setAddress(updateClientDto.address());
+        clientRepository.save(client);
+
+        return ResponseEntity.noContent().build();
     }
 
     @Override

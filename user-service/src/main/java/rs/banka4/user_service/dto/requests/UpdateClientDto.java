@@ -38,10 +38,5 @@ public record UpdateClientDto(
 
         @NotBlank(message = "Address is required and cannot be blank.")
         @Schema(description = "Address", example = "123 Main St")
-        String address,
-
-        @Valid
-        @NotNull(message = "Accounts list cannot be null.")
-        @Schema(description = "Set of accounts linked to the client")
-        List<UpdateAccountDto> accounts
+        String address
 ) { }
