@@ -8,6 +8,7 @@ import rs.banka4.user_service.dto.TransactionDto;
 import rs.banka4.user_service.dto.PaymentStatus;
 import rs.banka4.user_service.dto.requests.CreatePaymentDto;
 import rs.banka4.user_service.dto.requests.CreateTransactionDto;
+import rs.banka4.user_service.dto.requests.VerificationRequestDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,4 +19,6 @@ public interface PaymentService {
     ResponseEntity<TransactionDto> createTransfer(Authentication authentication, CreatePaymentDto createPaymentDto);
     ResponseEntity<Page<TransactionDto>> getAllPaymentsForClient(String token, PaymentStatus paymentStatus, BigDecimal amount, LocalDate paymentDate,  String accountNumber, PageRequest pageRequest);
     ResponseEntity<TransactionDto> getTransactionById(String token, UUID transactionId);
+    ResponseEntity<Void> verify(Authentication authentication, VerificationRequestDto verificationRequestDto);
+
 }

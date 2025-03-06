@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,7 +17,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreatePaymentDto;
+import rs.banka4.user_service.dto.requests.VerificationRequestDto;
 import rs.banka4.user_service.service.abstraction.PaymentService;
+import rs.banka4.user_service.service.impl.VerificationEventService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -100,6 +103,30 @@ public class PaymentController {
     @GetMapping("/{id}")
     public ResponseEntity<TransactionDto> getTransactionById(Authentication auth, @PathVariable UUID id){
         return this.paymentService.getTransactionById(auth.getCredentials().toString(), id);
+    }
+
+    /**
+     * Verifies the TOTP code provided by the user for a specific authentication event.
+     *
+     * @param authentication the current user authentication
+     * @param verificationRequestDto the request DTO containing the event ID and TOTP code
+     * @return ResponseEntity with HTTP status 200 if verification is successful
+     */
+    @Operation(
+            summary = "Verify TOTP Code for an Event",
+            description = "Verifies the provided TOTP code for the given authentication event (by event ID) and records the event as verified."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "TOTP code verified successfully and event recorded."),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload."),
+            @ApiResponse(responseCode = "401", description = "Unauthorized or invalid TOTP code."),
+            @ApiResponse(responseCode = "404", description = "Authentication event not found.")
+    })
+    @PostMapping("/verify")
+    public ResponseEntity<Void> verifyPayment(
+            Authentication authentication,
+            @Valid @RequestBody VerificationRequestDto verificationRequestDto) {
+        return paymentService.verify(authentication, verificationRequestDto);
     }
 
 }

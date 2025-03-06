@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.RegenerateAuthenticatorResponseDto;
 import rs.banka4.user_service.dto.requests.SentCode;
+import rs.banka4.user_service.dto.requests.VerificationRequestDto;
+import rs.banka4.user_service.service.impl.VerificationEventService;
 import rs.banka4.user_service.service.impl.TotpService;
 
 @RestController
@@ -21,6 +25,7 @@ import rs.banka4.user_service.service.impl.TotpService;
 public class TotpController {
 
     private final TotpService totpService;
+    private final VerificationEventService verificationEventService;
 
     /**
      * Regenerates a new TOTP secret for the authenticated user.

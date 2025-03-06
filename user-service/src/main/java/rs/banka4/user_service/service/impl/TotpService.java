@@ -44,67 +44,29 @@ public class TotpService implements TotpAbs {
     private final ClientRepository clientRepository;
     private final EmployeeRepository employeeRepository;
 
-
     @Override
     public ResponseEntity<Void> verifyNewAuthenticator(Authentication auth, String code) {
-
-        String token = auth.getCredentials().toString().replace("Bearer ", "");
-        String email = jwtUtil.extractUsername(token);
-
-        UserTotpSecret totp = null;
-        if(repository.findByClient_Email(email).isPresent()){
-            totp = repository.findByClient_Email(email).get();
-        } else {
-            totp = repository.findByEmployee_Email(email).get();
-        }
-        
-        if(totp == null){
-            throw new NoTotpException();
-        }
-
-        TimeProvider timeProvider = new SystemTimeProvider();
-        CodeGenerator codeGenerator = new DefaultCodeGenerator(ALGORITHM);
-        DefaultCodeVerifier validator = new DefaultCodeVerifier(codeGenerator, timeProvider);
-        String secret = totp.getSecret();
-        if(validator.isValidCode(secret,code)){
-            totp.setIsActive(true);
-            repository.save(totp);
-        }else{
-            throw new NotValidTotpException();
-        }
-
-
+        String email = extractEmailFromAuth(auth);
+        UserTotpSecret totp = getTotpSecretByEmail(email);
+        validateTotpCode(totp, code);
+        totp.setIsActive(true);
+        repository.save(totp);
         return ResponseEntity.ok().build();
     }
 
     @Override
-    public boolean validate(String authorization, String code){
-        String token = authorization.replace("Bearer ", "");
-        String email = jwtUtil.extractUsername(token);
-
-        UserTotpSecret totp = null;
-        if(repository.findByClient_Email(email).isPresent()){
-            totp = repository.findByClient_Email(email).get();
-        } else {
-            totp = repository.findByEmployee_Email(email).get();
-        }
-        if(totp == null){
-            throw new NoTotpException();
-        }
-        if(!totp.getIsActive()){
+    public boolean validate(String authorization, String code) {
+        String email = extractEmailFromToken(authorization);
+        UserTotpSecret totp = getTotpSecretByEmail(email);
+        if (!totp.getIsActive()) {
             throw new NotActiveTotpException();
         }
-
-        TimeProvider timeProvider = new SystemTimeProvider();
-        CodeGenerator codeGenerator = new DefaultCodeGenerator(ALGORITHM);
-        DefaultCodeVerifier validator = new DefaultCodeVerifier(codeGenerator, timeProvider);
-        String secret = totp.getSecret();
-        return validator.isValidCode(secret, code);
+        return isCodeValid(totp.getSecret(), code);
     }
 
     @Override
     public ResponseEntity<RegenerateAuthenticatorResponseDto> regenerateSecret(Authentication auth) {
-        String token = auth.getCredentials().toString().replace("Bearer ", "");
+        String token = extractToken(auth);
         String email = jwtUtil.extractUsername(token);
 
         if (jwtUtil.isTokenExpired(token)) throw new NotAuthenticated();
@@ -114,100 +76,53 @@ public class TotpService implements TotpAbs {
         String newSecret = secretGenerator.generate();
 
         UserTotpSecret userTotpSecret;
-        System.out.println("user regen " + email + " " + token);
-        System.out.println("user regen " + SecurityContextHolder.getContext().getAuthentication());
         Optional<Client> client = clientRepository.findByEmail(email);
         Optional<Employee> employee = employeeRepository.findByEmail(email);
 
         if (client.isPresent()) {
             Client safeClient = client.get();
-            clientRepository.findByEmail(email)
-                    .orElseThrow(NotFound::new);
             userTotpSecret = repository.findByClient_Email(email)
-                    .map(userTotpSecret1 -> {
-                        userTotpSecret1.setSecret(newSecret);
-                        userTotpSecret1.setIsActive(false);
-                        return userTotpSecret1;
+                    .map(secretObj -> {
+                        secretObj.setSecret(newSecret);
+                        secretObj.setIsActive(false);
+                        return secretObj;
                     })
-                    .orElseGet(() -> new UserTotpSecret(null,
-                            newSecret,
-                            safeClient,
-                            null,
-                            false));
-
+                    .orElseGet(() -> new UserTotpSecret(null, newSecret, safeClient, null, false));
         } else if (employee.isPresent()) {
-            Employee safeEmployee = employeeRepository.findByEmail(email)
-                    .orElseThrow(NotFound::new);
-
+            Employee safeEmployee = employee.get();
             userTotpSecret = repository.findByEmployee_Email(email)
-                    .map(userTotpSecret1 -> {
-                        userTotpSecret1.setSecret(newSecret);
-                        userTotpSecret1.setIsActive(false);
-                        return userTotpSecret1;
+                    .map(secretObj -> {
+                        secretObj.setSecret(newSecret);
+                        secretObj.setIsActive(false);
+                        return secretObj;
                     })
-                    .orElseGet(() -> new UserTotpSecret(null,
-                            newSecret,
-                            null,
-                            safeEmployee,
-                            false));
-
+                    .orElseGet(() -> new UserTotpSecret(null, newSecret, null, safeEmployee, false));
         } else {
-            System.out.println("user regen not fount");
             throw new NotFound();
         }
 
         repository.save(userTotpSecret);
 
         return ResponseEntity.ok(
-                new RegenerateAuthenticatorResponseDto(
-                        createTotpUrl("RAFeisen", email, newSecret),
-                        newSecret));
+                new RegenerateAuthenticatorResponseDto(createTotpUrl("RAFeisen", email, newSecret), newSecret)
+        );
     }
 
-    /*
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
-
-    @Column(nullable = false, unique = true)
-    private String secret;
-
-    @OneToOne
-    @JoinColumn(name = "client_id", unique = true)
-    private Client client;
-
-    @OneToOne
-    @JoinColumn(name = "employee_id", unique = true)
-    private Employee employee;
-
-    @Column(nullable = false)
-    private Boolean isActive;
-     */
-
-
     @Override
-    public String generateCode(String authorization){
-        String token = authorization.replace("Bearer ", "");
-        String email = jwtUtil.extractUsername(token);
+    public String generateCode(String authorization) {
+        String email = extractEmailFromToken(authorization);
+        if (jwtUtil.isTokenExpired(authorization)) throw new NotAuthenticated();
+        if (jwtUtil.isTokenInvalidated(authorization)) throw new NotAuthenticated();
 
-        if(jwtUtil.isTokenExpired(token)) throw new NotAuthenticated();
-        if(jwtUtil.isTokenInvalidated(token)) throw new NotAuthenticated();
+        UserTotpSecret totp = getTotpSecretByEmail(email);
+        return generateCodeFromSecret(totp.getSecret());
+    }
 
-        UserTotpSecret totp = null;
-        if(repository.findByClient_Email(email).isPresent()){
-            totp = repository.findByClient_Email(email).get();
-        }else{
-            totp = repository.findByEmployee_Email(email).get();
-        }
-        if(totp == null){
-            throw new NoTotpException();
-        }
+    // --- Private helper methods ---
 
-
-
+    private String generateCodeFromSecret(String secret) {
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator(ALGORITHM);
-        String secret = totp.getSecret();
         long currentBucket = timeProvider.getTime() / TIME_PERIOD;
         try {
             return codeGenerator.generate(secret, currentBucket);
@@ -216,15 +131,40 @@ public class TotpService implements TotpAbs {
         }
     }
 
-
-    private String createTotpUrl(String issuer,
-                                 String email,
-                                 String secret) {
-        String totpUri = String.format(
-                "otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d",
-                issuer, email, secret, issuer, ALGORITHM, CODE_LENGTH, TIME_PERIOD
-        );
-        return totpUri;
+    private boolean isCodeValid(String secret, String code) {
+        TimeProvider timeProvider = new SystemTimeProvider();
+        CodeGenerator codeGenerator = new DefaultCodeGenerator(ALGORITHM);
+        DefaultCodeVerifier validator = new DefaultCodeVerifier(codeGenerator, timeProvider);
+        return validator.isValidCode(secret, code);
     }
 
+    private void validateTotpCode(UserTotpSecret totp, String code) {
+        if (!isCodeValid(totp.getSecret(), code)) {
+            throw new NotValidTotpException();
+        }
+    }
+
+    private UserTotpSecret getTotpSecretByEmail(String email) {
+        return repository.findByClient_Email(email)
+                .or(() -> repository.findByEmployee_Email(email))
+                .orElseThrow(NoTotpException::new);
+    }
+
+    private String extractEmailFromToken(String token) {
+        String pureToken = token.replace("Bearer ", "");
+        return jwtUtil.extractUsername(pureToken);
+    }
+
+    private String extractEmailFromAuth(Authentication auth) {
+        return extractEmailFromToken(auth.getCredentials().toString());
+    }
+
+    private String extractToken(Authentication auth) {
+        return auth.getCredentials().toString().replace("Bearer ", "");
+    }
+
+    private String createTotpUrl(String issuer, String email, String secret) {
+        return String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d",
+                issuer, email, secret, issuer, ALGORITHM, CODE_LENGTH, TIME_PERIOD);
+    }
 }

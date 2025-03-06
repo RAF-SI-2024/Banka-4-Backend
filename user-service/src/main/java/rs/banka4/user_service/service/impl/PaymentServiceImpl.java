@@ -11,12 +11,10 @@ import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.TransactionDto;
 import rs.banka4.user_service.dto.PaymentStatus;
 import rs.banka4.user_service.dto.requests.CreatePaymentDto;
+import rs.banka4.user_service.dto.requests.VerificationRequestDto;
 import rs.banka4.user_service.exceptions.*;
 import rs.banka4.user_service.mapper.TransactionMapper;
-import rs.banka4.user_service.models.Account;
-import rs.banka4.user_service.models.Client;
-import rs.banka4.user_service.models.MonetaryAmount;
-import rs.banka4.user_service.models.Transaction;
+import rs.banka4.user_service.models.*;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.TransactionRepository;
@@ -40,6 +38,8 @@ public class PaymentServiceImpl implements PaymentService {
     private final TransactionRepository transactionRepository;
     private final JwtUtil jwtUtil;
     private final TransactionMapper transactionMapper;
+    private final VerificationEventService verificationEventService;
+
 
     @Override
     @Transactional
@@ -66,8 +66,10 @@ public class PaymentServiceImpl implements PaymentService {
         fromAccount.setBalance(fromAccount.getBalance().subtract(createPaymentDto.fromAmount()).subtract(BigDecimal.ONE));
         toAccount.setBalance(toAccount.getBalance().add(createPaymentDto.fromAmount()));
 
+
+        UUID transactionId = UUID.randomUUID();
         Transaction transaction = Transaction.builder()
-                .transactionNumber(UUID.randomUUID().toString())
+                .transactionNumber(transactionId.toString())
                 .fromAccount(fromAccount)
                 .toAccount(toAccount)
                 .from(new MonetaryAmount(createPaymentDto.fromAmount(), fromAccount.getCurrency()))
@@ -80,6 +82,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .paymentDateTime(LocalDateTime.now())
                 .status(PaymentStatus.IN_PROGRESS)
                 .build();
+
+        verificationEventService.createVerificationEvent(transactionId, AuthenticationEventType.VERIFY_TRANSACTION);
 
         transactionRepository.save(transaction);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -111,8 +115,9 @@ public class PaymentServiceImpl implements PaymentService {
         fromAccount.setBalance(fromAccount.getBalance().subtract(createPaymentDto.fromAmount()));
         toAccount.setBalance(toAccount.getBalance().add(createPaymentDto.fromAmount()));
 
+        UUID transactionId = UUID.randomUUID();
         Transaction transaction = Transaction.builder()
-                .transactionNumber(UUID.randomUUID().toString())
+                .transactionNumber(transactionId.toString())
                 .fromAccount(fromAccount)
                 .toAccount(toAccount)
                 .from(new MonetaryAmount(createPaymentDto.fromAmount(), fromAccount.getCurrency()))
@@ -124,6 +129,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .paymentPurpose(createPaymentDto.paymentPurpose())
                 .paymentDateTime(LocalDateTime.now())
                 .build();
+
+        verificationEventService.createVerificationEvent(transactionId, AuthenticationEventType.VERIFY_TRANSFER);
 
         transactionRepository.save(transaction);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -159,6 +166,22 @@ public class PaymentServiceImpl implements PaymentService {
         //TODO: check if user is owner of transaction
 
         return ResponseEntity.ok(transactionMapper.toDto(transaction));
+    }
+
+
+    @Override
+    @Transactional
+    public ResponseEntity<Void> verify(Authentication authentication, VerificationRequestDto verificationRequestDto) {
+        AuthenticationEvent event = verificationEventService.verifyEvent(authentication, verificationRequestDto);
+
+        Transaction transaction = transactionRepository.findById(event.getId())
+                .orElseThrow(NotFound::new);
+        // Maybe recover verification to false if this fetch fails
+
+        transaction.setStatus(PaymentStatus.REALIZED);
+        transactionRepository.save(transaction);
+
+        return ResponseEntity.ok().build();
     }
 
 }
