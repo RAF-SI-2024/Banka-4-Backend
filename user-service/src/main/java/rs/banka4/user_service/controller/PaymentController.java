@@ -15,12 +15,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.*;
-import rs.banka4.user_service.dto.requests.CreatePaymentDto;
+import rs.banka4.user_service.dto.requests.CreateTransactionDto;
 import rs.banka4.user_service.service.abstraction.PaymentService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/payment")
@@ -39,11 +38,11 @@ public class PaymentController {
             }
     )
     @PostMapping
-    public ResponseEntity<PaymentDto> createPayment(
+    public ResponseEntity<TransactionDto> createPayment(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Details of the new client to create", required = true)
-            @RequestBody @Valid CreatePaymentDto createPaymentDto) {
-        return paymentService.createPayment(createPaymentDto);
+            @RequestBody @Valid CreateTransactionDto createTransactionDto) {
+        return paymentService.createPayment(createTransactionDto);
     }
 
     @Operation(
@@ -52,13 +51,13 @@ public class PaymentController {
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successfully retrieved payments",
-                            content = @Content(schema = @Schema(implementation = PaymentDto.class))),
+                            content = @Content(schema = @Schema(implementation = TransactionDto.class))),
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Token errors"),
                     @ApiResponse(responseCode = "403", description = "Forbidden - Access denied")
             }
     )
     @GetMapping("/search")
-    public ResponseEntity<Page<PaymentDto>> getPaymentsForClient(
+    public ResponseEntity<Page<TransactionDto>> getPaymentsForClient(
             Authentication auth,
             @RequestParam(required = false) @Parameter(description = "Payment status") PaymentStatus status,
             @RequestParam(required = false) @Parameter(description = "Payment amount") BigDecimal amount,

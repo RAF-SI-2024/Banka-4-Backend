@@ -1,6 +1,7 @@
 package rs.banka4.user_service.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.annotation.Nullable;
 import rs.banka4.user_service.models.Privilege;
 
 import java.time.LocalDate;
@@ -25,7 +26,7 @@ public record ClientDto(
         String phone,
         @Schema(description = "Address", example = "123 Main St")
         String address,
-        @Schema(description = "List of privileges", example = "[\"ADMIN\"]")
+        @Schema(description = "List of privileges", example = "[\"CAN_TRADE\"]")
         EnumSet<Privilege> privileges,
         @Schema(description = "List of accounts associated with the client")
         List<AccountDto> accounts

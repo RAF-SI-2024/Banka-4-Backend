@@ -18,8 +18,5 @@ public record CurrencyDto(
         @Schema(description = "Active status", example = "true")
         boolean active,
         @Schema(description = "Currency code", example = "RSD")
-        Currency.Code code,
-        @Schema(description = "Countries using this currency", example = "[\"Serbia\", \"Bosnia\"]")
-        Set<String> countries
-
+        Currency.Code code
 ) { }

@@ -15,14 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.AccountDto;
-import rs.banka4.user_service.dto.PaymentDto;
-import rs.banka4.user_service.dto.PaymentStatus;
 import rs.banka4.user_service.dto.requests.CreateAccountDto;
-import rs.banka4.user_service.dto.requests.CreatePaymentDto;
 import rs.banka4.user_service.service.abstraction.AccountService;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -94,7 +89,7 @@ public class AccountController {
     public ResponseEntity<Void> createAccount(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Details of the new account to create", required = true)
-            @RequestBody @Valid CreateAccountDto createAccountDto) {
-        return accountService.createAccount(createAccountDto);
+            @RequestBody @Valid CreateAccountDto createAccountDto, Authentication auth) {
+        return accountService.createAccount(createAccountDto, (String) auth.getCredentials());
     }
 }

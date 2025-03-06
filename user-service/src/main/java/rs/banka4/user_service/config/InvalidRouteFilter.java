@@ -23,14 +23,18 @@ public class InvalidRouteFilter extends OncePerRequestFilter {
 
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        try {
-            if (handlerMapping.getHandler(request) == null) {
+        String requestURI = request.getRequestURI();
+
+        if (!WhiteListConfig.isWhitelisted(requestURI)) {
+            try {
+                if (handlerMapping.getHandler(request) == null) {
+                    throw new RouteNotFound();
+                }
+            } catch (Exception e) {
                 throw new RouteNotFound();
             }
-        } catch (Exception e) {
-            throw new RouteNotFound();
         }
+
         filterChain.doFilter(request, response);
     }
-
 }

@@ -14,7 +14,6 @@ import rs.banka4.user_service.service.impl.CustomUserDetailsService;
 import rs.banka4.user_service.utils.JwtUtil;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Objects;
 
 @Component
@@ -36,10 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = null;
         String token = null;
 
-        boolean isWhitelisted = Arrays.stream(SecurityConfig.WHITE_LIST_URL)
-                .anyMatch(url -> request.getRequestURI().startsWith(url));
-
-        if (!isWhitelisted) {
+        if (!WhiteListConfig.isWhitelisted(request.getRequestURI())) {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 token = authorizationHeader.substring(7);
                 username = jwtUtils.extractUsername(token);

@@ -12,8 +12,7 @@ public class BasicCurrencyMapper {
                 currency.getSymbol(),
                 currency.getDescription(),
                 currency.isActive(),
-                currency.getCode(),
-                currency.getCountries()
+                currency.getCode()
         );
     }
 }

@@ -13,6 +13,6 @@ public interface AccountService {
     ResponseEntity<List<AccountDto>> getAccountsForClient(String token);
     ResponseEntity<List<AccountDto>> getRecentRecipientsFor(String token);
     ResponseEntity<AccountDto> getAccount(String token, String id);
-    ResponseEntity<Void> createAccount(CreateAccountDto createAccountDto);
+    ResponseEntity<Void> createAccount(CreateAccountDto createAccountDto, String auth);
     ResponseEntity<Page<AccountDto>> getAll(String firstName, String lastName, String id, PageRequest pageRequest);
 }

@@ -18,6 +18,8 @@ public interface ClientService {
     ResponseEntity<PrivilegesDto> getPrivileges(String token);
     ResponseEntity<ClientDto> getMe(String token);
     ResponseEntity<ClientDto> getClient(String id);
+    ClientDto findClient(String id);
+    Optional<Client> getClientByEmail(String email);
     ResponseEntity<Void> createClient(CreateClientDto createClientDto);
     ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email, String phone, Pageable pageable);
     ResponseEntity<Void> updateClient(String id, UpdateClientDto updateClientDto);
