@@ -35,25 +35,30 @@ public class Transaction {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "amount", column = @Column(name = "from_amount", nullable = false)),
-            @AttributeOverride(name = "currency", column = @Column(name = "from_currency_id", nullable = false)) // Ensure unique name
+            @AttributeOverride(name = "amount", column = @Column(name = "from_amount", nullable = false))
+    })
+    @AssociationOverrides({
+            @AssociationOverride(name = "currency", joinColumns = @JoinColumn(name = "from_currency_id", nullable = false))
     })
     private MonetaryAmount from;
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "amount", column = @Column(name = "to_amount", nullable = false)),
-            @AttributeOverride(name = "currency", column = @Column(name = "to_currency_id", nullable = false)) // Ensure unique name
+            @AttributeOverride(name = "amount", column = @Column(name = "to_amount", nullable = false))
+    })
+    @AssociationOverrides({
+            @AssociationOverride(name = "currency", joinColumns = @JoinColumn(name = "to_currency_id", nullable = false))
     })
     private MonetaryAmount to;
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "amount", column = @Column(name = "fee_amount")),
-            @AttributeOverride(name = "currency", column = @Column(name = "fee_currency_id")) // Ensure unique name
+            @AttributeOverride(name = "amount", column = @Column(name = "fee_amount"))
+    })
+    @AssociationOverrides({
+            @AssociationOverride(name = "currency", joinColumns = @JoinColumn(name = "fee_currency_id"))
     })
     private MonetaryAmount fee;
-
 
     @Column(nullable = false, length = 255)
     private String recipient;
