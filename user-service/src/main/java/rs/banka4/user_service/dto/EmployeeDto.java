@@ -14,7 +14,7 @@ public record EmployeeDto (
         String lastName,
         @Schema(description = "Employee's date of birth", example = "1990-05-15")
         LocalDate dateOfBirth,
-        @Schema(description = "Employee's gender", example = "Joncic")
+        @Schema(description = "Employee's gender", example = "Male")
         String gender,
         @Schema(description = "Employee's email address", example = "mljubic9422112rn@raf.rs")
         String email,

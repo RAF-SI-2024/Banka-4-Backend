@@ -70,6 +70,8 @@ public class Account {
     public void setAccountMaintenance() {
         if (this.currency != null && Currency.Code.RSD.equals(this.getCurrency().getCode())) {
             setAccountMaintenance(new BigDecimal("100.00"));
+        } else {
+            setAccountMaintenance(new BigDecimal("0"));
         }
     }
 

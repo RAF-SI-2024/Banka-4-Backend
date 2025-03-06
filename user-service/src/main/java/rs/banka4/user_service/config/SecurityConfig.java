@@ -28,13 +28,6 @@ public class SecurityConfig {
     private final ExceptionHandlingFilter exceptionHandlingFilter;
     private final AuthenticationProvider authenticationProvider;
     private final InvalidRouteFilter invalidRouteFilter;
-    public static final String[] WHITE_LIST_URL = {
-            "/auth/employee/login",
-            "/auth/client/login",
-            "/auth/refresh-token",
-            "/auth/forgot-password/{email}",
-            "/auth/verify"
-    };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
@@ -45,8 +38,7 @@ public class SecurityConfig {
                         .configurationSource(corsConfigurationSource())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(WHITE_LIST_URL).permitAll()
-                        .requestMatchers("/docs/**").permitAll()
+                        .requestMatchers(WhiteListConfig.WHITE_LIST_URL).permitAll()
                         .requestMatchers(HttpMethod.POST, "/employee/search").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/employee/privileges").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/employee").hasAuthority("ADMIN")

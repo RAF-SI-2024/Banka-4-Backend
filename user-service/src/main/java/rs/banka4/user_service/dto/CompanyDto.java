@@ -1,10 +1,12 @@
 package rs.banka4.user_service.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.annotation.Nullable;
 
 @Schema(description = "DTO for company details")
 public record CompanyDto(
         @Schema(description = "Company ID", example = "cccccccc-4444-dddd-5555-eeee6666ffff")
+        @Nullable
         String id,
         @Schema(description = "Name", example = "Acme Corp")
         String name,
@@ -13,5 +15,7 @@ public record CompanyDto(
         @Schema(description = "CRN", example = "987654321")
         String crn,
         @Schema(description = "Address", example = "123 Main St")
-        String address
+        String address,
+        @Schema(description = "Activity Code", example = "441100")
+        String activityCode
 ) { }

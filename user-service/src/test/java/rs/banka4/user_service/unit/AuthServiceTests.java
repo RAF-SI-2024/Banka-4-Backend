@@ -9,15 +9,17 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.dto.LogoutDto;
 import rs.banka4.user_service.dto.RefreshTokenResponseDto;
-import rs.banka4.user_service.dto.requests.EmployeeVerificationRequestDto;
+import rs.banka4.user_service.dto.requests.UserVerificationRequestDto;
 import rs.banka4.user_service.exceptions.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.NotFound;
+import rs.banka4.user_service.exceptions.UserNotFound;
 import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
 import rs.banka4.user_service.exceptions.jwt.RefreshTokenRevoked;
 import rs.banka4.user_service.generator.AuthObjectMother;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.VerificationCode;
 import rs.banka4.user_service.repositories.EmployeeRepository;
+import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
 import rs.banka4.user_service.service.impl.AuthServiceImpl;
 import rs.banka4.user_service.service.impl.VerificationCodeService;
@@ -42,6 +44,8 @@ public class AuthServiceTests {
     private RabbitTemplate rabbitTemplate;
     @Mock
     private EmployeeService employeeService;
+    @Mock
+    private ClientService clientService;
     @InjectMocks
     private AuthServiceImpl authService;
 
@@ -139,7 +143,7 @@ public class AuthServiceTests {
     @Test
     void testVerifyAccountWithValidCode() {
         // Arrange
-        EmployeeVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "valid-code");
+        UserVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "valid-code");
         VerificationCode verificationCode = AuthObjectMother.generateVerificationCode("user@example.com", "valid-code", false, LocalDateTime.now().plusDays(1));
         Employee employee = AuthObjectMother.generateEmployee("John", "Doe", "john.doe@example.com", "Developer");
 
@@ -158,7 +162,7 @@ public class AuthServiceTests {
     @Test
     void testVerifyAccountWithInvalidCode() {
         // Arrange
-        EmployeeVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "invalid-code");
+        UserVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "invalid-code");
 
         when(verificationCodeService.validateVerificationCode("invalid-code")).thenReturn(Optional.empty());
 
@@ -169,7 +173,7 @@ public class AuthServiceTests {
     @Test
     void testVerifyAccountWithUsedCode() {
         // Arrange
-        EmployeeVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "used-code");
+        UserVerificationRequestDto request = AuthObjectMother.generateEmployeeVerificationRequestDto("password", "used-code");
 
         when(verificationCodeService.validateVerificationCode("used-code")).thenThrow(new VerificationCodeExpiredOrInvalid());
 
@@ -201,9 +205,10 @@ public class AuthServiceTests {
         String email = "nonexistent@example.com";
 
         when(employeeService.findEmployeeByEmail(email)).thenReturn(Optional.empty());
+        when(clientService.getClientByEmail(email)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(NotFound.class, () -> authService.forgotPassword(email));
+        assertThrows(UserNotFound.class, () -> authService.forgotPassword(email));
     }
 
     @Test

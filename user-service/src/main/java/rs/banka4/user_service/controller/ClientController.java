@@ -14,8 +14,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import rs.banka4.user_service.dto.ClientContactDto;
 import rs.banka4.user_service.dto.ClientDto;
 import rs.banka4.user_service.dto.PrivilegesDto;
+import rs.banka4.user_service.dto.requests.ClientContactRequest;
 import rs.banka4.user_service.dto.requests.UpdateClientDto;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.dto.requests.CreateClientDto;
@@ -133,9 +135,64 @@ public class ClientController {
             @RequestParam(required = false) @Parameter(description = "First name of the client") String firstName,
             @RequestParam(required = false) @Parameter(description = "Last name of the client") String lastName,
             @RequestParam(required = false) @Parameter(description = "Email address of the client") String email,
-            @RequestParam(required = false) @Parameter(description = "Phone number of the client") String phone,
+            @RequestParam(required = false) @Parameter(description = "Field to sort by") String sortBy,
             @RequestParam(defaultValue = "0") @Parameter(description = "Page number") int page,
             @RequestParam(defaultValue = "10") @Parameter(description = "Number of clients per page") int size) {
-        return clientService.getClients(firstName, lastName, email, phone, PageRequest.of(page, size));
+        return clientService.getAll(firstName, lastName, email, sortBy, PageRequest.of(page, size));
+    }
+
+    @Operation(
+            summary = "Get Contact",
+            description = "Returns client's contacts.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successfully retrieved contacts list",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ClientContactDto.class))),
+                    @ApiResponse(responseCode = "403", description = "Forbidden"),
+                    @ApiResponse(responseCode = "404", description = "No account found"),
+            }
+    )
+    @GetMapping("/contacts")
+    public ResponseEntity<Page<ClientContactDto>> getAllContacts(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") @Parameter(description = "Page number") int page,
+            @RequestParam(defaultValue = "10") @Parameter(description = "Number of clients per page") int size
+    ) {
+        return clientService.getAllContacts(authentication.getCredentials().toString(), PageRequest.of(page, size));
+    }
+
+    @Operation(
+            summary = "Create Contact",
+            description = "Creates a new contact",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Successfully created new contact",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ClientContactDto.class))),
+                    @ApiResponse(responseCode = "403", description = "Forbidden"),
+                    @ApiResponse(responseCode = "404", description = "No account found"),
+            }
+    )
+    @PostMapping("/create-contact")
+    public ResponseEntity<Void> createContact(Authentication authentication, @RequestBody @Valid ClientContactRequest request) {
+        return clientService.createContact(authentication.getCredentials().toString(), request);
+    }
+
+    @Operation(
+            summary = "Delete Contact",
+            description = "Deletes an existing contact",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successfully deleted contact",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ClientContactDto.class))),
+                    @ApiResponse(responseCode = "403", description = "Forbidden"),
+                    @ApiResponse(responseCode = "404", description = "No account found"),
+            }
+    )
+    @DeleteMapping("/delete-contact")
+    public ResponseEntity<Void> deleteContact(Authentication authentication, @RequestBody String accountNumber) {
+        return clientService.deleteContact(authentication.getCredentials().toString(), accountNumber);
     }
 }

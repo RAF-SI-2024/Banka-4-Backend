@@ -17,6 +17,7 @@ import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.VerificationCode;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.impl.EmployeeServiceImpl;
+import rs.banka4.user_service.service.impl.UserService;
 import rs.banka4.user_service.service.impl.VerificationCodeService;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,6 +37,8 @@ public class EmployeeServiceCreateTests {
     private VerificationCodeService verificationCodeService;
     @Mock
     private RabbitTemplate rabbitTemplate;
+    @Mock
+    private UserService userService;
     @InjectMocks
     private EmployeeServiceImpl employeeService;
 
@@ -51,14 +54,10 @@ public class EmployeeServiceCreateTests {
         Employee employee = new Employee();
         employee.setEmail(dto.email());
 
-        VerificationCode verificationCode = new VerificationCode();
-        verificationCode.setCode("28dc2fac-ff11-4bca-83b6-ba7e6727fd9b");
-
-        when(employeeRepository.existsByEmail(dto.email())).thenReturn(false);
+        when(userService.existsByEmail(dto.email())).thenReturn(false);
         when(employeeRepository.existsByUsername(dto.username())).thenReturn(false);
         when(basicEmployeeMapper.toEntity(dto)).thenReturn(employee);
         when(employeeRepository.save(employee)).thenReturn(employee);
-        when(verificationCodeService.createVerificationCode(dto.email())).thenReturn(verificationCode);
 
         // Act
         ResponseEntity<Void> response = employeeService.createEmployee(dto);
@@ -66,15 +65,14 @@ public class EmployeeServiceCreateTests {
         // Assert
         assertEquals(200, response.getStatusCode().value());
         verify(employeeRepository, times(1)).save(employee);
-        verify(verificationCodeService, times(1)).createVerificationCode(dto.email());
-        verify(rabbitTemplate, times(1)).convertAndSend(anyString(), anyString(), any(NotificationTransferDto.class));
+        verify(userService, times(1)).sendVerificationEmail(employee.getFirstName(), employee.getEmail());
     }
 
     @Test
     void testCreateEmployeeWithDuplicateEmail() {
         // Arrange
         CreateEmployeeDto dto = EmployeeObjectMother.generateBasicCreateEmployeeDto();
-        when(employeeRepository.existsByEmail(dto.email())).thenReturn(true);
+        when(userService.existsByEmail(dto.email())).thenReturn(true);
 
         // Act & Assert
         assertThrows(DuplicateEmail.class, () -> employeeService.createEmployee(dto));
