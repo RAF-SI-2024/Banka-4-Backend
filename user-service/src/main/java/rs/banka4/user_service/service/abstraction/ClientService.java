@@ -21,7 +21,7 @@ public interface ClientService {
     ResponseEntity<Void> createClient(CreateClientDto createClientDto);
     ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email, String phone, Pageable pageable);
     ResponseEntity<Void> updateClient(String id, UpdateClientDto updateClientDto);
-    ResponseEntity<Page<ClientContactDto>> getAllContacts(Pageable pageable);
-    ResponseEntity<Void> createContact(ClientContactRequest request);
-    ResponseEntity<Void> deleteContact(String id);
+    ResponseEntity<Page<ClientContactDto>> getAllContacts(String token, Pageable pageable);
+    ResponseEntity<Void> createContact(String token, ClientContactRequest request);
+    ResponseEntity<Void> deleteContact(String token, String id);
 }

@@ -22,6 +22,8 @@ import rs.banka4.user_service.dto.requests.ClientContactRequest;
 import rs.banka4.user_service.dto.requests.UpdateClientDto;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.dto.requests.CreateClientDto;
+import rs.banka4.user_service.utils.AuthUtils;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -156,10 +158,11 @@ public class ClientController {
     )
     @GetMapping("/contacts")
     public ResponseEntity<Page<ClientContactDto>> getAllContacts(
+            Authentication authentication,
             @RequestParam(defaultValue = "0") @Parameter(description = "Page number") int page,
             @RequestParam(defaultValue = "10") @Parameter(description = "Number of clients per page") int size
     ) {
-        return clientService.getAllContacts(PageRequest.of(page, size));
+        return clientService.getAllContacts(authentication.getCredentials().toString(), PageRequest.of(page, size));
     }
 
     @Operation(
@@ -175,8 +178,8 @@ public class ClientController {
             }
     )
     @PostMapping("/create-contact")
-    public ResponseEntity<Void> createContact(@RequestBody @Valid ClientContactRequest request) {
-        return clientService.createContact(request);
+    public ResponseEntity<Void> createContact(Authentication authentication, @RequestBody @Valid ClientContactRequest request) {
+        return clientService.createContact(authentication.getCredentials().toString(), request);
     }
 
     @Operation(
@@ -192,7 +195,7 @@ public class ClientController {
             }
     )
     @DeleteMapping("/delete-contact")
-    public ResponseEntity<Void> deleteContact(String accountNumber) {
-        return clientService.deleteContact(accountNumber);
+    public ResponseEntity<Void> deleteContact(Authentication authentication, @RequestBody String accountNumber) {
+        return clientService.deleteContact(authentication.getCredentials().toString(), accountNumber);
     }
 }

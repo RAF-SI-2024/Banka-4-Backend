@@ -12,6 +12,7 @@ public class AuthUtils {
     public static User getLoggedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
+            System.out.printf("Logged in user: %s\n", authentication.getDetails());
             return (User) authentication.getPrincipal();
         }
 

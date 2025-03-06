@@ -34,14 +34,11 @@ import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.MessageHelper;
 
 import java.time.LocalDate;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+//@Transactional
 public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
     private final AccountService accountService;
@@ -156,8 +153,9 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ResponseEntity<Page<ClientContactDto>> getAllContacts(Pageable pageable) {
-        Client client = clientRepository.findById(AuthUtils.getLoggedUserId()).orElseThrow(NotFound::new);
+    public ResponseEntity<Page<ClientContactDto>> getAllContacts(String token, Pageable pageable) {
+        String email = jwtUtil.extractUsername(token);
+        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
 
         List<ClientContactDto> contactDtos = client.getSavedContacts().stream()
                 .map(contactMapper::toClientContactDto)
@@ -167,22 +165,32 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ResponseEntity<Void> createContact(ClientContactRequest request) {
-        Client client = clientRepository.findById(AuthUtils.getLoggedUserId()).orElseThrow(NotFound::new);
-        client.getAccounts().add(accountService.getAccountByAccountNumber(request.accountNumber()));
+    public ResponseEntity<Void> createContact(String token, ClientContactRequest request) {
+        String email = jwtUtil.extractUsername(token);
+        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
 
+        client.getSavedContacts().add(accountService.getAccountByAccountNumber(request.accountNumber()));
+
+        clientRepository.save(client);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @Override
-    public ResponseEntity<Void> deleteContact(String accountNumber) {
-        Client client = clientRepository.findById(AuthUtils.getLoggedUserId()).orElseThrow(NotFound::new);
-        Account account = accountService.getAccountByAccountNumber(accountNumber);
+    public ResponseEntity<Void> deleteContact(String token, String accountNumber) {
+        String email = jwtUtil.extractUsername(token);
+        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
 
-        clientRepository.deleteContactFromClient(client.getId(), String.valueOf(account.getId()));
+        Set<Account> updatedContacts = new HashSet<>(client.getSavedContacts());
+        updatedContacts.removeIf(account -> account.getAccountNumber().equals(accountNumber));
+        client.setSavedContacts(updatedContacts);
 
-        return ResponseEntity.noContent().build();
+        clientRepository.save(client);
+
+        System.out.printf("Deleted contact with account number: %s \n", accountNumber);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
 
     private void sendVerificationEmailToClient(String firstName, String email) {
         VerificationCode verificationCode = verificationCodeService.createVerificationCode(email);

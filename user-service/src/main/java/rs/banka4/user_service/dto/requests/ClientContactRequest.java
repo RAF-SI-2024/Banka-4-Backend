@@ -5,6 +5,5 @@ import jakarta.validation.constraints.Pattern;
 
 public record ClientContactRequest(
         @Schema(description = "Client Account number", example = "444000000000123456")
-        @Pattern(regexp = "\\d{18}", message = "Account number must be exactly 18 digits")
         String accountNumber
 ) {}
