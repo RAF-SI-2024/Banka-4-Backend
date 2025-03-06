@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.config.RabbitMqConfig;
 import rs.banka4.user_service.dto.*;
@@ -49,6 +50,7 @@ public class ClientServiceImpl implements ClientService {
     private final RabbitTemplate rabbitTemplate;
     private final EmployeeRepository employeeRepository;
     private final ContactMapper contactMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
@@ -213,6 +215,12 @@ public class ClientServiceImpl implements ClientService {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @Override
+    public void activateClientAccount(Client client, String password) {
+        client.setEnabled(true);
+        client.setPassword(passwordEncoder.encode(password));
+        clientRepository.save(client);
+    }
 
     private void sendVerificationEmailToClient(String firstName, String email) {
         VerificationCode verificationCode = verificationCodeService.createVerificationCode(email);

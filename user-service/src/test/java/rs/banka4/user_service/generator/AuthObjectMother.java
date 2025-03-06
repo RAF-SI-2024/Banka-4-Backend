@@ -1,6 +1,6 @@
 package rs.banka4.user_service.generator;
 
-import rs.banka4.user_service.dto.requests.EmployeeVerificationRequestDto;
+import rs.banka4.user_service.dto.requests.UserVerificationRequestDto;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.VerificationCode;
 
@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 public class AuthObjectMother {
 
-    public static EmployeeVerificationRequestDto generateEmployeeVerificationRequestDto(String password, String code) {
-        return new EmployeeVerificationRequestDto(password, code);
+    public static UserVerificationRequestDto generateEmployeeVerificationRequestDto(String password, String code) {
+        return new UserVerificationRequestDto(password, code);
     }
 
     public static VerificationCode generateVerificationCode(String email, String code, boolean used, LocalDateTime expirationDate) {

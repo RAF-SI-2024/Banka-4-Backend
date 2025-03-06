@@ -24,4 +24,5 @@ public interface ClientService {
     ResponseEntity<Page<ClientContactDto>> getAllContacts(String token, Pageable pageable);
     ResponseEntity<Void> createContact(String token, ClientContactRequest request);
     ResponseEntity<Void> deleteContact(String token, String id);
+    void activateClientAccount(Client client, String password);
 }

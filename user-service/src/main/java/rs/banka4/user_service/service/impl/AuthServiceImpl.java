@@ -8,17 +8,20 @@ import rs.banka4.user_service.config.RabbitMqConfig;
 import rs.banka4.user_service.dto.LogoutDto;
 import rs.banka4.user_service.dto.NotificationTransferDto;
 import rs.banka4.user_service.dto.RefreshTokenResponseDto;
-import rs.banka4.user_service.dto.requests.EmployeeVerificationRequestDto;
+import rs.banka4.user_service.dto.requests.UserVerificationRequestDto;
 import rs.banka4.user_service.exceptions.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.NotFound;
+import rs.banka4.user_service.exceptions.UserNotFound;
 import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
 import rs.banka4.user_service.exceptions.jwt.RefreshTokenRevoked;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.models.User;
 import rs.banka4.user_service.models.VerificationCode;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.abstraction.AuthService;
+import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.MessageHelper;
@@ -34,6 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private final VerificationCodeService verificationCodeService;
     private final RabbitTemplate rabbitTemplate;
     private final EmployeeService employeeService;
+    private final ClientService clientService;
     private final ClientRepository clientRepository;
 
     @Override
@@ -72,30 +76,44 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<Void> verifyAccount(EmployeeVerificationRequestDto request) {
+    public ResponseEntity<Void> verifyAccount(UserVerificationRequestDto request) {
         VerificationCode verificationCode = verificationCodeService.validateVerificationCode(request.verificationCode())
                 .orElseThrow(VerificationCodeExpiredOrInvalid::new);
 
-        Employee employee = employeeService.findEmployeeByEmail(verificationCode.getEmail())
-                .orElseThrow(NotFound::new);
+        User user = findUserByEmail(verificationCode.getEmail());
 
-        employeeService.activateEmployeeAccount(employee, request.password());
+        if (user instanceof Employee) {
+            employeeService.activateEmployeeAccount((Employee) user, request.password());
+        } else {
+            clientService.activateClientAccount((Client) user, request.password());
+        }
         verificationCodeService.markCodeAsUsed(verificationCode);
 
         return ResponseEntity.ok().build();
+    }
+
+    private User findUserByEmail(String email) {
+        Optional<Employee> employee = employeeService.findEmployeeByEmail(email);
+        if (employee.isPresent()) {
+            return employee.get();
+        }
+
+        Optional<Client> client = clientService.getClientByEmail(email);
+        if (client.isPresent()) {
+            return client.get();
+        }
+
+        throw new UserNotFound(email);
     }
 
     @Override
     public ResponseEntity<Void> forgotPassword(String email) {
         VerificationCode verificationCode = verificationCodeService.createVerificationCode(email);
 
-        Optional<Employee> employee = employeeService.findEmployeeByEmail(email);
-        if (employee.isEmpty()) {
-            throw new NotFound();
-        }
+        User user = findUserByEmail(email);
 
         NotificationTransferDto message = MessageHelper.createForgotPasswordMessage(email,
-                employee.get().getFirstName(),
+                user.getFirstName(),
                 verificationCode.getCode());
 
         rabbitTemplate.convertAndSend(

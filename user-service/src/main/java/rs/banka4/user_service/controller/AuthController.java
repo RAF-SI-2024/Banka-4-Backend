@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.*;
-import rs.banka4.user_service.dto.requests.EmployeeVerificationRequestDto;
+import rs.banka4.user_service.dto.requests.UserVerificationRequestDto;
 import rs.banka4.user_service.service.abstraction.AuthService;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
@@ -99,7 +99,7 @@ public class AuthController {
             }
     )
     @PostMapping("/verify")
-    public ResponseEntity<Void> verifyEmployeeAccount(@RequestBody @Valid EmployeeVerificationRequestDto request) {
+    public ResponseEntity<Void> verifyAccount(@RequestBody @Valid UserVerificationRequestDto request) {
         return authService.verifyAccount(request);
     }
 

@@ -1,7 +1,6 @@
 package rs.banka4.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +10,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import rs.banka4.user_service.config.RabbitMqConfig;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreateEmployeeDto;
 import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
@@ -20,11 +18,9 @@ import rs.banka4.user_service.mapper.BasicEmployeeMapper;
 import rs.banka4.user_service.mapper.EmployeeMapper;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.Privilege;
-import rs.banka4.user_service.models.VerificationCode;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
 import rs.banka4.user_service.utils.JwtUtil;
-import rs.banka4.user_service.utils.MessageHelper;
 import rs.banka4.user_service.utils.specification.EmployeeSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
@@ -44,8 +40,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final BasicEmployeeMapper basicEmployeeMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmployeeMapper employeeMapper;
-    private final VerificationCodeService verificationCodeService;
-    private final RabbitTemplate rabbitTemplate;
+    private final UserService userService;
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
@@ -111,7 +106,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     public ResponseEntity<Void> createEmployee(CreateEmployeeDto dto) {
-        if (employeeRepository.existsByEmail(dto.email())) {
+        if (userService.existsByEmail(dto.email())) {
             throw new DuplicateEmail(dto.email());
         }
         if (employeeRepository.existsByUsername(dto.username())) {
@@ -121,7 +116,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = basicEmployeeMapper.toEntity(dto);
         employeeRepository.save(employee);
 
-        sendVerificationEmailToEmployee(employee.getFirstName(), employee.getEmail());
+        userService.sendVerificationEmail(employee.getFirstName(), employee.getEmail());
 
         return ResponseEntity.ok().build();
     }
@@ -212,20 +207,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         );
 
         return ResponseEntity.ok(response);
-    }
-
-    private void sendVerificationEmailToEmployee(String firstName, String email) {
-        VerificationCode verificationCode = verificationCodeService.createVerificationCode(email);
-
-        NotificationTransferDto message = MessageHelper.createAccountActivationMessage(email,
-                firstName,
-                verificationCode.getCode());
-
-        rabbitTemplate.convertAndSend(
-                RabbitMqConfig.EXCHANGE_NAME,
-                RabbitMqConfig.ROUTING_KEY,
-                message
-        );
     }
 
 }
