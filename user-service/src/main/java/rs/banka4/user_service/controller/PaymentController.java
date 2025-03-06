@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.*;
+import rs.banka4.user_service.dto.requests.CreatePaymentDto;
 import rs.banka4.user_service.dto.requests.CreateTransactionDto;
 import rs.banka4.user_service.service.abstraction.PaymentService;
 
@@ -41,8 +42,9 @@ public class PaymentController {
     public ResponseEntity<TransactionDto> createPayment(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Details of the new client to create", required = true)
-            @RequestBody @Valid CreateTransactionDto createTransactionDto) {
-        return paymentService.createPayment(createTransactionDto);
+            Authentication authentication,
+            @RequestBody @Valid CreatePaymentDto createPaymentDto) {
+        return paymentService.createPayment(authentication, createPaymentDto);
     }
 
     @Operation(
