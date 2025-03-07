@@ -64,7 +64,7 @@ public interface ClientApiDocumentation {
                     @ApiResponse(responseCode = "404", description = "Not Found - Client id not found")
             }
     )
-    ResponseEntity<ClientDto> getClient(@Parameter(description = "ID of the client") UUID id);
+    ResponseEntity<ClientDto> getClientById(@Parameter(description = "ID of the client") UUID id);
 
     @Operation(
             summary = "Create a new Client",

@@ -37,13 +37,13 @@ public class ClientController implements ClientApiDocumentation {
     @Override
     @GetMapping("/me")
     public ResponseEntity<ClientDto> me(Authentication auth) {
-        return clientService.getMe(auth.getCredentials().toString());
+        return ResponseEntity.ok(clientService.getMe(auth.getCredentials().toString()));
     }
 
     @Override
     @GetMapping("/{id}")
-    public ResponseEntity<ClientDto> getClient(@PathVariable UUID id) {
-        return clientService.getClient(String.valueOf(id));
+    public ResponseEntity<ClientDto> getClientById(@PathVariable UUID id) {
+        return ResponseEntity.ok(clientService.getClientById(id));
     }
 
     @Override
