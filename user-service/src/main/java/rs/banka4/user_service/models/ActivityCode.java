@@ -11,8 +11,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
+@Builder
 @Table(name = "activity_codes")
 public class ActivityCode {
 
@@ -43,5 +43,13 @@ public class ActivityCode {
     @Override
     public final int hashCode() {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "ActivityCode{" +
+                "id=" + id +
+                ", code='" + code + '\'' +
+                '}';
     }
 }
