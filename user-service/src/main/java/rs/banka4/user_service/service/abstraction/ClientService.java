@@ -4,11 +4,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import rs.banka4.user_service.dto.*;
-import rs.banka4.user_service.dto.requests.ClientContactRequest;
-import rs.banka4.user_service.dto.requests.CreateClientDto;
-import rs.banka4.user_service.dto.requests.UpdateClientDto;
-import rs.banka4.user_service.models.Client;
+import rs.banka4.user_service.domain.auth.dtos.LoginDto;
+import rs.banka4.user_service.domain.auth.dtos.LoginResponseDto;
+import rs.banka4.user_service.domain.user.PrivilegesDto;
+import rs.banka4.user_service.domain.user.client.dtos.*;
+import rs.banka4.user_service.domain.user.client.db.Client;
 
 import java.util.Optional;
 

@@ -5,8 +5,8 @@ import jakarta.persistence.criteria.Join;
 
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
-import rs.banka4.user_service.models.Account;
-import rs.banka4.user_service.models.Client;
+import rs.banka4.user_service.domain.account.db.Account;
+import rs.banka4.user_service.domain.user.client.db.Client;
 
 public class AccountSpecification {
 

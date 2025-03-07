@@ -6,7 +6,7 @@
 //import org.mockito.Mock;
 //import org.mockito.MockitoAnnotations;
 //import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
-//import rs.banka4.user_service.models.VerificationCode;
+//import rs.banka4.user_service.domain.auth.db.VerificationCode;
 //import rs.banka4.user_service.repositories.VerificationCodeRepository;
 //import rs.banka4.user_service.service.impl.VerificationCodeService;
 //

@@ -1,6 +1,6 @@
 package rs.banka4.user_service.service.abstraction;
 
-import rs.banka4.user_service.models.Token;
+import rs.banka4.user_service.domain.auth.db.Token;
 
 import java.util.Optional;
 

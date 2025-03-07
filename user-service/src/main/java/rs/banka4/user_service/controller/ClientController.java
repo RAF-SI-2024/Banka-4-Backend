@@ -8,12 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.ClientApiDocumentation;
-import rs.banka4.user_service.dto.ClientContactDto;
-import rs.banka4.user_service.dto.ClientDto;
-import rs.banka4.user_service.dto.PrivilegesDto;
-import rs.banka4.user_service.dto.requests.ClientContactRequest;
-import rs.banka4.user_service.dto.requests.CreateClientDto;
-import rs.banka4.user_service.dto.requests.UpdateClientDto;
+import rs.banka4.user_service.domain.user.client.dtos.ClientContactDto;
+import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
+import rs.banka4.user_service.domain.user.PrivilegesDto;
+import rs.banka4.user_service.domain.user.client.dtos.ClientContactRequest;
+import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
+import rs.banka4.user_service.domain.user.client.dtos.UpdateClientDto;
 import rs.banka4.user_service.service.abstraction.ClientService;
 
 import java.util.List;

@@ -2,7 +2,7 @@ package rs.banka4.user_service.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import rs.banka4.user_service.models.Company;
+import rs.banka4.user_service.domain.company.db.Company;
 
 import java.util.Optional;
 import java.util.UUID;

@@ -2,7 +2,7 @@ package rs.banka4.user_service.service.impl;
 
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
-import rs.banka4.user_service.models.VerificationCode;
+import rs.banka4.user_service.domain.auth.db.VerificationCode;
 import rs.banka4.user_service.repositories.VerificationCodeRepository;
 
 import java.time.LocalDateTime;

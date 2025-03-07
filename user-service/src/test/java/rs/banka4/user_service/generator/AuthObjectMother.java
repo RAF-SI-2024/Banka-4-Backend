@@ -1,8 +1,8 @@
 package rs.banka4.user_service.generator;
 
-import rs.banka4.user_service.dto.requests.UserVerificationRequestDto;
-import rs.banka4.user_service.models.Employee;
-import rs.banka4.user_service.models.VerificationCode;
+import rs.banka4.user_service.domain.auth.dtos.UserVerificationRequestDto;
+import rs.banka4.user_service.domain.user.employee.db.Employee;
+import rs.banka4.user_service.domain.auth.db.VerificationCode;
 
 import java.time.LocalDateTime;
 

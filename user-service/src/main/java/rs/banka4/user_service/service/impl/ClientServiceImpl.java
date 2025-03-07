@@ -11,18 +11,20 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import rs.banka4.user_service.config.RabbitMqConfig;
-import rs.banka4.user_service.dto.*;
-import rs.banka4.user_service.dto.requests.ClientContactRequest;
-import rs.banka4.user_service.dto.requests.CreateClientDto;
-import rs.banka4.user_service.dto.requests.UpdateClientDto;
+import rs.banka4.user_service.domain.auth.dtos.LoginDto;
+import rs.banka4.user_service.domain.auth.dtos.LoginResponseDto;
+import rs.banka4.user_service.domain.auth.dtos.NotificationTransferDto;
+import rs.banka4.user_service.domain.auth.db.VerificationCode;
+import rs.banka4.user_service.domain.user.PrivilegesDto;
+import rs.banka4.user_service.domain.user.User;
+import rs.banka4.user_service.domain.user.client.db.Client;
+import rs.banka4.user_service.domain.user.client.dtos.*;
 import rs.banka4.user_service.exceptions.*;
-import rs.banka4.user_service.mapper.BasicClientMapper;
-import rs.banka4.user_service.mapper.BasicClientMapperForGetAll;
-import rs.banka4.user_service.mapper.ClientMapper;
-import rs.banka4.user_service.mapper.ContactMapper;
-import rs.banka4.user_service.models.*;
+import rs.banka4.user_service.domain.user.client.mapper.BasicClientMapper;
+import rs.banka4.user_service.domain.user.client.mapper.BasicClientMapperForGetAll;
+import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
+import rs.banka4.user_service.domain.user.client.mapper.ContactMapper;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.abstraction.AccountService;
@@ -32,7 +34,6 @@ import rs.banka4.user_service.utils.MessageHelper;
 import rs.banka4.user_service.utils.specification.ClientSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Service

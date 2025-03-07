@@ -2,28 +2,25 @@ package rs.banka4.user_service.unit.client;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.config.RabbitMqConfig;
-import rs.banka4.user_service.dto.NotificationTransferDto;
-import rs.banka4.user_service.dto.requests.CreateClientDto;
+import rs.banka4.user_service.domain.auth.dtos.NotificationTransferDto;
+import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
 import rs.banka4.user_service.exceptions.DuplicateEmail;
-import rs.banka4.user_service.mapper.ClientMapper;
-import rs.banka4.user_service.models.Client;
-import rs.banka4.user_service.models.Privilege;
-import rs.banka4.user_service.models.VerificationCode;
+import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
+import rs.banka4.user_service.domain.user.client.db.Client;
+import rs.banka4.user_service.domain.user.Privilege;
+import rs.banka4.user_service.domain.auth.db.VerificationCode;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.service.impl.ClientServiceImpl;
 import rs.banka4.user_service.service.impl.VerificationCodeService;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

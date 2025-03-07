@@ -11,14 +11,14 @@
 //import org.springframework.data.jpa.domain.Specification;
 //import org.springframework.http.HttpStatus;
 //import org.springframework.http.ResponseEntity;
-//import rs.banka4.user_service.dto.ClientDto;
+//import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
 //import rs.banka4.user_service.exceptions.NonexistantSortByField;
 //import rs.banka4.user_service.exceptions.NullPageRequest;
-//import rs.banka4.user_service.mapper.BasicClientMapperForGetAll;
-//import rs.banka4.user_service.mapper.ClientMapper;
+//import rs.banka4.user_service.domain.user.client.mapper.BasicClientMapperForGetAll;
+//import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
 //import rs.banka4.user_service.mapper.ClientMapperImpl;
-//import rs.banka4.user_service.models.Account;
-//import rs.banka4.user_service.models.Client;
+//import rs.banka4.user_service.domain.account.db.Account;
+//import rs.banka4.user_service.domain.user.client.db.Client;
 //import rs.banka4.user_service.repositories.ClientRepository;
 //import rs.banka4.user_service.service.impl.ClientServiceImpl;
 //

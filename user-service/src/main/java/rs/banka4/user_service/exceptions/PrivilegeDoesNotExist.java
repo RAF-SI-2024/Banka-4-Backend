@@ -1,7 +1,6 @@
 package rs.banka4.user_service.exceptions;
 
 import org.springframework.http.HttpStatus;
-import rs.banka4.user_service.models.Privilege;
 
 import java.util.Map;
 

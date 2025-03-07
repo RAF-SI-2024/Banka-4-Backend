@@ -1,11 +1,11 @@
 package rs.banka4.user_service.generator;
 
-import rs.banka4.user_service.dto.LoginDto;
-import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
-import rs.banka4.user_service.models.Employee;
-import rs.banka4.user_service.dto.requests.CreateEmployeeDto;
-import rs.banka4.user_service.models.Privilege;
-import rs.banka4.user_service.models.User;
+import rs.banka4.user_service.domain.auth.dtos.LoginDto;
+import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
+import rs.banka4.user_service.domain.user.employee.db.Employee;
+import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
+import rs.banka4.user_service.domain.user.Privilege;
+import rs.banka4.user_service.domain.user.User;
 
 import java.time.LocalDate;
 import java.util.List;

@@ -13,10 +13,10 @@
 //import org.mapstruct.factory.Mappers;
 //import org.mockito.*;
 //import org.springframework.security.crypto.password.PasswordEncoder;
-//import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
-//import rs.banka4.user_service.mapper.EmployeeMapper;
-//import rs.banka4.user_service.models.Employee;
-//import rs.banka4.user_service.models.Privilege;
+//import rs.banka4.user_service.domain.employee.dtos.UpdateEmployeeDto;
+//import rs.banka4.user_service.domain.user.employee.mapper.EmployeeMapper;
+//import rs.banka4.user_service.domain.employee.db.Employee;
+//import rs.banka4.user_service.domain.user.Privilege;
 //import rs.banka4.user_service.repositories.EmployeeRepository;
 //import rs.banka4.user_service.exceptions.DuplicateUsername;
 //import rs.banka4.user_service.exceptions.UserNotFound;
