@@ -44,7 +44,7 @@ public class EditEmployeeTest {
         MockitoAnnotations.openMocks(this);
 
         existingEmployee = new Employee();
-        existingEmployee.setId("123");
+        //existingEmployee.setId("123");
         existingEmployee.setEmail("old.email@example.com");
         existingEmployee.setUsername("oldUsername");
         existingEmployee.setPassword("encodedOldPassword");

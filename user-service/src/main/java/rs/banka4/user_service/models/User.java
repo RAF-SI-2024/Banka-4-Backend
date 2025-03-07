@@ -7,24 +7,20 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 @MappedSuperclass
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
 public abstract class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    public String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    public UUID id;
 
     @Column(nullable = false)
     public String firstName;
@@ -36,7 +32,8 @@ public abstract class User {
     public LocalDate dateOfBirth;
 
     @Column(nullable = false)
-    public String gender;
+    @Enumerated(EnumType.STRING)
+    public Gender gender;
 
     @Email
     @Column(nullable = false, unique = true)
@@ -48,7 +45,6 @@ public abstract class User {
     @Column(nullable = false)
     public String address;
 
-    @Column()
     public String password;
 
     @Column(nullable = false)
@@ -73,6 +69,10 @@ public abstract class User {
                 .reduce(0L, (x, y) -> x | y);
     }
 
+    public enum Gender {
+        MALE, FEMALE
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -87,5 +87,13 @@ public abstract class User {
     @Override
     public int hashCode() {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                '}';
     }
 }

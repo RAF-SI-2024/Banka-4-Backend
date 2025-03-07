@@ -1,13 +1,15 @@
 package rs.banka4.user_service.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import rs.banka4.user_service.models.User;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Schema(description = "DTO for returned employees in response")
 public record EmployeeDto (
         @Schema(description = "Employee's id", example = "1de54a3a-d879-4154-aa3a-e40598186f93")
-        String id,
+        UUID id,
         @Schema(description = "Employee's first name", example = "Ognjen")
         String firstName,
         @Schema(description = "Employee's last name", example = "Jukic")
@@ -15,7 +17,7 @@ public record EmployeeDto (
         @Schema(description = "Employee's date of birth", example = "1990-05-15")
         LocalDate dateOfBirth,
         @Schema(description = "Employee's gender", example = "Male")
-        String gender,
+        User.Gender gender,
         @Schema(description = "Employee's email address", example = "mljubic9422112rn@raf.rs")
         String email,
         @Schema(description = "Employee's phone number", example = "+1234567890")
