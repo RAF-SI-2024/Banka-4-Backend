@@ -14,7 +14,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
 @Table(name = "transactions")
 public class Transaction {
@@ -61,7 +60,7 @@ public class Transaction {
     })
     private MonetaryAmount fee;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String recipient;
 
     @Column(length = 3)
@@ -94,5 +93,13 @@ public class Transaction {
     @Override
     public final int hashCode() {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "id=" + id +
+                ", transactionNumber='" + transactionNumber + '\'' +
+                '}';
     }
 }
