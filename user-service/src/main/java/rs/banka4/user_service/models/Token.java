@@ -3,7 +3,6 @@ package rs.banka4.user_service.models;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -11,29 +10,20 @@ import java.util.UUID;
 @Entity(name = "tokens")
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
-@Validated
 @AllArgsConstructor
-@With
+@Builder
 public class Token {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
 
     @Column(unique = true)
     private String token;
 
-    @Column
-    public boolean valid;
-
-    @PrePersist
-    public void prePersist() {
-        if (id == null) {
-            id = UUID.randomUUID().toString();
-        }
-    }
+    @Builder.Default
+    public boolean valid = Boolean.FALSE;
 
     @Override
     public final boolean equals(Object o) {
@@ -49,5 +39,13 @@ public class Token {
     @Override
     public final int hashCode() {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Token{" +
+                "id='" + id + '\'' +
+                ", token='" + token + '\'' +
+                '}';
     }
 }
