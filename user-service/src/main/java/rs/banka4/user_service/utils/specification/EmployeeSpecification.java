@@ -1,7 +1,7 @@
 package rs.banka4.user_service.utils.specification;
 
 import org.springframework.data.jpa.domain.Specification;
-import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.domain.user.employee.db.Employee;
 
 public class EmployeeSpecification {
 

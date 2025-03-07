@@ -8,9 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.PaymentApiDocumentation;
-import rs.banka4.user_service.dto.requests.CreatePaymentDto;
-import rs.banka4.user_service.dto.PaymentStatus;
-import rs.banka4.user_service.dto.TransactionDto;
+import rs.banka4.user_service.domain.transaction.dtos.CreatePaymentDto;
+import rs.banka4.user_service.domain.transaction.db.PaymentStatus;
+import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
 import rs.banka4.user_service.service.abstraction.PaymentService;
 
 import java.math.BigDecimal;

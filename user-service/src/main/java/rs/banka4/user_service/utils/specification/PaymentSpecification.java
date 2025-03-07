@@ -1,9 +1,9 @@
 package rs.banka4.user_service.utils.specification;
 
 import org.springframework.data.jpa.domain.Specification;
-import rs.banka4.user_service.dto.PaymentStatus;
-import rs.banka4.user_service.models.Account;
-import rs.banka4.user_service.models.Transaction;
+import rs.banka4.user_service.domain.transaction.db.PaymentStatus;
+import rs.banka4.user_service.domain.account.db.Account;
+import rs.banka4.user_service.domain.transaction.db.Transaction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

@@ -4,12 +4,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import rs.banka4.user_service.dto.AccountDto;
-import rs.banka4.user_service.dto.requests.CreateAccountDto;
-import rs.banka4.user_service.models.Account;
+import rs.banka4.user_service.domain.account.dtos.AccountDto;
+import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
+import rs.banka4.user_service.domain.account.db.Account;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface AccountService {
     ResponseEntity<List<AccountDto>> getAccountsForClient(String token);

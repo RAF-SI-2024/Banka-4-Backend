@@ -1,6 +1,6 @@
 package rs.banka4.user_service.utils;
 
-import rs.banka4.user_service.dto.NotificationTransferDto;
+import rs.banka4.user_service.domain.auth.dtos.NotificationTransferDto;
 
 import java.util.HashMap;
 import java.util.Map;

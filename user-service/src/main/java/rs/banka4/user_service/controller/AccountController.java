@@ -8,8 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.AccountApiDocumentation;
-import rs.banka4.user_service.dto.AccountDto;
-import rs.banka4.user_service.dto.requests.CreateAccountDto;
+import rs.banka4.user_service.domain.account.dtos.AccountDto;
+import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
 import rs.banka4.user_service.service.abstraction.AccountService;
 
 import java.util.List;

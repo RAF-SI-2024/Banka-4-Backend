@@ -3,12 +3,12 @@ package rs.banka4.user_service.unit.company;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import rs.banka4.user_service.dto.CompanyDto;
-import rs.banka4.user_service.dto.requests.CreateCompanyDto;
+import rs.banka4.user_service.domain.company.dtos.CompanyDto;
+import rs.banka4.user_service.domain.company.dtos.CreateCompanyDto;
 import rs.banka4.user_service.exceptions.DuplicateCrn;
 import rs.banka4.user_service.exceptions.DuplicateTin;
-import rs.banka4.user_service.mapper.CompanyMapper;
-import rs.banka4.user_service.models.Company;
+import rs.banka4.user_service.domain.company.mapper.CompanyMapper;
+import rs.banka4.user_service.domain.company.db.Company;
 
 import rs.banka4.user_service.repositories.CompanyRepository;
 import rs.banka4.user_service.service.impl.CompanyServiceImpl;

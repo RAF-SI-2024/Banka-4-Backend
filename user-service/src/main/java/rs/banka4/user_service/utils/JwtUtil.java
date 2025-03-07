@@ -11,9 +11,9 @@ import rs.banka4.user_service.exceptions.jwt.ExpiredJwt;
 import rs.banka4.user_service.exceptions.jwt.IllegalArgumentJwt;
 import rs.banka4.user_service.exceptions.jwt.MalformedJwt;
 import rs.banka4.user_service.exceptions.jwt.UnsupportedJwt;
-import rs.banka4.user_service.models.Client;
-import rs.banka4.user_service.models.Employee;
-import rs.banka4.user_service.models.SecuredUser;
+import rs.banka4.user_service.domain.user.client.db.Client;
+import rs.banka4.user_service.domain.user.employee.db.Employee;
+import rs.banka4.user_service.domain.auth.db.SecuredUser;
 import rs.banka4.user_service.service.abstraction.TokenService;
 
 import java.security.Key;

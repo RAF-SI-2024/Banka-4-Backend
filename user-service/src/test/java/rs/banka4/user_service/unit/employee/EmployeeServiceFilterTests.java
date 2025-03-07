@@ -12,9 +12,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
-import rs.banka4.user_service.dto.EmployeeDto;
+import rs.banka4.user_service.domain.user.employee.dtos.EmployeeDto;
 import rs.banka4.user_service.generator.EmployeeObjectMother;
-import rs.banka4.user_service.models.Employee;
+import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.impl.EmployeeServiceImpl;
 

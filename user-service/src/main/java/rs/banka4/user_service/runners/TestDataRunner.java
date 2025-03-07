@@ -5,17 +5,16 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import rs.banka4.user_service.models.*;
+import rs.banka4.user_service.domain.user.User;
+import rs.banka4.user_service.domain.user.client.db.Client;
+import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.CurrencyRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 @Profile({"dev"})
 @Component

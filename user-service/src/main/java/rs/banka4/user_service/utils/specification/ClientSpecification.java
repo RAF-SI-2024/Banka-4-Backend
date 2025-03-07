@@ -1,7 +1,7 @@
 package rs.banka4.user_service.utils.specification;
 
 import org.springframework.data.jpa.domain.Specification;
-import rs.banka4.user_service.models.Client;
+import rs.banka4.user_service.domain.user.client.db.Client;
 
 public class ClientSpecification {
     public static Specification<Client> hasFirstName(String firstName) {

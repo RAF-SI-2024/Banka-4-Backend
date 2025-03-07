@@ -6,13 +6,13 @@
 //import org.mockito.Mock;
 //import org.mockito.MockitoAnnotations;
 //import org.springframework.http.HttpStatus;
-//import rs.banka4.user_service.dto.ClientDto;
-//import rs.banka4.user_service.dto.requests.CreateClientDto;
+//import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
+//import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
 //import rs.banka4.user_service.exceptions.DuplicateEmail;
 //import rs.banka4.user_service.exceptions.UserNotFound;
-//import rs.banka4.user_service.mapper.ClientMapper;
-//import rs.banka4.user_service.models.Client;
-//import rs.banka4.user_service.models.Privilege;
+//import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
+//import rs.banka4.user_service.domain.user.client.db.Client;
+//import rs.banka4.user_service.domain.user.Privilege;
 //import rs.banka4.user_service.repositories.ClientRepository;
 //import rs.banka4.user_service.service.impl.ClientServiceImpl;
 //
