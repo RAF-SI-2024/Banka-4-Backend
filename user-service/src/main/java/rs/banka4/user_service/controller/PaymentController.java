@@ -37,14 +37,21 @@ public class PaymentController {
             summary = "Create a new Payment",
             description = "Creates a new payment with the provided details.",
             responses = {
-                    @ApiResponse(responseCode = "201", description = "Successfully created new payment"),
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Successfully created new payment",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = CreateTransactionResponseDto.class)
+                            )
+                    ),
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid data")
             }
     )
     @PostMapping("/payment")
     public ResponseEntity<CreateTransactionResponseDto> createPayment(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Details of the new client to create", required = true)
+                    description = "Payment details", required = true)
             Authentication authentication,
             @RequestBody @Valid CreatePaymentDto createPaymentDto) {
         return paymentService.createPayment(authentication, createPaymentDto);
@@ -52,16 +59,23 @@ public class PaymentController {
 
     @Operation(
             summary = "Create a new Transfer",
-            description = "Creates a new transfer. The client can only transfer using their own account.",
+            description = "Creates a new transfer. The client can only transfer using their own account as source and target.",
             responses = {
-                    @ApiResponse(responseCode = "201", description = "Successfully created new payment"),
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Successfully created new transfer",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = CreateTransactionResponseDto.class)
+                            )
+                    ),
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid data")
             }
     )
     @PostMapping("/transfer")
     public ResponseEntity<CreateTransactionResponseDto> createTransfer(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Details of the new client to create", required = true)
+                    description = "Transfer details", required = true)
             Authentication authentication,
             @RequestBody @Valid CreatePaymentDto createPaymentDto) {
         return paymentService.createTransfer(authentication, createPaymentDto);
