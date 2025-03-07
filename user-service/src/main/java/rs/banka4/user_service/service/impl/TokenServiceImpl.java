@@ -17,7 +17,7 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public void invalidateToken(String token) {
-        Token invalidatedToken = new Token().withToken(token).withValid(false);
+        Token invalidatedToken = Token.builder().token(token).build();
         Optional<Token> optionalToken = tokenRepository.findByToken(token);
 
         if (optionalToken.isPresent()) {
