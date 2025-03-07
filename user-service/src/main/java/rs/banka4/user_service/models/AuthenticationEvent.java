@@ -19,8 +19,11 @@ import java.util.UUID;
 @Table(name="authentication_events")
 public class AuthenticationEvent {
     @Id
-    @Column(updatable = false, nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
+
+    @Column(updatable = false, nullable = false, unique = true)
+    private String eventId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

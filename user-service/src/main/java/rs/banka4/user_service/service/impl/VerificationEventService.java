@@ -1,10 +1,10 @@
 package rs.banka4.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.requests.VerificationRequestDto;
+import rs.banka4.user_service.exceptions.InvalidEvent;
 import rs.banka4.user_service.exceptions.NotFound;
 import rs.banka4.user_service.exceptions.NotValidTotpException;
 import rs.banka4.user_service.models.AuthenticationEvent;
@@ -34,7 +34,7 @@ public class VerificationEventService {
         try {
             eventId = UUID.fromString(verificationRequestDto.eventId());
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid event ID format", e);
+            throw new InvalidEvent();
         }
 
         String authorizationHeader = authentication.getCredentials().toString();
@@ -52,13 +52,13 @@ public class VerificationEventService {
     /**
      * Creates and saves a new verification event with the provided ID and type.
      *
-     * @param eventId the UUID to assign to the event
+     * @param eventId the String to assign to the event
      * @param type the type of the event (e.g. VERIFY_TRANSACTION)
      * @return the created AuthenticationEvent
      */
-    public AuthenticationEvent createVerificationEvent(UUID eventId, AuthenticationEventType type) {
+    public AuthenticationEvent createVerificationEvent(String eventId, AuthenticationEventType type) {
         AuthenticationEvent event = new AuthenticationEvent();
-        event.setId(eventId);
+        event.setEventId(eventId);
         event.setType(type);
         event.setDidAuthenticate(false);
         return authenticationEventRepository.save(event);

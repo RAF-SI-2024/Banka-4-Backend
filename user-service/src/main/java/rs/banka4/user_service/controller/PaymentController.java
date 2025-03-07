@@ -42,7 +42,7 @@ public class PaymentController {
             }
     )
     @PostMapping("/payment")
-    public ResponseEntity<TransactionDto> createPayment(
+    public ResponseEntity<CreateTransactionResponseDto> createPayment(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Details of the new client to create", required = true)
             Authentication authentication,
@@ -59,7 +59,7 @@ public class PaymentController {
             }
     )
     @PostMapping("/transfer")
-    public ResponseEntity<TransactionDto> createTransfer(
+    public ResponseEntity<CreateTransactionResponseDto> createTransfer(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Details of the new client to create", required = true)
             Authentication authentication,
