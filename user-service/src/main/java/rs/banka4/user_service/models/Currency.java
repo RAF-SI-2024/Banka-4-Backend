@@ -6,18 +6,16 @@ import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 import rs.banka4.user_service.exceptions.InvalidCurrency;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "currencies")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
+@Table(name = "currencies")
 public class Currency {
 
     @Id
@@ -51,6 +49,13 @@ public class Currency {
         }
     }
 
+    @Override
+    public String toString() {
+        return "Currency{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
+    }
 
     @Override
     public final boolean equals(Object o) {
