@@ -39,17 +39,13 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
+
+    private final UserService userService;
     private final ClientRepository clientRepository;
-    private final AccountService accountService;
     private final BasicClientMapper basicClientMapper;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
-    private final ClientMapper clientMapper;
-    private final VerificationCodeService verificationCodeService;
-    private final RabbitTemplate rabbitTemplate;
-    private final EmployeeRepository employeeRepository;
-    private final ContactMapper contactMapper;
     private final PasswordEncoder passwordEncoder;
     private final BasicClientMapperForGetAll basicClientMapperForGetAll = new BasicClientMapperForGetAll();
 
@@ -141,16 +137,18 @@ public class ClientServiceImpl implements ClientService {
     }
     @Override
     public ResponseEntity<ClientDto> getClient(String id) {
-        var client = clientRepository.findById(id).orElseThrow(() -> new UserNotFound(id));;
-        return ResponseEntity.ok(clientMapper.toDto(client));
+//        var client = clientRepository.findById(id).orElseThrow(() -> new UserNotFound(id));;
+//        return ResponseEntity.ok(clientMapper.toDto(client));
+        return null;
     }
-
-    @Override
+//
+//    @Override
     public ClientDto findClient(String id) {
-        var c =clientRepository.findById(id);
-        if(c.isEmpty()) throw  new ClientNotFound(id);
-
-        return clientMapper.toDto(c.get());
+//        var c =clientRepository.findById(id);
+//        if(c.isEmpty()) throw  new ClientNotFound(id);
+//
+//        return clientMapper.toDto(c.get());
+        return null;
     }
 
     @Override
@@ -159,84 +157,26 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ResponseEntity<Void> createClient(CreateClientDto createClientDto) {
-
-        if(clientRepository.existsByEmail(createClientDto.email())){
+    public void createClient(CreateClientDto createClientDto) {
+        if(userService.existsByEmail(createClientDto.email())){
             throw new DuplicateEmail(createClientDto.email());
         }
+        Client client = ClientMapper.INSTANCE.toEntity(createClientDto);
 
-        var clnt = clientMapper.toEntity(createClientDto);
-
-        clientRepository.save(clnt);
-
-        sendVerificationEmailToClient(createClientDto.firstName(),createClientDto.email());
-
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        clientRepository.save(client);
+        userService.sendVerificationEmail(createClientDto.firstName(),createClientDto.email());
     }
 
     @Override
-    public ResponseEntity<Void> updateClient(String id, UpdateClientDto updateClientDto) {
-        Optional<Client> clientOptional = clientRepository.findById(id);
+    public void updateClient(UUID id, UpdateClientDto updateClientDto) {
+        Client client = clientRepository.findById(id).orElseThrow(() -> new ClientNotFound(id));
 
-        if (clientOptional.isEmpty()) { // TODO: do no let other users edit other users
-            throw new ClientNotFound(id);
-        }
-
-        if (clientRepository.existsByEmail(updateClientDto.email()) || employeeRepository.existsByEmail(updateClientDto.email())) {
+        if (userService.existsByEmail(updateClientDto.email())) {
             throw new DuplicateEmail(updateClientDto.email());
         }
 
-        Client client = clientOptional.get();
-        client.setFirstName(updateClientDto.firstName());
-        client.setLastName(updateClientDto.lastName());
-        client.setDateOfBirth(updateClientDto.dateOfBirth());
-        client.setGender(User.Gender.valueOf(updateClientDto.gender()));
-        client.setEmail(updateClientDto.email());
-        client.setPhone(updateClientDto.phone());
-        client.setAddress(updateClientDto.address());
+        ClientMapper.INSTANCE.fromUpdate(client, updateClientDto);
         clientRepository.save(client);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @Override
-    public ResponseEntity<Page<ClientContactDto>> getAllContacts(String token, Pageable pageable) {
-//        String email = jwtUtil.extractUsername(token);
-//        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
-//
-//        List<ClientContactDto> contactDtos = client.getSavedContacts().stream()
-//                .map(contactMapper::toClientContactDto)
-//                .toList();
-
-//        return ResponseEntity.ok(new PageImpl<>(contactDtos, pageable, contactDtos.size()));
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<Void> createContact(String token, ClientContactRequest request) {
-//        String email = jwtUtil.extractUsername(token);
-//        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
-//
-//        client.getSavedContacts().add(accountService.getAccountByAccountNumber(request.accountNumber()));
-//
-//        clientRepository.save(client);
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    @Override
-    public ResponseEntity<Void> deleteContact(String token, String accountNumber) {
-//        String email = jwtUtil.extractUsername(token);
-//        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
-//
-//        Set<Account> updatedContacts = new HashSet<>(client.getSavedContacts());
-//        updatedContacts.removeIf(account -> account.getAccountNumber().equals(accountNumber));
-//        client.setSavedContacts(updatedContacts);
-//
-//        clientRepository.save(client);
-//
-//        System.out.printf("Deleted contact with account number: %s \n", accountNumber);
-
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @Override
@@ -244,23 +184,5 @@ public class ClientServiceImpl implements ClientService {
         client.setEnabled(true);
         client.setPassword(passwordEncoder.encode(password));
         clientRepository.save(client);
-    }
-
-    private void sendVerificationEmailToClient(String firstName, String email) {
-        VerificationCode verificationCode = verificationCodeService.createVerificationCode(email);
-
-        if (verificationCode == null || verificationCode.getCode() == null) {
-            throw new IllegalStateException("Failed to generate verification code for email: " + email);
-        }
-
-        NotificationTransferDto message = MessageHelper.createAccountActivationMessage(email,
-                firstName,
-                verificationCode.getCode());
-
-        rabbitTemplate.convertAndSend(
-                RabbitMqConfig.EXCHANGE_NAME,
-                RabbitMqConfig.ROUTING_KEY,
-                message
-        );
     }
 }

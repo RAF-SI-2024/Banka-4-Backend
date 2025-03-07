@@ -121,22 +121,22 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ResponseEntity<List<AccountDto>> getAccountsForClient(String token) {
-        String email = jwtUtil.extractUsername(token);
+//        String email = jwtUtil.extractUsername(token);
+//
+//        Client client = clientRepository.findByEmail(email)
+//                .orElseThrow(() -> new ClientNotFound(email));
+//
+//        List<Account> accounts = accountRepository.findAllByClient(client);
+//
+//        if (accounts.isEmpty()) {
+//            throw new AccountNotFound();
+//        }
+//
+//        List<AccountDto> accountDtos = accounts.stream()
+//                .map(accountMapper::toDto)
+//                .collect(Collectors.toList());
 
-        Client client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new ClientNotFound(email));
-
-        List<Account> accounts = accountRepository.findAllByClient(client);
-
-        if (accounts.isEmpty()) {
-            throw new AccountNotFound();
-        }
-
-        List<AccountDto> accountDtos = accounts.stream()
-                .map(accountMapper::toDto)
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(accountDtos);
+        return ResponseEntity.ok().build();
     }
 
 
@@ -176,27 +176,27 @@ public class AccountServiceImpl implements AccountService {
 
     private void connectClientToAccount(Account account, CreateAccountDto createAccountDto) {
 
-        if (createAccountDto.client().id() == null) {
-            clientService.createClient(createAccountDto.client());
-            Optional<Client> client = clientService.getClientByEmail(createAccountDto.client().email());
-
-            if (client.isPresent()) {
-                account.setClient(client.get());
-            } else {
-                throw new ClientNotFound(null);
-            }
-
-            account.setClient(client.get());
-        } else {
-
-            Optional<Client> client = clientRepository.findById(createAccountDto.client().id());
-
-            if (client.isPresent()) {
-                account.setClient(client.get());
-            } else {
-                throw new ClientNotFound(createAccountDto.client().id());
-            }
-        }
+//        if (createAccountDto.client().id() == null) {
+//            clientService.createClient(createAccountDto.client());
+//            Optional<Client> client = clientService.getClientByEmail(createAccountDto.client().email());
+//
+//            if (client.isPresent()) {
+//                account.setClient(client.get());
+//            } else {
+//                throw new ClientNotFound(null);
+//            }
+//
+//            account.setClient(client.get());
+//        } else {
+//
+//            Optional<Client> client = clientRepository.findById(createAccountDto.client().id());
+//
+//            if (client.isPresent()) {
+//                account.setClient(client.get());
+//            } else {
+//                throw new ClientNotFound(createAccountDto.client().id());
+//            }
+//        }
     }
 
     private void connectCurrencyToAccount(Account account, CreateAccountDto createAccountDto) {

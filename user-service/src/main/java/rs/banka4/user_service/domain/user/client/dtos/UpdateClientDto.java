@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import java.time.LocalDate;
 
@@ -22,6 +23,7 @@ public record UpdateClientDto(
         LocalDate dateOfBirth,
 
         @NotBlank(message = "Gender is required and cannot be blank.")
+        @Pattern(regexp = "Male|Female", message = "Gender must be Male or Female")
         @Schema(description = "Gender", example = "Male")
         String gender,
 
