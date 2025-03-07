@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -48,15 +49,15 @@ public class ClientController implements ClientApiDocumentation {
     @Override
     @PostMapping
     public ResponseEntity<Void> createClient(@RequestBody @Valid CreateClientDto createClientDto) {
-        return clientService.createClient(createClientDto);
+        clientService.createClient(createClientDto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Override
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateClient(
-            @PathVariable UUID id,
-            @RequestBody @Valid UpdateClientDto updateClientDto) {
-        return clientService.updateClient(String.valueOf(id), updateClientDto);
+    public ResponseEntity<Void> updateClient(@PathVariable UUID id, @RequestBody @Valid UpdateClientDto updateClientDto) {
+        clientService.updateClient(id, updateClientDto);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -69,30 +70,5 @@ public class ClientController implements ClientApiDocumentation {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return clientService.getClients(firstName, lastName, email, sortBy, PageRequest.of(page, size));
-    }
-
-    @Override
-    @GetMapping("/contacts")
-    public ResponseEntity<Page<ClientContactDto>> getAllContacts(
-            Authentication authentication,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return clientService.getAllContacts(authentication.getCredentials().toString(), PageRequest.of(page, size));
-    }
-
-    @Override
-    @PostMapping("/create-contact")
-    public ResponseEntity<Void> createContact(
-            Authentication authentication,
-            @RequestBody @Valid ClientContactRequest request) {
-        return clientService.createContact(authentication.getCredentials().toString(), request);
-    }
-
-    @Override
-    @DeleteMapping("/delete-contact")
-    public ResponseEntity<Void> deleteContact(
-            Authentication authentication,
-            @RequestBody String accountNumber) {
-        return clientService.deleteContact(authentication.getCredentials().toString(), accountNumber);
     }
 }

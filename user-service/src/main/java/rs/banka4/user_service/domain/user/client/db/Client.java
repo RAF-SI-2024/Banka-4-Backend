@@ -7,6 +7,7 @@ import org.hibernate.proxy.HibernateProxy;
 import rs.banka4.user_service.domain.user.User;
 import rs.banka4.user_service.domain.account.db.Account;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -19,8 +20,9 @@ import java.util.Set;
 public class Client extends User {
 
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
+    @Builder.Default
     @ToString.Exclude
-    private Set<Account> accounts;
+    private Set<Account> accounts = new HashSet<>();
 
     @Override
     public final boolean equals(Object o) {

@@ -26,6 +26,10 @@ public class UserService {
     public void sendVerificationEmail(String firstName, String email) {
         VerificationCode verificationCode = verificationCodeService.createVerificationCode(email);
 
+        if (verificationCode == null || verificationCode.getCode() == null) {
+            throw new IllegalStateException("Failed to generate verification code for email: " + email);
+        }
+
         NotificationTransferDto message = MessageHelper.createAccountActivationMessage(email,
                 firstName,
                 verificationCode.getCode());

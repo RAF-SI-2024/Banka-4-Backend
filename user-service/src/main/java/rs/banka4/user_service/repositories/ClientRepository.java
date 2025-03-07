@@ -6,9 +6,11 @@ import org.springframework.stereotype.Repository;
 import rs.banka4.user_service.domain.user.client.db.Client;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface ClientRepository extends JpaRepository<Client, String>, JpaSpecificationExecutor<Client> {
+public interface ClientRepository extends JpaRepository<Client, UUID>, JpaSpecificationExecutor<Client> {
+
     Optional<Client> findByEmail(String email);
     boolean existsByEmail(String email);
 }

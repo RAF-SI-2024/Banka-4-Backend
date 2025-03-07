@@ -6,16 +6,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import rs.banka4.user_service.domain.user.Privilege;
 
-import javax.annotation.Nullable;
 import java.time.LocalDate;
 import java.util.Set;
 
 @Schema(description = "DTO for creating Client")
 public record CreateClientDto(
-
-        @Schema(description = "Client ID", example = "1fad2c01-f82f-41a6-822c-8ca1b3232575")
-        @Nullable
-        String id,
 
         @Schema(description = "Client's first name", example = "Ognjen")
         @NotBlank(message = "First name is required")
