@@ -13,6 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.dto.AccountDto;
 import rs.banka4.user_service.dto.requests.CreateAccountDto;
+import rs.banka4.user_service.exceptions.ClientNotFound;
+import rs.banka4.user_service.exceptions.CompanyNotFound;
+import rs.banka4.user_service.exceptions.EmployeeNotFound;
+import rs.banka4.user_service.exceptions.InvalidCurrency;
 
 import java.util.List;
 
@@ -24,11 +28,11 @@ public interface AccountApiDocumentation {
             description = "Search for accounts based on client information such as first name, last name, account number. Supports pagination.",
             security = @SecurityRequirement(name = "bearerAuth"),
             parameters = {
-                    @Parameter(name = "firstName", description = "First name of the client", required = false),
-                    @Parameter(name = "lastName", description = "Last name of the client", required = false),
-                    @Parameter(name = "accountNumber", description = "Account number", required = false),
-                    @Parameter(name = "page", description = "Page number for pagination", required = false, schema = @Schema(defaultValue = "0")),
-                    @Parameter(name = "size", description = "Number of accounts per page", required = false, schema = @Schema(defaultValue = "10"))
+                    @Parameter(name = "firstName", description = "First name of the client"),
+                    @Parameter(name = "lastName", description = "Last name of the client"),
+                    @Parameter(name = "accountNumber", description = "Account number"),
+                    @Parameter(name = "page", description = "Page number for pagination", schema = @Schema(defaultValue = "0")),
+                    @Parameter(name = "size", description = "Number of accounts per page", schema = @Schema(defaultValue = "10"))
             },
             responses = {
                     @ApiResponse(
@@ -70,7 +74,9 @@ public interface AccountApiDocumentation {
                     @ApiResponse(responseCode = "200", description = "Successfully retrieved accounts",
                             content = @Content(schema = @Schema(implementation = AccountDto.class))),
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Token errors"),
-                    @ApiResponse(responseCode = "403", description = "Forbidden - Access denied")
+                    @ApiResponse(responseCode = "403", description = "Forbidden - Access denied"),
+                    @ApiResponse(responseCode = "404", description = "Client not found",
+                            content = @Content(schema = @Schema(implementation = ClientNotFound.class)))
             }
     )
     ResponseEntity<List<AccountDto>> getAccountsForClient(Authentication auth);
@@ -92,7 +98,15 @@ public interface AccountApiDocumentation {
             description = "Creates a new account with the provided details.",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Successfully created new account"),
-                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid data")
+                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid data"),
+                    @ApiResponse(responseCode = "404", description = "Client not found",
+                            content = @Content(schema = @Schema(implementation = ClientNotFound.class))),
+                    @ApiResponse(responseCode = "404", description = "Company not found",
+                            content = @Content(schema = @Schema(implementation = CompanyNotFound.class))),
+                    @ApiResponse(responseCode = "404", description = "Employee not found",
+                            content = @Content(schema = @Schema(implementation = EmployeeNotFound.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid currency",
+                            content = @Content(schema = @Schema(implementation = InvalidCurrency.class)))
             }
     )
     ResponseEntity<Void> createAccount(@Valid CreateAccountDto createAccountDto, Authentication auth);

@@ -14,6 +14,11 @@ import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.dto.requests.CreatePaymentDto;
 import rs.banka4.user_service.dto.PaymentStatus;
 import rs.banka4.user_service.dto.TransactionDto;
+import rs.banka4.user_service.exceptions.AccountNotFound;
+import rs.banka4.user_service.exceptions.ClientNotFound;
+import rs.banka4.user_service.exceptions.InsufficientFunds;
+import rs.banka4.user_service.exceptions.NotAccountOwner;
+import rs.banka4.user_service.exceptions.TransactionNotFound;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,22 +32,36 @@ public interface PaymentApiDocumentation {
             description = "Creates a new payment with the provided details.",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Successfully created new payment"),
-                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid data")
+                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid data or Insufficient funds",
+                            content = @Content(schema = @Schema(implementation = InsufficientFunds.class))),
+                    @ApiResponse(responseCode = "404", description = "Client not found",
+                            content = @Content(schema = @Schema(implementation = ClientNotFound.class))),
+                    @ApiResponse(responseCode = "404", description = "Account not found",
+                            content = @Content(schema = @Schema(implementation = AccountNotFound.class)))
             }
     )
-    ResponseEntity<TransactionDto> createPayment(Authentication authentication,
-                                                 @Valid CreatePaymentDto createPaymentDto);
+    ResponseEntity<TransactionDto> createPayment(
+            Authentication authentication,
+            @Valid CreatePaymentDto createPaymentDto);
 
     @Operation(
             summary = "Create a new Transfer",
             description = "Creates a new transfer. The client can only transfer using their own account.",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Successfully created new payment"),
-                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid data")
+                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid data or Insufficient funds",
+                            content = @Content(schema = @Schema(implementation = InsufficientFunds.class))),
+                    @ApiResponse(responseCode = "404", description = "Client not found",
+                            content = @Content(schema = @Schema(implementation = ClientNotFound.class))),
+                    @ApiResponse(responseCode = "404", description = "Account not found",
+                            content = @Content(schema = @Schema(implementation = AccountNotFound.class))),
+                    @ApiResponse(responseCode = "403", description = "Not account owner",
+                            content = @Content(schema = @Schema(implementation = NotAccountOwner.class)))
             }
     )
-    ResponseEntity<TransactionDto> createTransfer(Authentication authentication,
-                                                  @Valid CreatePaymentDto createPaymentDto);
+    ResponseEntity<TransactionDto> createTransfer(
+            Authentication authentication,
+            @Valid CreatePaymentDto createPaymentDto);
 
     @Operation(
             summary = "Get Client Payments",
@@ -70,7 +89,8 @@ public interface PaymentApiDocumentation {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successfully retrieved transaction",
                             content = @Content(schema = @Schema(implementation = TransactionDto.class))),
-                    @ApiResponse(responseCode = "404", description = "Not found - Transaction with the provided ID does not exist")
+                    @ApiResponse(responseCode = "404", description = "Transaction not found",
+                            content = @Content(schema = @Schema(implementation = TransactionNotFound.class)))
             }
     )
     ResponseEntity<TransactionDto> getTransactionById(

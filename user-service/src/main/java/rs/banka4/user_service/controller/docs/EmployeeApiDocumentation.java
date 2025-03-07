@@ -16,6 +16,10 @@ import rs.banka4.user_service.dto.EmployeeResponseDto;
 import rs.banka4.user_service.dto.PrivilegesDto;
 import rs.banka4.user_service.dto.requests.CreateEmployeeDto;
 import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
+import rs.banka4.user_service.exceptions.DuplicateEmail;
+import rs.banka4.user_service.exceptions.DuplicateUsername;
+import rs.banka4.user_service.exceptions.UserNotFound;
+
 
 @Tag(name = "EmployeeController", description = "Endpoints for employees")
 public interface EmployeeApiDocumentation {
@@ -55,7 +59,8 @@ public interface EmployeeApiDocumentation {
                             content = @Content(schema = @Schema(implementation = EmployeeResponseDto.class))),
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token"),
                     @ApiResponse(responseCode = "403", description = "Forbidden - Access denied due to invalid token"),
-                    @ApiResponse(responseCode = "404", description = "Bad Request - User id can't be found.")
+                    @ApiResponse(responseCode = "404", description = "User not found",
+                            content = @Content(schema = @Schema(implementation = UserNotFound.class)))
             }
     )
     ResponseEntity<EmployeeResponseDto> getEmployee(@Parameter(description = "Employee ID") String id);
@@ -66,7 +71,11 @@ public interface EmployeeApiDocumentation {
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "201", description = "Successfully created new employee"),
-                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid data or errors such as duplicate email/username"),
+                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid data"),
+                    @ApiResponse(responseCode = "409", description = "Duplicate email",
+                            content = @Content(schema = @Schema(implementation = DuplicateEmail.class))),
+                    @ApiResponse(responseCode = "409", description = "Duplicate username",
+                            content = @Content(schema = @Schema(implementation = DuplicateUsername.class))),
                     @ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
             }
     )
@@ -102,12 +111,17 @@ public interface EmployeeApiDocumentation {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successfully updated employee"),
                     @ApiResponse(responseCode = "400", description = "Invalid data provided"),
-                    @ApiResponse(responseCode = "409", description = "Duplicate email or username"),
-                    @ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
+                    @ApiResponse(responseCode = "404", description = "User not found",
+                            content = @Content(schema = @Schema(implementation = UserNotFound.class))),
+                    @ApiResponse(responseCode = "409", description = "Duplicate email",
+                            content = @Content(schema = @Schema(implementation = DuplicateEmail.class))),
+                    @ApiResponse(responseCode = "409", description = "Duplicate username",
+                            content = @Content(schema = @Schema(implementation = DuplicateUsername.class)))
             }
     )
     ResponseEntity<Void> updateEmployee(
             @Parameter(description = "Employee ID") String id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User details for change")
             @Valid UpdateEmployeeDto updateEmployeeDto);
+
 }

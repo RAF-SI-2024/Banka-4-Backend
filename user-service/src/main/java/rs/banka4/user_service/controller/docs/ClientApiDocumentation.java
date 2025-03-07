@@ -17,6 +17,9 @@ import rs.banka4.user_service.dto.PrivilegesDto;
 import rs.banka4.user_service.dto.requests.ClientContactRequest;
 import rs.banka4.user_service.dto.requests.UpdateClientDto;
 import rs.banka4.user_service.dto.requests.CreateClientDto;
+import rs.banka4.user_service.exceptions.NonexistantSortByField;
+import rs.banka4.user_service.exceptions.NullPageRequest;
+
 
 import java.util.UUID;
 
@@ -101,7 +104,10 @@ public interface ClientApiDocumentation {
                     @ApiResponse(responseCode = "200", description = "Successfully retrieved clients list",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ClientDto.class))),
-                    @ApiResponse(responseCode = "400", description = "Invalid data for search filters"),
+                    @ApiResponse(responseCode = "400", description = "Invalid data for search filters: NullPageRequest occurred",
+                            content = @Content(schema = @Schema(implementation = NullPageRequest.class))),
+                    @ApiResponse(responseCode = "422", description = "Invalid data for search filters: NonexistantSortByField occurred",
+                            content = @Content(schema = @Schema(implementation = NonexistantSortByField.class))),
                     @ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
             }
     )
