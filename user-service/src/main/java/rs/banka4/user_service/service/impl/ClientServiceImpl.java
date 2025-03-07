@@ -200,39 +200,40 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ResponseEntity<Page<ClientContactDto>> getAllContacts(String token, Pageable pageable) {
-        String email = jwtUtil.extractUsername(token);
-        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
+//        String email = jwtUtil.extractUsername(token);
+//        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
+//
+//        List<ClientContactDto> contactDtos = client.getSavedContacts().stream()
+//                .map(contactMapper::toClientContactDto)
+//                .toList();
 
-        List<ClientContactDto> contactDtos = client.getSavedContacts().stream()
-                .map(contactMapper::toClientContactDto)
-                .toList();
-
-        return ResponseEntity.ok(new PageImpl<>(contactDtos, pageable, contactDtos.size()));
+//        return ResponseEntity.ok(new PageImpl<>(contactDtos, pageable, contactDtos.size()));
+        return null;
     }
 
     @Override
     public ResponseEntity<Void> createContact(String token, ClientContactRequest request) {
-        String email = jwtUtil.extractUsername(token);
-        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
-
-        client.getSavedContacts().add(accountService.getAccountByAccountNumber(request.accountNumber()));
-
-        clientRepository.save(client);
+//        String email = jwtUtil.extractUsername(token);
+//        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
+//
+//        client.getSavedContacts().add(accountService.getAccountByAccountNumber(request.accountNumber()));
+//
+//        clientRepository.save(client);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @Override
     public ResponseEntity<Void> deleteContact(String token, String accountNumber) {
-        String email = jwtUtil.extractUsername(token);
-        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
-
-        Set<Account> updatedContacts = new HashSet<>(client.getSavedContacts());
-        updatedContacts.removeIf(account -> account.getAccountNumber().equals(accountNumber));
-        client.setSavedContacts(updatedContacts);
-
-        clientRepository.save(client);
-
-        System.out.printf("Deleted contact with account number: %s \n", accountNumber);
+//        String email = jwtUtil.extractUsername(token);
+//        Client client = clientRepository.findByEmail(email).orElseThrow(NotFound::new);
+//
+//        Set<Account> updatedContacts = new HashSet<>(client.getSavedContacts());
+//        updatedContacts.removeIf(account -> account.getAccountNumber().equals(accountNumber));
+//        client.setSavedContacts(updatedContacts);
+//
+//        clientRepository.save(client);
+//
+//        System.out.printf("Deleted contact with account number: %s \n", accountNumber);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

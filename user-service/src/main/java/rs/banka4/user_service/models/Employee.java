@@ -5,16 +5,13 @@ import jakarta.persistence.Entity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.proxy.HibernateProxy;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.Objects;
 
 @Entity(name = "employees")
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
-@Validated
 @AllArgsConstructor
 @SuperBuilder
 public class Employee extends User {
