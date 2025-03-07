@@ -54,8 +54,8 @@ public class ClientServiceImpl implements ClientService {
 
 
     @Override
-    public ResponseEntity<Page<ClientDto>> getAll(String firstName, String lastName, String email,
-                                                  String sortBy, PageRequest pageRequest) {
+    public ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email,
+                                                      String sortBy, PageRequest pageRequest) {
         if (pageRequest == null) {
             throw new NullPageRequest();
         }

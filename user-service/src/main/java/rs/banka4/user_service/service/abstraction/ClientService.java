@@ -20,7 +20,7 @@ public interface ClientService {
     ClientDto findClient(String id);
     Optional<Client> getClientByEmail(String email);
     ResponseEntity<Void> createClient(CreateClientDto createClientDto);
-    ResponseEntity<Page<ClientDto>> getAll(String firstName, String lastName, String email, String sortBy, PageRequest pageRequest);
+    ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email, String sortBy, PageRequest pageRequest);
     ResponseEntity<Void> updateClient(String id, UpdateClientDto updateClientDto);
     ResponseEntity<Page<ClientContactDto>> getAllContacts(String token, Pageable pageable);
     ResponseEntity<Void> createContact(String token, ClientContactRequest request);

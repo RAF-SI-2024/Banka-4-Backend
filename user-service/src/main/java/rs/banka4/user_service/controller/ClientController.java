@@ -68,7 +68,7 @@ public class ClientController implements ClientApiDocumentation {
             @RequestParam(required = false) String sortBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return clientService.getAll(firstName, lastName, email, sortBy, PageRequest.of(page, size));
+        return clientService.getClients(firstName, lastName, email, sortBy, PageRequest.of(page, size));
     }
 
     @Override
