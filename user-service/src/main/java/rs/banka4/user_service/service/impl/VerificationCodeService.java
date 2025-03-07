@@ -13,7 +13,7 @@ import java.util.UUID;
 public class VerificationCodeService {
 
     private final VerificationCodeRepository verificationCodeRepository;
-    private final LocalDateTime expiration = LocalDateTime.now().plusDays(7);
+    private final LocalDateTime expiration = LocalDateTime.now().plusDays(7); // TODO Maknuti ovo odavde jer se koristi samo na jednom mestu
 
     public VerificationCodeService(VerificationCodeRepository verificationCodeRepository) {
         this.verificationCodeRepository = verificationCodeRepository;
@@ -22,7 +22,12 @@ public class VerificationCodeService {
     public VerificationCode createVerificationCode(String email) {
         String code = UUID.randomUUID().toString();
 
-        VerificationCode verificationCode = new VerificationCode(code, expiration, email);
+//        new VerificationCode(code, expiration, email);
+        VerificationCode verificationCode = VerificationCode.builder()
+                .code(code)
+                .email(email)
+                .expirationDate(expiration)
+                .build();
         return verificationCodeRepository.save(verificationCode);
     }
 
