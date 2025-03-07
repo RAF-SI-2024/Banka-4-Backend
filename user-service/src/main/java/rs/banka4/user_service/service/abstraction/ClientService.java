@@ -16,9 +16,8 @@ import java.util.UUID;
 public interface ClientService {
     ResponseEntity<LoginResponseDto> login(LoginDto loginDto);
     ResponseEntity<PrivilegesDto> getPrivileges(String token);
-    ResponseEntity<ClientDto> getMe(String token);
-    ResponseEntity<ClientDto> getClient(String id);
-    ClientDto findClient(String id);
+    ClientDto getMe(String token);
+    ClientDto getClientById(UUID id);
     Optional<Client> getClientByEmail(String email);
     void createClient(CreateClientDto createClientDto);
     ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email, String sortBy, PageRequest pageRequest);

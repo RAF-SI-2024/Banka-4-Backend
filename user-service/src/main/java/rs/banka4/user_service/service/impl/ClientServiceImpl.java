@@ -1,9 +1,7 @@
 package rs.banka4.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -11,26 +9,17 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import rs.banka4.user_service.config.RabbitMqConfig;
 import rs.banka4.user_service.domain.auth.dtos.LoginDto;
 import rs.banka4.user_service.domain.auth.dtos.LoginResponseDto;
-import rs.banka4.user_service.domain.auth.dtos.NotificationTransferDto;
-import rs.banka4.user_service.domain.auth.db.VerificationCode;
 import rs.banka4.user_service.domain.user.PrivilegesDto;
-import rs.banka4.user_service.domain.user.User;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.*;
 import rs.banka4.user_service.exceptions.*;
-import rs.banka4.user_service.domain.user.client.mapper.BasicClientMapper;
 import rs.banka4.user_service.domain.user.client.mapper.BasicClientMapperForGetAll;
 import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
-import rs.banka4.user_service.domain.user.client.mapper.ContactMapper;
 import rs.banka4.user_service.repositories.ClientRepository;
-import rs.banka4.user_service.repositories.EmployeeRepository;
-import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.utils.JwtUtil;
-import rs.banka4.user_service.utils.MessageHelper;
 import rs.banka4.user_service.utils.specification.ClientSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
@@ -42,7 +31,6 @@ public class ClientServiceImpl implements ClientService {
 
     private final UserService userService;
     private final ClientRepository clientRepository;
-    private final BasicClientMapper basicClientMapper;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
@@ -122,33 +110,20 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ResponseEntity<ClientDto> getMe(String authorization) {
+    public ClientDto getMe(String authorization) {
+        // TODO ne da se uzima token, nego iz security Contex Holdera trenutno ulogovani user, neka bude neka klasa sa statickim metodama
         String token = authorization.replace("Bearer ", "");
         String clientUsername = jwtUtil.extractUsername(token);
 
         if(jwtUtil.isTokenExpired(token)) throw new NotAuthenticated();
         if(jwtUtil.isTokenInvalidated(token)) throw new NotAuthenticated();
 
-        Client client = clientRepository.findByEmail(clientUsername).orElseThrow(NotFound::new);
-
-        ClientDto response = basicClientMapper.entityToDto(client);
-        return ResponseEntity.ok(response);
-
+        return ClientMapper.INSTANCE.toDto(clientRepository.findByEmail(clientUsername).orElseThrow(NotFound::new));
     }
+
     @Override
-    public ResponseEntity<ClientDto> getClient(String id) {
-//        var client = clientRepository.findById(id).orElseThrow(() -> new UserNotFound(id));;
-//        return ResponseEntity.ok(clientMapper.toDto(client));
-        return null;
-    }
-//
-//    @Override
-    public ClientDto findClient(String id) {
-//        var c =clientRepository.findById(id);
-//        if(c.isEmpty()) throw  new ClientNotFound(id);
-//
-//        return clientMapper.toDto(c.get());
-        return null;
+    public ClientDto getClientById(UUID id) {
+        return ClientMapper.INSTANCE.toDto(clientRepository.findById(id).orElseThrow(() -> new ClientNotFound(id)));
     }
 
     @Override
