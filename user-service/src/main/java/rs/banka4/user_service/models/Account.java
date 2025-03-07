@@ -9,18 +9,18 @@ import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
+
 @Entity
 @Builder
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
 @Table(name = "accounts")
 public class Account {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO) // todo: check
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @Column(nullable = false, unique = true)
@@ -33,7 +33,8 @@ public class Account {
     @Builder.Default
     private BigDecimal availableBalance = BigDecimal.ZERO;
 
-    private BigDecimal accountMaintenance;
+    @Builder.Default
+    private BigDecimal accountMaintenance = BigDecimal.ZERO;
 
     @Builder.Default
     private LocalDate createdDate = LocalDate.now();
@@ -70,9 +71,15 @@ public class Account {
     public void setAccountMaintenance() {
         if (this.currency != null && Currency.Code.RSD.equals(this.getCurrency().getCode())) {
             setAccountMaintenance(new BigDecimal("100.00"));
-        } else {
-            setAccountMaintenance(new BigDecimal("0"));
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "id=" + id +
+                ", accountNumber='" + accountNumber + '\'' +
+                '}';
     }
 
     @Override
