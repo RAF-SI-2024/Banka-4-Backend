@@ -79,7 +79,7 @@ public class AuthServiceImpl implements AuthService {
         verificationCodeService.markCodeAsUsed(verificationCode);
     }
 
-    private User findUserByEmail(String email) {
+    public User findUserByEmail(String email) {
         Optional<Employee> employee = employeeService.findEmployeeByEmail(email);
         if (employee.isPresent()) {
             return employee.get();
