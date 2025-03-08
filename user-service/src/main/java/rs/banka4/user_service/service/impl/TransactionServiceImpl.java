@@ -26,7 +26,6 @@ import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -40,80 +39,37 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public TransactionDto createPayment(Authentication authentication, CreatePaymentDto createPaymentDto) {
-        String email = jwtUtil.extractUsername(authentication.getCredentials().toString());
+    public TransactionDto createTransaction(Authentication authentication, CreatePaymentDto createPaymentDto) {
+        Client client = getClient(authentication);
+        Account fromAccount = getAccount(createPaymentDto.fromAccount());
+        Account toAccount = getAccount(createPaymentDto.toAccount());
 
-        Client client = clientRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(email));
-        Account fromAccount = accountRepository.findAccountByAccountNumber(createPaymentDto.fromAccount()).orElseThrow(AccountNotFound::new);
-        Account toAccount = accountRepository.findAccountByAccountNumber(createPaymentDto.toAccount()).orElseThrow(AccountNotFound::new);
+        validateClientAccountOwnership(client, fromAccount);
+        validateSufficientFunds(fromAccount, createPaymentDto.fromAmount().add(BigDecimal.ONE));
 
-        if (!client.getAccounts().contains(fromAccount)) {
-            throw new NotAccountOwner();
-        }
-        if (fromAccount.getBalance().subtract(createPaymentDto.fromAmount()).subtract(BigDecimal.ONE).compareTo(BigDecimal.ZERO) < 0) {
-            throw new InsufficientFunds();
-        }
+        processTransaction(fromAccount, toAccount, createPaymentDto.fromAmount(), BigDecimal.ONE);
 
-        fromAccount.setBalance(fromAccount.getBalance().subtract(createPaymentDto.fromAmount()).subtract(BigDecimal.ONE));
-        toAccount.setBalance(toAccount.getBalance().add(createPaymentDto.fromAmount()));
-
-        Transaction transaction = Transaction.builder()
-                .transactionNumber(UUID.randomUUID().toString())
-                .fromAccount(fromAccount)
-                .toAccount(toAccount)
-                .from(new MonetaryAmount(createPaymentDto.fromAmount(), fromAccount.getCurrency()))
-                .to(new MonetaryAmount(createPaymentDto.fromAmount(), toAccount.getCurrency()))
-                .fee(new MonetaryAmount(BigDecimal.valueOf(1L), fromAccount.getCurrency()))
-                .recipient(createPaymentDto.recipient())
-                .paymentCode(createPaymentDto.paymentCode())
-                .referenceNumber(createPaymentDto.referenceNumber())
-                .paymentPurpose(createPaymentDto.paymentPurpose())
-                .paymentDateTime(LocalDateTime.now())
-                .status(TransactionStatus.IN_PROGRESS)
-                .build();
-
+        Transaction transaction = buildTransaction(fromAccount, toAccount, createPaymentDto, BigDecimal.ONE, TransactionStatus.IN_PROGRESS);
         transactionRepository.save(transaction);
-        // TODO ne vraca se transactionDto kako je napisano za povratnu vrednost
-        // TODO Da li tek treba da usledi task za prebacivanje novca, jer samo vidimo in progress
+
         return TransactionMapper.INSTANCE.toDto(transaction);
     }
 
     @Override
     @Transactional
     public TransactionDto createTransfer(Authentication authentication, CreatePaymentDto createPaymentDto) {
-        String email = jwtUtil.extractUsername(authentication.getCredentials().toString());
+        Client client = getClient(authentication);
+        Account fromAccount = getAccount(createPaymentDto.fromAccount());
+        Account toAccount = getAccount(createPaymentDto.toAccount());
 
-        Client client = clientRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(email));
-        Account fromAccount = accountRepository.findAccountByAccountNumber(createPaymentDto.fromAccount()).orElseThrow(AccountNotFound::new);
-        Account toAccount = accountRepository.findAccountByAccountNumber(createPaymentDto.toAccount()).orElseThrow(AccountNotFound::new);
+        validateClientAccountOwnership(client, fromAccount, toAccount);
+        validateSufficientFunds(fromAccount, createPaymentDto.fromAmount());
 
-        if (!client.getAccounts().containsAll(Set.of(fromAccount, toAccount))) {
-            throw new NotAccountOwner();
-        }
-        if (fromAccount.getBalance().subtract(createPaymentDto.fromAmount()).compareTo(BigDecimal.ZERO) < 0) {
-            throw new InsufficientFunds();
-        }
+        processTransaction(fromAccount, toAccount, createPaymentDto.fromAmount(), BigDecimal.ZERO);
 
-        // TODO: handle in future exchange rates and reserved amounts
-        fromAccount.setBalance(fromAccount.getBalance().subtract(createPaymentDto.fromAmount()));
-        toAccount.setBalance(toAccount.getBalance().add(createPaymentDto.fromAmount()));
-
-        Transaction transaction = Transaction.builder()
-                .transactionNumber(UUID.randomUUID().toString())
-                .fromAccount(fromAccount)
-                .toAccount(toAccount)
-                .from(new MonetaryAmount(createPaymentDto.fromAmount(), fromAccount.getCurrency()))
-                .to(new MonetaryAmount(createPaymentDto.fromAmount(), toAccount.getCurrency()))
-                .fee(new MonetaryAmount(BigDecimal.valueOf(0L), fromAccount.getCurrency()))
-                .recipient(createPaymentDto.recipient())
-                .paymentCode(createPaymentDto.paymentCode())
-                .referenceNumber(createPaymentDto.referenceNumber())
-                .paymentPurpose(createPaymentDto.paymentPurpose())
-                .paymentDateTime(LocalDateTime.now())
-                .build();
-
+        Transaction transaction = buildTransaction(fromAccount, toAccount, createPaymentDto, BigDecimal.ZERO, TransactionStatus.REALIZED);
         transactionRepository.save(transaction);
-        // TODO ne vraca se transactionDto kako je napisano za povratnu vrednost i sto nema status in progress
+
         return TransactionMapper.INSTANCE.toDto(transaction);
     }
 
@@ -148,4 +104,48 @@ public class TransactionServiceImpl implements TransactionService {
         return TransactionMapper.INSTANCE.toDto(transaction);
     }
 
+    private Client getClient(Authentication authentication) {
+        String email = jwtUtil.extractUsername(authentication.getCredentials().toString());
+        return clientRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(email));
+    }
+
+    private Account getAccount(String accountNumber) {
+        return accountRepository.findAccountByAccountNumber(accountNumber).orElseThrow(AccountNotFound::new);
+    }
+
+    private void validateClientAccountOwnership(Client client, Account... accounts) {
+        for (Account account : accounts) {
+            if (!client.getAccounts().contains(account)) {
+                throw new NotAccountOwner();
+            }
+        }
+    }
+
+    private void validateSufficientFunds(Account fromAccount, BigDecimal amount) {
+        if (fromAccount.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
+            throw new InsufficientFunds();
+        }
+    }
+
+    private void processTransaction(Account fromAccount, Account toAccount, BigDecimal amount, BigDecimal fee) {
+        fromAccount.setBalance(fromAccount.getBalance().subtract(amount).subtract(fee));
+        toAccount.setBalance(toAccount.getBalance().add(amount));
+    }
+
+    private Transaction buildTransaction(Account fromAccount, Account toAccount, CreatePaymentDto createPaymentDto, BigDecimal fee, TransactionStatus status) {
+        return Transaction.builder()
+                .transactionNumber(UUID.randomUUID().toString())
+                .fromAccount(fromAccount)
+                .toAccount(toAccount)
+                .from(new MonetaryAmount(createPaymentDto.fromAmount(), fromAccount.getCurrency()))
+                .to(new MonetaryAmount(createPaymentDto.fromAmount(), toAccount.getCurrency()))
+                .fee(new MonetaryAmount(fee, fromAccount.getCurrency()))
+                .recipient(createPaymentDto.recipient())
+                .paymentCode(createPaymentDto.paymentCode())
+                .referenceNumber(createPaymentDto.referenceNumber())
+                .paymentPurpose(createPaymentDto.paymentPurpose())
+                .paymentDateTime(LocalDateTime.now())
+                .status(status)
+                .build();
+    }
 }

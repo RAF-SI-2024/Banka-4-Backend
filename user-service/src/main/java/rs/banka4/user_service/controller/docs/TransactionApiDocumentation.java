@@ -28,10 +28,10 @@ import java.util.UUID;
 public interface TransactionApiDocumentation {
 
     @Operation(
-            summary = "Create a new Payment",
+            summary = "Create a new Transaction",
             description = "Creates a new payment with the provided details.",
             responses = {
-                    @ApiResponse(responseCode = "201", description = "Successfully created new payment"),
+                    @ApiResponse(responseCode = "201", description = "Successfully created new transaction"),
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid data or Insufficient funds",
                             content = @Content(schema = @Schema(implementation = InsufficientFunds.class))),
                     @ApiResponse(responseCode = "404", description = "Client not found",
@@ -40,7 +40,7 @@ public interface TransactionApiDocumentation {
                             content = @Content(schema = @Schema(implementation = AccountNotFound.class)))
             }
     )
-    ResponseEntity<TransactionDto> createPayment(
+    ResponseEntity<TransactionDto> createTransaction(
             Authentication authentication,
             @Valid CreatePaymentDto createPaymentDto);
 
