@@ -80,7 +80,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
+    public LoginResponseDto login(LoginDto loginDto) {
         CustomUserDetailsService.role = "client"; // Consider refactoring this into a more robust role management system
 
         try {
@@ -97,7 +97,7 @@ public class ClientServiceImpl implements ClientService {
         String accessToken = jwtUtil.generateToken(client);
         String refreshToken = jwtUtil.generateRefreshToken(userDetailsService.loadUserByUsername(loginDto.email()), "client");
 
-        return ResponseEntity.ok(new LoginResponseDto(accessToken, refreshToken));
+        return new LoginResponseDto(accessToken, refreshToken);
     }
 
     @Override

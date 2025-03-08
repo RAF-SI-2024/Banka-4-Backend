@@ -2,11 +2,14 @@ package rs.banka4.user_service.domain.transaction.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 import rs.banka4.user_service.domain.transaction.db.Transaction;
 import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public interface TransactionMapper {
+
+    TransactionMapper INSTANCE = Mappers.getMapper(TransactionMapper.class);
 
     @Mapping(source = "fromAccount.accountNumber", target = "fromAccount")
     @Mapping(source = "toAccount.accountNumber", target = "toAccount")

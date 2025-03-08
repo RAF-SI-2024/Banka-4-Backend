@@ -12,7 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.domain.transaction.dtos.CreatePaymentDto;
-import rs.banka4.user_service.domain.transaction.db.PaymentStatus;
+import rs.banka4.user_service.domain.transaction.db.TransactionStatus;
 import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
 import rs.banka4.user_service.exceptions.AccountNotFound;
 import rs.banka4.user_service.exceptions.ClientNotFound;
@@ -24,8 +24,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
-@Tag(name = "PaymentController", description = "Endpoints for payments")
-public interface PaymentApiDocumentation {
+@Tag(name = "TransactionController", description = "Endpoints for payments")
+public interface TransactionApiDocumentation {
 
     @Operation(
             summary = "Create a new Payment",
@@ -74,9 +74,9 @@ public interface PaymentApiDocumentation {
                     @ApiResponse(responseCode = "403", description = "Forbidden - Access denied")
             }
     )
-    ResponseEntity<Page<TransactionDto>> getPaymentsForClient(
+    ResponseEntity<Page<TransactionDto>> getAllTransactionsForClient(
             Authentication auth,
-            @Parameter(description = "Payment status") PaymentStatus status,
+            @Parameter(description = "Payment status") TransactionStatus status,
             @Parameter(description = "Payment amount") BigDecimal amount,
             @Parameter(description = "Payments on date") LocalDate date,
             @Parameter(description = "Account number") String accountNumber,
