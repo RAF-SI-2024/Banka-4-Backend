@@ -15,8 +15,7 @@ import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
 import rs.banka4.user_service.domain.user.PrivilegesDto;
 import rs.banka4.user_service.domain.user.client.dtos.UpdateClientDto;
 import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
-import rs.banka4.user_service.exceptions.NonexistantSortByField;
-import rs.banka4.user_service.exceptions.NullPageRequest;
+import rs.banka4.user_service.exceptions.*;
 
 
 import java.util.UUID;
@@ -59,7 +58,8 @@ public interface ClientApiDocumentation {
                             content = @Content(schema = @Schema(implementation = ClientDto.class))),
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token"),
                     @ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required"),
-                    @ApiResponse(responseCode = "404", description = "Not Found - Client id not found")
+                    @ApiResponse(responseCode = "404", description = "Not Found - Client id not found",
+                            content = @Content(schema = @Schema(implementation = ClientNotFound.class))),
             }
     )
     ResponseEntity<ClientDto> getClientById(@Parameter(description = "ID of the client") UUID id);
@@ -84,7 +84,10 @@ public interface ClientApiDocumentation {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successfully updated client"),
                     @ApiResponse(responseCode = "400", description = "Invalid data provided"),
-                    @ApiResponse(responseCode = "409", description = "Duplicate email or username"),
+                    @ApiResponse(responseCode = "409", description = "Duplicate email",
+                            content = @Content(schema = @Schema(implementation = DuplicateEmail.class))),
+                    @ApiResponse(responseCode = "409", description = "Duplicate username",
+                            content = @Content(schema = @Schema(implementation = DuplicateUsername.class))),
                     @ApiResponse(responseCode = "403", description = "Forbidden - Access denied")
             }
     )

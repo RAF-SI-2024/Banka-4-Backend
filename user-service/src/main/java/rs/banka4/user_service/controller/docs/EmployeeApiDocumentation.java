@@ -74,11 +74,11 @@ public interface EmployeeApiDocumentation {
             responses = {
                     @ApiResponse(responseCode = "201", description = "Successfully created new employee"),
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid data"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required"),
                     @ApiResponse(responseCode = "409", description = "Duplicate email",
                             content = @Content(schema = @Schema(implementation = DuplicateEmail.class))),
                     @ApiResponse(responseCode = "409", description = "Duplicate username",
                             content = @Content(schema = @Schema(implementation = DuplicateUsername.class))),
-                    @ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
             }
     )
     ResponseEntity<Void> createEmployee(
