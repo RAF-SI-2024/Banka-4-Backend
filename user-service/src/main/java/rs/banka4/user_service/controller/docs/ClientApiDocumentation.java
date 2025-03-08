@@ -11,10 +11,8 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import rs.banka4.user_service.domain.user.client.dtos.ClientContactDto;
 import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
 import rs.banka4.user_service.domain.user.PrivilegesDto;
-import rs.banka4.user_service.domain.user.client.dtos.ClientContactRequest;
 import rs.banka4.user_service.domain.user.client.dtos.UpdateClientDto;
 import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
 import rs.banka4.user_service.exceptions.NonexistantSortByField;
@@ -116,6 +114,7 @@ public interface ClientApiDocumentation {
             @Parameter(description = "Last name of the client") String lastName,
             @Parameter(description = "Email address of the client") String email,
             @Parameter(description = "Field to sort by") String sortBy,
+            @Parameter(description = "Phone of the client") String phone,
             @Parameter(description = "Page number") int page,
             @Parameter(description = "Number of clients per page") int size);
 }

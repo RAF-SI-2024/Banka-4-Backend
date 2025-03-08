@@ -20,7 +20,7 @@ public interface ClientService {
     ClientDto getClientById(UUID id);
     Optional<Client> getClientByEmail(String email);
     void createClient(CreateClientDto createClientDto);
-    ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email, String sortBy, PageRequest pageRequest);
+    ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email, String phone, String sortBy, PageRequest pageRequest);
     void updateClient(UUID id, UpdateClientDto updateClientDto);
     void activateClientAccount(Client client, String password);
 }
