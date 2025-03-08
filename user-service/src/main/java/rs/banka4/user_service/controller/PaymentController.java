@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,7 +17,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreatePaymentDto;
+import rs.banka4.user_service.dto.requests.VerificationRequestDto;
 import rs.banka4.user_service.service.abstraction.PaymentService;
+import rs.banka4.user_service.service.impl.VerificationEventService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -34,14 +37,21 @@ public class PaymentController {
             summary = "Create a new Payment",
             description = "Creates a new payment with the provided details.",
             responses = {
-                    @ApiResponse(responseCode = "201", description = "Successfully created new payment"),
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Successfully created new payment",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = CreateTransactionResponseDto.class)
+                            )
+                    ),
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid data")
             }
     )
     @PostMapping("/payment")
-    public ResponseEntity<TransactionDto> createPayment(
+    public ResponseEntity<CreateTransactionResponseDto> createPayment(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Details of the new client to create", required = true)
+                    description = "Payment details", required = true)
             Authentication authentication,
             @RequestBody @Valid CreatePaymentDto createPaymentDto) {
         return paymentService.createPayment(authentication, createPaymentDto);
@@ -49,16 +59,23 @@ public class PaymentController {
 
     @Operation(
             summary = "Create a new Transfer",
-            description = "Creates a new transfer. The client can only transfer using their own account.",
+            description = "Creates a new transfer. The client can only transfer using their own account as source and target.",
             responses = {
-                    @ApiResponse(responseCode = "201", description = "Successfully created new payment"),
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Successfully created new transfer",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = CreateTransactionResponseDto.class)
+                            )
+                    ),
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid data")
             }
     )
     @PostMapping("/transfer")
-    public ResponseEntity<TransactionDto> createTransfer(
+    public ResponseEntity<CreateTransactionResponseDto> createTransfer(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Details of the new client to create", required = true)
+                    description = "Transfer details", required = true)
             Authentication authentication,
             @RequestBody @Valid CreatePaymentDto createPaymentDto) {
         return paymentService.createTransfer(authentication, createPaymentDto);
@@ -100,6 +117,30 @@ public class PaymentController {
     @GetMapping("/{id}")
     public ResponseEntity<TransactionDto> getTransactionById(Authentication auth, @PathVariable UUID id){
         return this.paymentService.getTransactionById(auth.getCredentials().toString(), id);
+    }
+
+    /**
+     * Verifies the TOTP code provided by the user for a specific authentication event.
+     *
+     * @param authentication the current user authentication
+     * @param verificationRequestDto the request DTO containing the event ID and TOTP code
+     * @return ResponseEntity with HTTP status 200 if verification is successful
+     */
+    @Operation(
+            summary = "Verify TOTP Code for an Event",
+            description = "Verifies the provided TOTP code for the given authentication event (by event ID) and records the event as verified."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "TOTP code verified successfully and event recorded."),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload."),
+            @ApiResponse(responseCode = "401", description = "Unauthorized or invalid TOTP code."),
+            @ApiResponse(responseCode = "404", description = "Authentication event not found.")
+    })
+    @PostMapping("/verify")
+    public ResponseEntity<Void> verifyPayment(
+            Authentication authentication,
+            @Valid @RequestBody VerificationRequestDto verificationRequestDto) {
+        return paymentService.verify(authentication, verificationRequestDto);
     }
 
 }

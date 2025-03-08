@@ -8,19 +8,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import rs.banka4.user_service.dto.CreateTransactionResponseDto;
 import rs.banka4.user_service.dto.TransactionDto;
 import rs.banka4.user_service.dto.PaymentStatus;
 import rs.banka4.user_service.dto.requests.CreatePaymentDto;
+import rs.banka4.user_service.dto.requests.VerificationRequestDto;
 import rs.banka4.user_service.exceptions.*;
 import rs.banka4.user_service.mapper.TransactionMapper;
-import rs.banka4.user_service.models.Account;
-import rs.banka4.user_service.models.Client;
-import rs.banka4.user_service.models.MonetaryAmount;
-import rs.banka4.user_service.models.Transaction;
+import rs.banka4.user_service.models.*;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.TransactionRepository;
 import rs.banka4.user_service.service.abstraction.PaymentService;
+import rs.banka4.user_service.service.abstraction.PaymentVerificationProcessor;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.specification.PaymentSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
@@ -40,10 +40,13 @@ public class PaymentServiceImpl implements PaymentService {
     private final TransactionRepository transactionRepository;
     private final JwtUtil jwtUtil;
     private final TransactionMapper transactionMapper;
+    private final VerificationEventService verificationEventService;
+    private final PaymentVerificationProcessorFactory verificationProcessorFactory;
+
 
     @Override
     @Transactional
-    public ResponseEntity<TransactionDto> createPayment(Authentication authentication, CreatePaymentDto createPaymentDto) {
+    public ResponseEntity<CreateTransactionResponseDto> createPayment(Authentication authentication, CreatePaymentDto createPaymentDto) {
         String email = jwtUtil.extractUsername(authentication.getCredentials().toString());
 
         Client client = clientRepository.findByEmail(email)
@@ -63,11 +66,9 @@ public class PaymentServiceImpl implements PaymentService {
             throw new InsufficientFunds();
         }
 
-        fromAccount.setBalance(fromAccount.getBalance().subtract(createPaymentDto.fromAmount()).subtract(BigDecimal.ONE));
-        toAccount.setBalance(toAccount.getBalance().add(createPaymentDto.fromAmount()));
-
+        UUID transactionId = UUID.randomUUID();
         Transaction transaction = Transaction.builder()
-                .transactionNumber(UUID.randomUUID().toString())
+                .transactionNumber(transactionId.toString())
                 .fromAccount(fromAccount)
                 .toAccount(toAccount)
                 .from(new MonetaryAmount(createPaymentDto.fromAmount(), fromAccount.getCurrency()))
@@ -81,13 +82,15 @@ public class PaymentServiceImpl implements PaymentService {
                 .status(PaymentStatus.IN_PROGRESS)
                 .build();
 
+        AuthenticationEvent authenticationEvent = verificationEventService.createVerificationEvent(transactionId.toString(), AuthenticationEventType.VERIFY_TRANSACTION);
         transactionRepository.save(transaction);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+
+        return ResponseEntity.ok(new CreateTransactionResponseDto(authenticationEvent.getId().toString()));
     }
 
     @Override
     @Transactional
-    public ResponseEntity<TransactionDto> createTransfer(Authentication authentication, CreatePaymentDto createPaymentDto) {
+    public ResponseEntity<CreateTransactionResponseDto> createTransfer(Authentication authentication, CreatePaymentDto createPaymentDto) {
         String email = jwtUtil.extractUsername(authentication.getCredentials().toString());
 
         Client client = clientRepository.findByEmail(email)
@@ -107,12 +110,9 @@ public class PaymentServiceImpl implements PaymentService {
             throw new InsufficientFunds();
         }
 
-        // TODO: handle in future exchange rates and reserved amounts
-        fromAccount.setBalance(fromAccount.getBalance().subtract(createPaymentDto.fromAmount()));
-        toAccount.setBalance(toAccount.getBalance().add(createPaymentDto.fromAmount()));
-
+        UUID transactionId = UUID.randomUUID();
         Transaction transaction = Transaction.builder()
-                .transactionNumber(UUID.randomUUID().toString())
+                .transactionNumber(transactionId.toString())
                 .fromAccount(fromAccount)
                 .toAccount(toAccount)
                 .from(new MonetaryAmount(createPaymentDto.fromAmount(), fromAccount.getCurrency()))
@@ -123,10 +123,15 @@ public class PaymentServiceImpl implements PaymentService {
                 .referenceNumber(createPaymentDto.referenceNumber())
                 .paymentPurpose(createPaymentDto.paymentPurpose())
                 .paymentDateTime(LocalDateTime.now())
+                .status(PaymentStatus.IN_PROGRESS)
                 .build();
 
+
+        AuthenticationEvent authenticationEvent = verificationEventService.createVerificationEvent(transactionId.toString(), AuthenticationEventType.VERIFY_TRANSFER);
         transactionRepository.save(transaction);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+
+        return ResponseEntity.ok(new CreateTransactionResponseDto(authenticationEvent.getId().toString()));
+
     }
 
     @Override
@@ -159,6 +164,20 @@ public class PaymentServiceImpl implements PaymentService {
         //TODO: check if user is owner of transaction
 
         return ResponseEntity.ok(transactionMapper.toDto(transaction));
+    }
+
+
+    @Override
+    @Transactional
+    public ResponseEntity<Void> verify(Authentication authentication, VerificationRequestDto verificationRequestDto) {
+        // First verify the TOTP and update the verification event.
+        AuthenticationEvent event = verificationEventService.verifyEvent(authentication, verificationRequestDto);
+
+        // Delegate the funds transfer logic to the appropriate processor.
+        PaymentVerificationProcessor processor = verificationProcessorFactory.getProcessor(event.getType());
+        processor.process(event);
+
+        return ResponseEntity.ok().build();
     }
 
 }
