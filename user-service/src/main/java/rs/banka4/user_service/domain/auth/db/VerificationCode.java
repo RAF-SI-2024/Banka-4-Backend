@@ -20,8 +20,8 @@ import java.util.UUID;
 public class VerificationCode {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String code; // TODO proveri da li je ovo unique
     private LocalDateTime expirationDate;
