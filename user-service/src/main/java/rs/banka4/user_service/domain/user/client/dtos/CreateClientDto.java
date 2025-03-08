@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import rs.banka4.user_service.domain.user.Privilege;
 
 import java.time.LocalDate;
@@ -25,6 +26,7 @@ public record CreateClientDto(
         LocalDate dateOfBirth,
 
         @Schema(description = "Client's gender (Male or Female)", example = "Male")
+        @Pattern(regexp = "Male|Female", message = "Gender must be Male or Female")
         @NotBlank(message = "Gender is required")
         String gender,
 

@@ -24,7 +24,7 @@ public class BasicEmployeeMapper {
         employee.setLastName(dto.lastName());
         employee.setUsername(dto.username());
         employee.setDateOfBirth(dto.dateOfBirth());
-        employee.setGender(dto.gender());
+//        employee.setGender(dto.gender());
         employee.setEmail(dto.email());
         employee.setPhone(dto.phone());
         employee.setAddress(dto.address());
