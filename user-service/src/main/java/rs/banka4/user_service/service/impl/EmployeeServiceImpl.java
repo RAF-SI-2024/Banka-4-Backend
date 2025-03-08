@@ -45,7 +45,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final UserService userService;
 
     @Override
-    public ResponseEntity<LoginResponseDto> login(LoginDto loginDto) {
+    public LoginResponseDto login(LoginDto loginDto) {
         CustomUserDetailsService.role = "employee"; // Consider refactoring this into a more robust role management system
 
         try {
@@ -62,7 +62,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         String accessToken = jwtUtil.generateToken(employee);
         String refreshToken = jwtUtil.generateRefreshToken(userDetailsService.loadUserByUsername(loginDto.email()), "employee");
 
-        return ResponseEntity.ok(new LoginResponseDto(accessToken, refreshToken));
+        return new LoginResponseDto(accessToken, refreshToken);
     }
 
     @Override

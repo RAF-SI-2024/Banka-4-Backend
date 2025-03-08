@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ClientService {
-    ResponseEntity<LoginResponseDto> login(LoginDto loginDto);
+    LoginResponseDto login(LoginDto loginDto);
     ResponseEntity<PrivilegesDto> getPrivileges(String token);
     ClientDto getMe(String token);
     ClientDto getClientById(UUID id);

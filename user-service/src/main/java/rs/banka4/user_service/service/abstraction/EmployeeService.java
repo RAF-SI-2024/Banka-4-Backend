@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface EmployeeService {
-    ResponseEntity<LoginResponseDto> login(LoginDto loginDto);
+    LoginResponseDto login(LoginDto loginDto);
     EmployeeResponseDto getMe(String authorization);
     ResponseEntity<PrivilegesDto> getPrivileges();
     void createEmployee(CreateEmployeeDto dto);

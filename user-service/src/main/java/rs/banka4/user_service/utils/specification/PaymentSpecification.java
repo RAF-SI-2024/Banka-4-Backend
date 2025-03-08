@@ -1,7 +1,7 @@
 package rs.banka4.user_service.utils.specification;
 
 import org.springframework.data.jpa.domain.Specification;
-import rs.banka4.user_service.domain.transaction.db.PaymentStatus;
+import rs.banka4.user_service.domain.transaction.db.TransactionStatus;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.transaction.db.Transaction;
 
@@ -10,7 +10,7 @@ import java.time.LocalDate;
 
 public class PaymentSpecification {
 
-    public static Specification<Transaction> hasStatus(PaymentStatus status) {
+    public static Specification<Transaction> hasStatus(TransactionStatus status) {
         return (root, query, criteriaBuilder) ->
                 status == null ? criteriaBuilder.conjunction() : criteriaBuilder.equal(root.get("status"), status);
     }

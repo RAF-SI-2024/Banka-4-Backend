@@ -77,7 +77,7 @@ public class Transaction {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PaymentStatus status;
+    private TransactionStatus status;
 
     @Override
     public final boolean equals(Object o) {
