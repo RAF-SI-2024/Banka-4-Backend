@@ -119,7 +119,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientDto getClientById(UUID id) {
-        return ClientMapper.INSTANCE.toDto(clientRepository.findById(id).orElseThrow(() -> new ClientNotFound(id)));
+        return ClientMapper.INSTANCE.toDto(clientRepository.findById(id).orElseThrow(NotFound::new));
     }
 
     @Override
@@ -140,7 +140,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public void updateClient(UUID id, UpdateClientDto updateClientDto) {
-        Client client = clientRepository.findById(id).orElseThrow(() -> new ClientNotFound(id));
+        Client client = clientRepository.findById(id).orElseThrow(() -> new ClientNotFound(updateClientDto.email()));
 
         if (userService.existsByEmail(updateClientDto.email())) {
             throw new DuplicateEmail(updateClientDto.email());
