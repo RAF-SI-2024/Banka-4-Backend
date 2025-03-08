@@ -18,6 +18,7 @@ public interface EmployeeMapper {
 
     Employee toEntity(CreateEmployeeDto dto);
     EmployeeDto toDto(Employee employee);
+    EmployeeResponseDto toResponseDto(Employee employee);
 
     void fromUpdate(@MappingTarget Employee employee, UpdateEmployeeDto dto);
 

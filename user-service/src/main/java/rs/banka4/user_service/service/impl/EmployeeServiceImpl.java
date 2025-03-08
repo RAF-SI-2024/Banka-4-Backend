@@ -66,32 +66,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public ResponseEntity<EmployeeResponseDto> getMe(String authorization) {
+    public EmployeeResponseDto getMe(String authorization) {
         String token = authorization.replace("Bearer ", "");
         String username = jwtUtil.extractUsername(token);
-        if (jwtUtil.isTokenExpired(token)) {
-            throw new NotAuthenticated();
-        }
 
-        Employee employee = employeeRepository.findByEmail(username).orElseThrow(NotAuthenticated::new);
+        if(jwtUtil.isTokenExpired(token)) throw new NotAuthenticated();
 
-        EmployeeResponseDto response = new EmployeeResponseDto(
-                employee.getId(),
-                employee.getFirstName(),
-                employee.getLastName(),
-                employee.getDateOfBirth(),
-                employee.getGender(),
-                employee.getEmail(),
-                employee.getPhone(),
-                employee.getAddress(),
-                employee.getUsername(),
-                employee.getPosition(),
-                employee.getDepartment(),
-                employee.getPrivileges(),
-                employee.isActive()
-        );
-
-        return ResponseEntity.ok(response);
+        return EmployeeMapper.INSTANCE.toResponseDto(employeeRepository.findByEmail(username).orElseThrow(NotAuthenticated::new));
     }
 
     @Override
@@ -178,27 +159,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public ResponseEntity<EmployeeResponseDto> getEmployee(String id) {
-//        var employee = employeeRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
-//
-//        EmployeeResponseDto response = new EmployeeResponseDto(
-//                employee.getId(),
-//                employee.getFirstName(),
-//                employee.getLastName(),
-//                employee.getDateOfBirth(),
-//                employee.getGender(),
-//                employee.getEmail(),
-//                employee.getPhone(),
-//                employee.getAddress(),
-//                employee.getUsername(),
-//                employee.getPosition(),
-//                employee.getDepartment(),
-//                employee.getPrivileges(),
-//                employee.isActive()
-//        );
-
-//        return ResponseEntity.ok(response);
-        return null;
+    public EmployeeResponseDto getEmployeeById(UUID id) {
+        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new UserNotFound(id.toString()));
+        return EmployeeMapper.INSTANCE.toResponseDto(employee);
     }
-
 }

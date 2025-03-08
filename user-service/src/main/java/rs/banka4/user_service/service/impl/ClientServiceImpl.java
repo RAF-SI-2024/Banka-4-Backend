@@ -107,12 +107,10 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientDto getMe(String authorization) {
-        // TODO ne da se uzima token, nego iz security Contex Holdera trenutno ulogovani user, neka bude neka klasa sa statickim metodama
         String token = authorization.replace("Bearer ", "");
         String clientUsername = jwtUtil.extractUsername(token);
 
         if(jwtUtil.isTokenExpired(token)) throw new NotAuthenticated();
-        if(jwtUtil.isTokenInvalidated(token)) throw new NotAuthenticated();
 
         return ClientMapper.INSTANCE.toDto(clientRepository.findByEmail(clientUsername).orElseThrow(NotFound::new));
     }
