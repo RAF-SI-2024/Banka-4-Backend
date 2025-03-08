@@ -51,12 +51,12 @@ public interface TransactionApiDocumentation {
                     @ApiResponse(responseCode = "201", description = "Successfully created new payment"),
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid data or Insufficient funds",
                             content = @Content(schema = @Schema(implementation = InsufficientFunds.class))),
+                    @ApiResponse(responseCode = "403", description = "Not account owner",
+                            content = @Content(schema = @Schema(implementation = NotAccountOwner.class))),
                     @ApiResponse(responseCode = "404", description = "Client not found",
                             content = @Content(schema = @Schema(implementation = ClientNotFound.class))),
                     @ApiResponse(responseCode = "404", description = "Account not found",
                             content = @Content(schema = @Schema(implementation = AccountNotFound.class))),
-                    @ApiResponse(responseCode = "403", description = "Not account owner",
-                            content = @Content(schema = @Schema(implementation = NotAccountOwner.class)))
             }
     )
     ResponseEntity<TransactionDto> createTransfer(

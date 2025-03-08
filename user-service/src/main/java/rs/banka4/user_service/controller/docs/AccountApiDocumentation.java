@@ -98,6 +98,8 @@ public interface AccountApiDocumentation {
             description = "Creates a new account with the provided details.",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Successfully created new account"),
+                    @ApiResponse(responseCode = "400", description = "Invalid currency",
+                            content = @Content(schema = @Schema(implementation = InvalidCurrency.class))),
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid data"),
                     @ApiResponse(responseCode = "404", description = "Client not found",
                             content = @Content(schema = @Schema(implementation = ClientNotFound.class))),
@@ -105,8 +107,6 @@ public interface AccountApiDocumentation {
                             content = @Content(schema = @Schema(implementation = CompanyNotFound.class))),
                     @ApiResponse(responseCode = "404", description = "Employee not found",
                             content = @Content(schema = @Schema(implementation = EmployeeNotFound.class))),
-                    @ApiResponse(responseCode = "400", description = "Invalid currency",
-                            content = @Content(schema = @Schema(implementation = InvalidCurrency.class)))
             }
     )
     ResponseEntity<Void> createAccount(@Valid CreateAccountDto createAccountDto, Authentication auth);

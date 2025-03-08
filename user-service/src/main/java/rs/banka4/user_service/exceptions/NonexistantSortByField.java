@@ -5,5 +5,5 @@ import org.springframework.http.HttpStatus;
 import java.util.Map;
 
 public class NonexistantSortByField extends BaseApiException {
-    public NonexistantSortByField(String sortByField) { super(HttpStatus.BAD_REQUEST, Map.of("sortByField", sortByField));}
+    public NonexistantSortByField(String sortByField) { super(HttpStatus.UNPROCESSABLE_ENTITY, Map.of("sortByField", sortByField));}
 }

@@ -11,14 +11,11 @@
 //import org.springframework.data.jpa.domain.Specification;
 //import org.springframework.http.HttpStatus;
 //import org.springframework.http.ResponseEntity;
-//import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
+//import rs.banka4.user_service.dto.ClientDto;
 //import rs.banka4.user_service.exceptions.NonexistantSortByField;
 //import rs.banka4.user_service.exceptions.NullPageRequest;
-//import rs.banka4.user_service.domain.user.client.mapper.BasicClientMapperForGetAll;
-//import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
-//import rs.banka4.user_service.mapper.ClientMapperImpl;
-//import rs.banka4.user_service.domain.account.db.Account;
-//import rs.banka4.user_service.domain.user.client.db.Client;
+//import rs.banka4.user_service.mapper.BasicClientMapperForGetAll;
+//import rs.banka4.user_service.models.Client;
 //import rs.banka4.user_service.repositories.ClientRepository;
 //import rs.banka4.user_service.service.impl.ClientServiceImpl;
 //
@@ -26,8 +23,6 @@
 //import java.util.Collections;
 //import java.util.HashSet;
 //import java.util.List;
-//import java.util.Set;
-//import java.util.stream.Collectors;
 //
 //import static org.junit.jupiter.api.Assertions.*;
 //import static org.mockito.ArgumentMatchers.eq;
@@ -52,13 +47,11 @@
 //    List<Client> sortedByEmail;
 //    List<Client> sortedByName;
 //    List<Client> sortedByLastName;
+//    Client client1, client2, client3;
 //
 //    @BeforeEach
 //    void setUp() {
 //        pageRequest = PageRequest.of(0, 10);
-//
-//        Set<String> linkedAccounts = new HashSet<>();
-//        linkedAccounts.add("265000000000123456");
 //
 //        client = new Client();
 //        client.setId("1");
@@ -70,9 +63,9 @@
 //        client.setPhone("+1234567890");
 //        client.setAddress("123 Grove Street, City, Country");
 //        client.setEnabled(true);
-//        client.setAccounts(new HashSet<Account>());
+//        client.setAccounts(new HashSet<>());
 //        clientRepository.save(client);
-//        Client client1 = client;
+//        client1 = client;
 //
 //        client = new Client();
 //        client.setId("2");
@@ -84,9 +77,9 @@
 //        client.setPhone("+5554567890");
 //        client.setAddress("124 Grove Street, City, Country");
 //        client.setEnabled(true);
-//        client.setAccounts(new HashSet<Account>());
+//        client.setAccounts(new HashSet<>());
 //        clientRepository.save(client);
-//        Client client2 = client;
+//        client2 = client;
 //
 //        client = new Client();
 //        client.setId("2");
@@ -98,8 +91,8 @@
 //        client.setPhone("+6664567890");
 //        client.setAddress("124 Grove Street, City, Country");
 //        client.setEnabled(true);
-//        client.setAccounts(new HashSet<Account>());
-//        Client client3 = client;
+//        client.setAccounts(new HashSet<>());
+//        client3 = client;
 //
 //        sortedByEmail = List.of(client2, client1, client3);
 //        sortedByName = List.of(client2, client1, client3);
@@ -117,13 +110,13 @@
 //
 //        ClientDto expectedDto = basicClientMapperForGetAll.toDto(client);
 //
-//        ResponseEntity<Page<ClientDto>> response = clientService.getAll("Djovak", "Nokovic", "djovaknokovic@example.com", "firstName", pageRequest);
+//        ResponseEntity<Page<ClientDto>> response = clientService.getAll("Djovak", "Nokovic", "djovaknokovic@example.com", "1234567890", "firstName", pageRequest);
 //
 //        assertNotNull(response);
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //        assertEquals(1, response.getBody().getTotalElements());
-//        ClientDto resultDto = response.getBody().getContent().get(0);
+//        ClientDto resultDto = response.getBody().getContent().getFirst();
 //        assertEquals(expectedDto.firstName(), resultDto.firstName());
 //        assertEquals(expectedDto.lastName(), resultDto.lastName());
 //        assertEquals(expectedDto.email(), resultDto.email());
@@ -138,20 +131,20 @@
 //                .thenReturn(clientPage);
 //
 //        ClientDto expectedDto = basicClientMapperForGetAll.toDto(client);
-//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, null, pageRequest);
+//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, null, null, pageRequest);
 //
 //        assertNotNull(response);
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //        assertEquals(1, response.getBody().getTotalElements());
-//        ClientDto resultDto = response.getBody().getContent().get(0);
+//        ClientDto resultDto = response.getBody().getContent().getFirst();
 //        assertEquals(expectedDto.firstName(), resultDto.firstName());
 //    }
 //
 //    @Test
 //    void testGetAllWithInvalidSort() {
 //        assertThrows(NonexistantSortByField.class, () ->
-//                clientService.getAll("Djovak", "Nokovic", "djovaknokovic@example.com", "invalidSort", pageRequest)
+//                clientService.getAll("Djovak", "Nokovic", "djovaknokovic@example.com", null, "invalidSort", pageRequest)
 //        );
 //    }
 //
@@ -163,7 +156,7 @@
 //        when(clientRepository.findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<Client>>any(), eq(pageRequestWithSort)))
 //                .thenReturn(emptyPage);
 //
-//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, null, pageRequest);
+//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, null, null, pageRequest);
 //
 //        assertNotNull(response);
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -174,7 +167,7 @@
 //    @Test
 //    void testGetAllWithNullPageRequestThrowsException() {
 //        assertThrows(NullPageRequest.class, () ->
-//                clientService.getAll("Djovak", "Nokovic", "djovaknokovic@example.com", "firstName", null)
+//                clientService.getAll("Djovak", "Nokovic", "djovaknokovic@example.com", null, "firstName", null)
 //        );
 //    }
 //
@@ -185,7 +178,7 @@
 //        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
 //                .thenReturn(emptyPage);
 //
-//        ResponseEntity<Page<ClientDto>> response = clientService.getAll("Nonexistent", "Filter", "noemail@example.com", "firstName", pageRequest);
+//        ResponseEntity<Page<ClientDto>> response = clientService.getAll("Nonexistent", "Filter", "noemail@example.com", "241421421421421412", "firstName", pageRequest);
 //
 //        assertNotNull(response);
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -201,7 +194,7 @@
 //        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
 //                .thenReturn(emptyPage);
 //
-//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, "nomatch@example.com", "firstName", pageRequest);
+//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, "nomatch@example.com", null, "firstName", pageRequest);
 //
 //        assertNotNull(response);
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -216,17 +209,12 @@
 //        PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.by("email"));
 //        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
 //                .thenReturn(clientPage);
-//
-//        ClientDto expectedDto = basicClientMapperForGetAll.toDto(client);
-//
-//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, "email", pageRequest);
+//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, null, "email", pageRequest);
 //
 //        assertNotNull(response);
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //        assertEquals(3, response.getBody().getTotalElements());
-//        //ClientDto resultDto = response.getBody().getContent().get(0);
-//        //assertEquals(expectedDto.email(), resultDto.email());
 //        List<ClientDto> sortedDtosByEmail = sortedByEmail.stream()
 //                .map(basicClientMapperForGetAll::toDto).toList();
 //        assertEquals(response.getBody().getContent(), sortedDtosByEmail);
@@ -238,17 +226,12 @@
 //        PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.by("firstName"));
 //        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
 //                .thenReturn(clientPage);
-//
-//        ClientDto expectedDto = basicClientMapperForGetAll.toDto(client);
-//
-//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, "firstName", pageRequest);
+//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, null, "firstName", pageRequest);
 //
 //        assertNotNull(response);
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //        assertEquals(3, response.getBody().getTotalElements());
-//        //ClientDto resultDto = response.getBody().getContent().get(0);
-//        //assertEquals(expectedDto.email(), resultDto.email());
 //        List<ClientDto> sortedDtosName = sortedByName.stream()
 //                .map(basicClientMapperForGetAll::toDto).toList();
 //        assertEquals(response.getBody().getContent(), sortedDtosName);
@@ -260,20 +243,36 @@
 //        PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.by("lastName"));
 //        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
 //                .thenReturn(clientPage);
-//
-//        ClientDto expectedDto = basicClientMapperForGetAll.toDto(client);
-//
-//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, "lastName", pageRequest);
+//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, null, "lastName", pageRequest);
 //
 //        assertNotNull(response);
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //        assertEquals(3, response.getBody().getTotalElements());
-//        //ClientDto resultDto = response.getBody().getContent().get(0);
-//        //assertEquals(expectedDto.email(), resultDto.email());
 //        List<ClientDto> sortedDtosByLastName = sortedByLastName.stream()
 //                .map(basicClientMapperForGetAll::toDto).toList();
 //        assertEquals(response.getBody().getContent(), sortedDtosByLastName);
+//    }
+//
+//    @Test
+//    void testGetAllWithPhoneFilter() {
+//        Page<Client> clientPage = new PageImpl<>(Collections.singletonList(client3), pageRequest, 1);
+//        PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.by("firstName"));
+//        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
+//                .thenReturn(clientPage);
+//
+//        ClientDto expectedDto = basicClientMapperForGetAll.toDto(client3);
+//
+//        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, "666", null, pageRequest);
+//
+//        assertNotNull(response);
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertNotNull(response.getBody());
+//        assertEquals(1, response.getBody().getTotalElements());
+//        ClientDto resultDto = response.getBody().getContent().getFirst();
+//        assertEquals(expectedDto.firstName(), resultDto.firstName());
+//        assertEquals(expectedDto.lastName(), resultDto.lastName());
+//        assertEquals(expectedDto.email(), resultDto.email());
 //    }
 //
 //}
