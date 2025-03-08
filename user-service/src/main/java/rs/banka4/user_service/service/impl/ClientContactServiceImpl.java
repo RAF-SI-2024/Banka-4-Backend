@@ -58,7 +58,7 @@ public class ClientContactServiceImpl implements ClientContactService {
         ClientContact clientContact = ClientContactMapper.INSTANCE.toEntity(request);
         clientContact.setClient(client);
 
-        clientRepository.save(client);
+        clientContactRepository.save(clientContact);
     }
 
     @Override

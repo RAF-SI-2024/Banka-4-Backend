@@ -66,6 +66,6 @@ public class EmployeeController implements EmployeeApiDocumentation {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateEmployee(@PathVariable UUID id, @RequestBody @Valid UpdateEmployeeDto updateEmployeeDto) {
         employeeService.updateEmployee(id, updateEmployeeDto);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }
