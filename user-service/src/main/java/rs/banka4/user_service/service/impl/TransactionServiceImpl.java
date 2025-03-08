@@ -4,8 +4,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
@@ -42,7 +40,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public ResponseEntity<TransactionDto> createPayment(Authentication authentication, CreatePaymentDto createPaymentDto) {
+    public TransactionDto createPayment(Authentication authentication, CreatePaymentDto createPaymentDto) {
         String email = jwtUtil.extractUsername(authentication.getCredentials().toString());
 
         Client client = clientRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(email));
@@ -77,12 +75,12 @@ public class TransactionServiceImpl implements TransactionService {
         transactionRepository.save(transaction);
         // TODO ne vraca se transactionDto kako je napisano za povratnu vrednost
         // TODO Da li tek treba da usledi task za prebacivanje novca, jer samo vidimo in progress
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return TransactionMapper.INSTANCE.toDto(transaction);
     }
 
     @Override
     @Transactional
-    public ResponseEntity<TransactionDto> createTransfer(Authentication authentication, CreatePaymentDto createPaymentDto) {
+    public TransactionDto createTransfer(Authentication authentication, CreatePaymentDto createPaymentDto) {
         String email = jwtUtil.extractUsername(authentication.getCredentials().toString());
 
         Client client = clientRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(email));
@@ -116,11 +114,11 @@ public class TransactionServiceImpl implements TransactionService {
 
         transactionRepository.save(transaction);
         // TODO ne vraca se transactionDto kako je napisano za povratnu vrednost i sto nema status in progress
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return TransactionMapper.INSTANCE.toDto(transaction);
     }
 
     @Override
-    public ResponseEntity<Page<TransactionDto>> getAllTransactionsForClient(String token, TransactionStatus paymentStatus, BigDecimal amount, LocalDate paymentDate, String accountNumber, PageRequest pageRequest) {
+    public Page<TransactionDto> getAllTransactionsForClient(String token, TransactionStatus paymentStatus, BigDecimal amount, LocalDate paymentDate, String accountNumber, PageRequest pageRequest) {
         SpecificationCombinator<Transaction> combinator = new SpecificationCombinator<>();
 
         if (paymentStatus != null) combinator.and(PaymentSpecification.hasStatus(paymentStatus));
@@ -136,19 +134,18 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         Page<Transaction> transactions = transactionRepository.findAll(combinator.build(), pageRequest);
-        Page<TransactionDto> transactionDtos = transactions.map(TransactionMapper.INSTANCE::toDto);
 
-        return ResponseEntity.ok(transactionDtos);
+        return transactions.map(TransactionMapper.INSTANCE::toDto);
     }
 
     @Override
-    public ResponseEntity<TransactionDto> getTransactionById(String token, UUID transactionId) {
+    public TransactionDto getTransactionById(String token, UUID transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new TransactionNotFound(transactionId.toString()));
 
         //TODO: check if user is owner of transaction
 
-        return ResponseEntity.ok(TransactionMapper.INSTANCE.toDto(transaction));
+        return TransactionMapper.INSTANCE.toDto(transaction);
     }
 
 }
