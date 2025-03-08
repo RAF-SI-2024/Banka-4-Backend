@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class ClientNotFound extends BaseApiException{
-    public ClientNotFound(UUID clientId) {
-        super(HttpStatus.NOT_FOUND,Map.of("clientId",clientId));
+    public ClientNotFound(String email) {
+        super(HttpStatus.NOT_FOUND,Map.of("email", email));
     }
 }
