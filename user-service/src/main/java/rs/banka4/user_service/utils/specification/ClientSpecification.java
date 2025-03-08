@@ -22,6 +22,12 @@ public class ClientSpecification {
         );
     }
 
+    public static Specification<Client> hasPhone(String phone) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("phone")), "%" + phone.toLowerCase() + "%"
+        );
+    }
+
     public static Specification<Client> hasLinkedAccount(String linkedAccount) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isMember(
                 linkedAccount, root.get("linkedAccounts")
