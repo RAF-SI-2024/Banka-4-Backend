@@ -4,13 +4,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import rs.banka4.user_service.domain.user.Privilege;
 import rs.banka4.user_service.domain.user.User;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 @Schema(description = "DTO for creating employee")
 public record CreateEmployeeDto(
+
         @Schema(description = "Employee's first name", example = "Ognjen")
         @NotBlank(message = "First name is required")
         String firstName,
@@ -19,7 +21,7 @@ public record CreateEmployeeDto(
         @NotBlank(message = "Last name is required")
         String lastName,
 
-        @Schema(description = "Employee's username", example = "funfa2c1t")
+        @Schema(description = "Employee's username", example = "ogimare")
         @NotBlank(message = "Username is required")
         String username,
 
@@ -46,7 +48,7 @@ public record CreateEmployeeDto(
 
         @Schema(description = "Employee's privileges", example = "[\"TRADE_STOCKS\", \"CONTRACTS\"]")
         @NotNull(message = "Privileges are required")
-        List<String> privilege,
+        Set<Privilege> privilege,
 
         @Schema(description = "Employee's position", example = "Software Engineer")
         @NotBlank(message = "Position is required")

@@ -20,6 +20,8 @@ import rs.banka4.user_service.exceptions.DuplicateEmail;
 import rs.banka4.user_service.exceptions.DuplicateUsername;
 import rs.banka4.user_service.exceptions.UserNotFound;
 
+import java.util.UUID;
+
 
 @Tag(name = "EmployeeController", description = "Endpoints for employees")
 public interface EmployeeApiDocumentation {
@@ -120,7 +122,7 @@ public interface EmployeeApiDocumentation {
             }
     )
     ResponseEntity<Void> updateEmployee(
-            @Parameter(description = "Employee ID") String id,
+            @Parameter(description = "Employee ID") UUID id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User details for change")
             @Valid UpdateEmployeeDto updateEmployeeDto);
 

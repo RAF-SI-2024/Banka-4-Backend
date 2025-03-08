@@ -18,7 +18,6 @@ import rs.banka4.user_service.domain.user.employee.dtos.EmployeeResponseDto;
 import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
 import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
 import rs.banka4.user_service.exceptions.*;
-import rs.banka4.user_service.domain.user.employee.mapper.BasicEmployeeMapper;
 import rs.banka4.user_service.domain.user.employee.mapper.EmployeeMapper;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.domain.user.Privilege;
@@ -30,6 +29,7 @@ import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,9 +41,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final CustomUserDetailsService userDetailsService;
     private final EmployeeRepository employeeRepository;
     private final JwtUtil jwtUtil;
-    private final BasicEmployeeMapper basicEmployeeMapper;
     private final PasswordEncoder passwordEncoder;
-    private final EmployeeMapper employeeMapper;
     private final UserService userService;
 
     @Override
@@ -51,16 +49,12 @@ public class EmployeeServiceImpl implements EmployeeService {
         CustomUserDetailsService.role = "employee"; // Consider refactoring this into a more robust role management system
 
         try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password())
-            );
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password()));
         } catch (BadCredentialsException e) {
             throw new IncorrectCredentials();
         }
 
-        Employee employee = employeeRepository.findByEmail(loginDto.email())
-                .orElseThrow(() -> new UsernameNotFoundException(loginDto.email()));
-
+        Employee employee = employeeRepository.findByEmail(loginDto.email()).orElseThrow(() -> new UsernameNotFoundException(loginDto.email()));
         if (!employee.isActive() || employee.getPassword() == null) {
             throw new NotActivated();
         }
@@ -109,20 +103,17 @@ public class EmployeeServiceImpl implements EmployeeService {
         return ResponseEntity.ok(new PrivilegesDto(privileges));
     }
 
-    public ResponseEntity<Void> createEmployee(CreateEmployeeDto dto) {
+    public void createEmployee(CreateEmployeeDto dto) {
         if (userService.existsByEmail(dto.email())) {
             throw new DuplicateEmail(dto.email());
         }
         if (employeeRepository.existsByUsername(dto.username())) {
             throw new DuplicateUsername(dto.username());
         }
-
-        Employee employee = basicEmployeeMapper.toEntity(dto);
+        Employee employee = EmployeeMapper.INSTANCE.toEntity(dto);
         employeeRepository.save(employee);
 
         userService.sendVerificationEmail(employee.getFirstName(), employee.getEmail());
-
-        return ResponseEntity.ok().build();
     }
 
     public ResponseEntity<Page<EmployeeDto>> getAll(String firstName, String lastName, String email, String position, PageRequest pageRequest) {
@@ -172,45 +163,42 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.save(employee);
     }
 
-    public ResponseEntity<Void> updateEmployee(String id, UpdateEmployeeDto updateEmployeeDto) {
-        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
+    public void updateEmployee(UUID id, UpdateEmployeeDto updateEmployeeDto) {
+        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new UserNotFound(id.toString()));
 
-        if (employeeRepository.existsByEmail(updateEmployeeDto.email())) {
+        if (userService.existsByEmail(updateEmployeeDto.email())) {
             throw new DuplicateEmail(updateEmployeeDto.email());
         }
-
         if (employeeRepository.existsByUsername(updateEmployeeDto.username())) {
             throw new DuplicateUsername(updateEmployeeDto.username());
         }
 
-        employeeMapper.updateEmployeeFromDto(updateEmployeeDto, employee);
+        EmployeeMapper.INSTANCE.fromUpdate(employee, updateEmployeeDto);
         employeeRepository.save(employee);
-
-        return ResponseEntity.ok().build();
-
     }
 
     @Override
     public ResponseEntity<EmployeeResponseDto> getEmployee(String id) {
-        var employee = employeeRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
+//        var employee = employeeRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
+//
+//        EmployeeResponseDto response = new EmployeeResponseDto(
+//                employee.getId(),
+//                employee.getFirstName(),
+//                employee.getLastName(),
+//                employee.getDateOfBirth(),
+//                employee.getGender(),
+//                employee.getEmail(),
+//                employee.getPhone(),
+//                employee.getAddress(),
+//                employee.getUsername(),
+//                employee.getPosition(),
+//                employee.getDepartment(),
+//                employee.getPrivileges(),
+//                employee.isActive()
+//        );
 
-        EmployeeResponseDto response = new EmployeeResponseDto(
-                employee.getId(),
-                employee.getFirstName(),
-                employee.getLastName(),
-                employee.getDateOfBirth(),
-                employee.getGender(),
-                employee.getEmail(),
-                employee.getPhone(),
-                employee.getAddress(),
-                employee.getUsername(),
-                employee.getPosition(),
-                employee.getDepartment(),
-                employee.getPrivileges(),
-                employee.isActive()
-        );
-
-        return ResponseEntity.ok(response);
+//        return ResponseEntity.ok(response);
+        return null;
     }
 
 }

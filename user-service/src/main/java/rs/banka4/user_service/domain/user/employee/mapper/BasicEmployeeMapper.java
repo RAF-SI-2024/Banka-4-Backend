@@ -32,9 +32,9 @@ public class BasicEmployeeMapper {
                 dto.privilege().stream()
                         .map(privilege -> {
                             try {
-                                return Privilege.valueOf(privilege);
+                                return Privilege.valueOf(String.valueOf(privilege));
                             } catch (IllegalArgumentException e) {
-                                throw new PrivilegeDoesNotExist(privilege);
+                                throw new PrivilegeDoesNotExist(privilege.toString());
                             }
                         })
                         .collect(Collectors.toSet())

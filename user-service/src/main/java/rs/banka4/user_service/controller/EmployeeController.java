@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,8 @@ import rs.banka4.user_service.domain.user.PrivilegesDto;
 import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
 import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/employee")
@@ -43,7 +46,8 @@ public class EmployeeController implements EmployeeApiDocumentation {
     @Override
     @PostMapping
     public ResponseEntity<Void> createEmployee(@RequestBody @Valid CreateEmployeeDto createEmployeeDto) {
-        return employeeService.createEmployee(createEmployeeDto);
+        employeeService.createEmployee(createEmployeeDto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Override
@@ -60,8 +64,9 @@ public class EmployeeController implements EmployeeApiDocumentation {
 
     @Override
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateEmployee(@PathVariable String id,
+    public ResponseEntity<Void> updateEmployee(@PathVariable UUID id,
                                                @RequestBody @Valid UpdateEmployeeDto updateEmployeeDto) {
-        return employeeService.updateEmployee(id, updateEmployeeDto);
+        employeeService.updateEmployee(id, updateEmployeeDto);
+        return ResponseEntity.noContent().build();
     }
 }
