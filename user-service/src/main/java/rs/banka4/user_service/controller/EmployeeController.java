@@ -34,13 +34,13 @@ public class EmployeeController implements EmployeeApiDocumentation {
     @Override
     @GetMapping("/me")
     public ResponseEntity<EmployeeResponseDto> me(Authentication auth) {
-        return employeeService.getMe((String) auth.getCredentials());
+        return ResponseEntity.ok(employeeService.getMe((String) auth.getCredentials()));
     }
 
     @Override
     @GetMapping("/{id}")
-    public ResponseEntity<EmployeeResponseDto> getEmployee(@PathVariable String id) {
-        return employeeService.getEmployee(id);
+    public ResponseEntity<EmployeeResponseDto> getEmployeeById(@PathVariable UUID id) {
+        return ResponseEntity.ok(employeeService.getEmployeeById(id));
     }
 
     @Override
@@ -64,8 +64,7 @@ public class EmployeeController implements EmployeeApiDocumentation {
 
     @Override
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateEmployee(@PathVariable UUID id,
-                                               @RequestBody @Valid UpdateEmployeeDto updateEmployeeDto) {
+    public ResponseEntity<Void> updateEmployee(@PathVariable UUID id, @RequestBody @Valid UpdateEmployeeDto updateEmployeeDto) {
         employeeService.updateEmployee(id, updateEmployeeDto);
         return ResponseEntity.noContent().build();
     }

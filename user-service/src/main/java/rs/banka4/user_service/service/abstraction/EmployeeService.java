@@ -17,12 +17,12 @@ import java.util.UUID;
 
 public interface EmployeeService {
     ResponseEntity<LoginResponseDto> login(LoginDto loginDto);
-    ResponseEntity<EmployeeResponseDto> getMe(String authorization);
+    EmployeeResponseDto getMe(String authorization);
     ResponseEntity<PrivilegesDto> getPrivileges();
     void createEmployee(CreateEmployeeDto dto);
     ResponseEntity<Page<EmployeeDto>> getAll(String firstName, String lastName, String email, String position, PageRequest pageRequest);
     void activateEmployeeAccount(Employee employee, String password);
     Optional<Employee> findEmployeeByEmail(String email);
     void updateEmployee(UUID id, UpdateEmployeeDto updateEmployeeDto);
-    ResponseEntity<EmployeeResponseDto> getEmployee(String id);
+    EmployeeResponseDto getEmployeeById(UUID id);
 }

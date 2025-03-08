@@ -65,7 +65,7 @@ public interface EmployeeApiDocumentation {
                             content = @Content(schema = @Schema(implementation = UserNotFound.class)))
             }
     )
-    ResponseEntity<EmployeeResponseDto> getEmployee(@Parameter(description = "Employee ID") String id);
+    ResponseEntity<EmployeeResponseDto> getEmployeeById(@Parameter(description = "Employee ID") UUID id);
 
     @Operation(
             summary = "Create a new Employee",
