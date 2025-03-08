@@ -84,16 +84,12 @@ public class ClientServiceImpl implements ClientService {
         CustomUserDetailsService.role = "client"; // Consider refactoring this into a more robust role management system
 
         try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password())
-            );
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password()));
         } catch (BadCredentialsException e) {
             throw new IncorrectCredentials();
         }
 
-        Client client = clientRepository.findByEmail(loginDto.email())
-                .orElseThrow(() -> new UsernameNotFoundException(loginDto.email()));
-
+        Client client = clientRepository.findByEmail(loginDto.email()).orElseThrow(() -> new UsernameNotFoundException(loginDto.email()));
         if (client.getPassword() == null) {
             throw new NotActivated();
         }

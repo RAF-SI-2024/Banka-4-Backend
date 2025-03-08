@@ -1,13 +1,12 @@
 package rs.banka4.user_service.domain.user.employee.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+import rs.banka4.user_service.domain.user.Privilege;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Schema(description = "DTO for employee update")
 public record UpdateEmployeeDto(
@@ -24,7 +23,8 @@ public record UpdateEmployeeDto(
         LocalDate dateOfBirth,
 
         @NotBlank(message = "Gender is required and cannot be blank.")
-        @Schema(description = "Employee's gender", example = "man")
+        @Pattern(regexp = "Male|Female", message = "Gender must be Male or Female")
+        @Schema(description = "Gender", example = "Male")
         String gender,
 
         @Email(message = "Invalid email format.")
@@ -45,10 +45,9 @@ public record UpdateEmployeeDto(
         @Schema(description = "Employee's address", example = "123 Grove Street, City, Country")
         String address,
 
-        @NotNull(message = "Privileges cannot be null.")
-        @Size(min = 1, message = "At least one privilege is required.")
         @Schema(description = "Employee's privileges", example = "[\"TRADE_STOCKS\", \"CONTRACTS\"]")
-        List<String> privilege,
+        @NotNull(message = "Privileges are required")
+        Set<Privilege> privilege,
 
         @NotBlank(message = "Position is required and cannot be blank.")
         @Schema(description = "Employee's position", example = "Software Engineer")

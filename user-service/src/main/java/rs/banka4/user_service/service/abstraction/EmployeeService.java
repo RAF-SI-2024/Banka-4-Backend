@@ -13,15 +13,16 @@ import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface EmployeeService {
     ResponseEntity<LoginResponseDto> login(LoginDto loginDto);
     ResponseEntity<EmployeeResponseDto> getMe(String authorization);
     ResponseEntity<PrivilegesDto> getPrivileges();
-    ResponseEntity<Void> createEmployee(CreateEmployeeDto dto);
+    void createEmployee(CreateEmployeeDto dto);
     ResponseEntity<Page<EmployeeDto>> getAll(String firstName, String lastName, String email, String position, PageRequest pageRequest);
     void activateEmployeeAccount(Employee employee, String password);
     Optional<Employee> findEmployeeByEmail(String email);
-    ResponseEntity<Void> updateEmployee(String id, UpdateEmployeeDto updateEmployeeDto);
+    void updateEmployee(UUID id, UpdateEmployeeDto updateEmployeeDto);
     ResponseEntity<EmployeeResponseDto> getEmployee(String id);
 }
