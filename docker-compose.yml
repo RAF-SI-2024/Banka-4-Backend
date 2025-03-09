@@ -142,7 +142,8 @@ services:
     image: docker.swagger.io/swaggerapi/swagger-ui
     environment:
       URLS: |
-        [ { url: "/docs/api", "name": "User service" }
+        [ { url: "/docs/api", "name": "User service" },
+          { url: "/exchange/openapi.yml", "name": "Exchange office" }
         ]
       BASE_URL: /docs/ui
 

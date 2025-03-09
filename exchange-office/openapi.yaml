@@ -2,6 +2,11 @@ openapi: 3.0.3
 info:
   title: Exchange Office Rates Caching API
   version: "0.1"
+
+servers:
+  - url: /exchange
+    description: Exchange office behind API gateway
+
 paths:
   /exchange-rate:
     get:
