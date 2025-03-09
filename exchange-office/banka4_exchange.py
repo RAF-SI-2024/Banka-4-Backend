@@ -12,7 +12,6 @@ from flask import Blueprint, Flask, current_app, g, send_file
 __doc__ = "Exchange office rates caching API"
 __version__ = "0.1"
 
-exchanges_path = "./exchanges.json"
 currencies = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF"]
 
 root_bp = Blueprint("root", __name__)
@@ -31,6 +30,11 @@ def load_and_validate_config():
     if not isinstance(api_key, str):
         raise RuntimeError("EXCHANGERATE_API_KEY must be a string")
     g.api_url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/RSD"
+
+    exchanges_path = current_app.config.get("EXCHANGE_STORAGE_PATH")
+    if not isinstance(api_key, str):
+        raise RuntimeError("EXCHANGE_STORAGE_PATH must be a string")
+    g.exchanges_path = exchanges_path
 
 
 @contextlib.contextmanager
@@ -97,7 +101,7 @@ def make_exchange_table(api_response):
         for currency, rate in neutral_rates.items()
     }
 
-    tmp_file = exchanges_path + ".tmp"
+    tmp_file = g.exchanges_path + ".tmp"
     with open(tmp_file, "w") as f:
         json.dump(
             {
@@ -110,11 +114,11 @@ def make_exchange_table(api_response):
             },
             f,
         )
-    os.replace(tmp_file, exchanges_path)
+    os.replace(tmp_file, g.exchanges_path)
 
 
 def is_old():
-    with open(exchanges_path) as f:
+    with open(g.exchanges_path) as f:
         table = json.load(f)
     return (
         time() - table["lastLocalUpdate"] > 2 * 60 * 60
@@ -126,7 +130,7 @@ def is_old():
 
 
 def should_remake():
-    return not os.path.exists(exchanges_path) or is_old()
+    return not os.path.exists(g.exchanges_path) or is_old()
 
 
 @root_bp.get("/exchange-rate")
@@ -137,7 +141,7 @@ def get_exchange_table():
                 current_app.logger.info("remaking exchanges table")
                 make_exchange_table(call_exchanges_api())
                 current_app.logger.info("spent 1 api token (out of 1500 monthly)")
-    return send_file(exchanges_path)
+    return send_file(g.exchanges_path)
 
 
 def create_app():
