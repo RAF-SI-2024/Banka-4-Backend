@@ -137,6 +137,15 @@ services:
       # Management interface.
       - "15672:15672"
 
+  # API docs viewer.
+  swagger_ui:
+    image: docker.swagger.io/swaggerapi/swagger-ui
+    environment:
+      URLS: |
+        [ { url: "/docs/api", "name": "User service" }
+        ]
+      BASE_URL: /docs/ui
+
   # API gateway.  Routes requests between the mICRoSErViCEs.
   gateway:
     volumes:
@@ -148,6 +157,7 @@ services:
     depends_on:
       - user_service
       - exchange_office
+      - swagger_ui
     develop:
       watch:
         - action: restart
