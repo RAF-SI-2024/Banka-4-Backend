@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class TransactionController implements TransactionApiDocumentation {
     @PostMapping("/payment")
     public ResponseEntity<TransactionDto> createTransaction(Authentication authentication, @RequestBody @Valid CreatePaymentDto createPaymentDto) {
        TransactionDto transactionDto = transactionService.createTransaction(authentication, createPaymentDto);
-        return ResponseEntity.ok(transactionDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(transactionDto);
     }
 
     @Override
