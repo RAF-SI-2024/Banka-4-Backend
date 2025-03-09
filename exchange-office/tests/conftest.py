@@ -1,6 +1,8 @@
-from banka4_exchange import create_app
-import pytest
 import flask
+import pytest
+
+from banka4_exchange import create_app
+
 
 @pytest.fixture()
 def app() -> flask.Flask:
