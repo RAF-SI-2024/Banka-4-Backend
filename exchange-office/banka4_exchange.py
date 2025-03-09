@@ -1,7 +1,8 @@
+import contextlib
+import fcntl
 import json
 import logging
 import os
-import threading
 from datetime import datetime, timezone
 from time import sleep, time
 
@@ -29,7 +30,15 @@ def set_default_content_type(response):
 
 
 app.logger.setLevel(logging.INFO)
-task_lock = threading.Lock()
+
+
+@contextlib.contextmanager
+def file_lock(filename: str):
+    fd = os.open(filename, os.O_RDWR | os.O_CREAT)
+    # Relased when the FD gets closed.
+    fcntl.flock(fd, fcntl.LOCK_EX)
+    with os.fdopen(fd, "w+"):
+        yield
 
 
 def call_exchanges_api():
@@ -108,7 +117,7 @@ def should_remake():
 @app.route("/exchange-rate", methods=["GET"])
 def get_exchange_table():
     if should_remake():
-        with task_lock:
+        with file_lock(".refresh-task.lck"):
             if should_remake():
                 app.logger.info("remaking exchanges table")
                 make_exchange_table(call_exchanges_api())
