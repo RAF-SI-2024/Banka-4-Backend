@@ -141,6 +141,7 @@ services:
   gateway:
     volumes:
       - ./docker/gateway-nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./exchange-office/openapi.yaml:/srv/exchange-office-openapi.yml
     image: nginx:1
     ports:
       - 8080:80
