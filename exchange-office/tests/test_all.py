@@ -18,11 +18,3 @@ def test_eur_neutral_above_1():
         eur_rate = data["exchanges"].get("EUR")
         assert eur_rate is not None
         assert eur_rate["Neutral"] > 1
-
-@pytest.fixture
-def client(app):
-    return app.test_client()
-
-@pytest.fixture
-def runner(app):
-    return app.test_cli_runner()
