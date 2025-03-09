@@ -1,5 +1,7 @@
 import pytest
+
 from banka4_exchange import app
+
 
 def test_eur_buy_over_sell():
     with app.test_client() as client:
@@ -9,6 +11,7 @@ def test_eur_buy_over_sell():
         eur_rate = data["exchanges"]["EUR"]
         assert eur_rate is not None
         assert eur_rate["Buy"] < eur_rate["Sell"]
+
 
 def test_eur_neutral_above_1():
     with app.test_client() as client:
