@@ -2,12 +2,15 @@ package rs.banka4.user_service.generator;
 
 import rs.banka4.user_service.domain.auth.dtos.LoginDto;
 import rs.banka4.user_service.domain.user.User;
+import rs.banka4.user_service.domain.user.employee.dtos.EmployeeDto;
+import rs.banka4.user_service.domain.user.employee.dtos.EmployeeResponseDto;
 import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
 import rs.banka4.user_service.domain.user.Privilege;
 
 import java.time.LocalDate;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,30 +41,6 @@ public class EmployeeObjectMother {
         employee.setLastName("Doe");
         employee.setEmail("john.doe@example.com");
         employee.setPosition("Developer");
-        return employee;
-    }
-
-    public static Employee generateEmployeeWithFirstName(String firstName) {
-        Employee employee = new Employee();
-        employee.setFirstName(firstName);
-        return employee;
-    }
-
-    public static Employee generateEmployeeWithLastName(String lastName) {
-        Employee employee = new Employee();
-        employee.setLastName(lastName);
-        return employee;
-    }
-
-    public static Employee generateEmployeeWithEmail(String email) {
-        Employee employee = new Employee();
-        employee.setEmail(email);
-        return employee;
-    }
-
-    public static Employee generateEmployeeWithPosition(String position) {
-        Employee employee = new Employee();
-        employee.setPosition(position);
         return employee;
     }
 
@@ -109,6 +88,20 @@ public class EmployeeObjectMother {
         employee.setDepartment("IT");
         employee.setActive(true);
         return employee;
+    }
+
+    public static EmployeeDto generateBasicEmployeeDto() {
+        return new EmployeeDto(
+                UUID.randomUUID(), "John", "Doe", LocalDate.of(1990, 1, 1),
+                User.Gender.MALE, "john.doe@example.com", "+1234567890", "123 Main St",
+                "johndoe", "Developer", "IT", true);
+    }
+
+    public static EmployeeResponseDto generateBasicEmployeeResponseDto() {
+        return new EmployeeResponseDto(
+                UUID.randomUUID(), "John", "Doe", LocalDate.of(1990, 1, 1),
+                User.Gender.MALE, "john.doe@example.com", "+1234567890", "123 Main St",
+                "johndoe", "Developer", "IT", EnumSet.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS), true);
     }
 
 }

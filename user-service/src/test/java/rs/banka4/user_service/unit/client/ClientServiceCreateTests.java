@@ -48,7 +48,7 @@ public class ClientServiceCreateTests {
         userService = new UserService(employeeRepository, clientRepository, verificationCodeService, rabbitTemplate);
         clientService = new ClientServiceImpl(userService, clientRepository, null, null, null, null);
 
-        CreateClientDto createClientDto = ClientObjectMother.createClientDto();
+        CreateClientDto createClientDto = ClientObjectMother.generateBasicCreateClientDto();
         VerificationCode verificationCode = new VerificationCode();
         verificationCode.setCode("123456");
 
@@ -67,7 +67,7 @@ public class ClientServiceCreateTests {
     @Test
     void testCreateClientEmailAlreadyExists() {
         // Arrange
-        CreateClientDto createClientDto = ClientObjectMother.createClientDto();
+        CreateClientDto createClientDto = ClientObjectMother.generateBasicCreateClientDto();
         when(userService.existsByEmail(createClientDto.email())).thenReturn(true);
 
         // Act & Assert
