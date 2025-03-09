@@ -1,5 +1,7 @@
 package rs.banka4.user_service.generator;
 
+import rs.banka4.user_service.domain.account.db.Account;
+import rs.banka4.user_service.domain.account.db.AccountType;
 import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
@@ -40,7 +42,7 @@ public class AccountObjectMother {
     public static AccountDto generateBasicAccountDto() {
         return new AccountDto(
                 UUID.randomUUID().toString(),
-                "1234567890",
+                "444394438340549",
                 BigDecimal.valueOf(1000.00),
                 BigDecimal.valueOf(800.00),
                 BigDecimal.valueOf(100.00),
@@ -56,4 +58,35 @@ public class AccountObjectMother {
                 null
         );
     }
+
+    public static Account generateBasicFromAccount() {
+        Account account = new Account();
+        account.setAccountNumber("444394438340549");
+        account.setBalance(BigDecimal.valueOf(10000.00));
+        account.setAvailableBalance(BigDecimal.valueOf(8000.00));
+        account.setActive(true);
+        account.setAccountType(AccountType.STANDARD);
+        account.setDailyLimit(BigDecimal.valueOf(1000.00));
+        account.setMonthlyLimit(BigDecimal.valueOf(10000.00));
+        account.setCurrency(new Currency(UUID.randomUUID(), "Serbian Dinar", "RSD", "Serbian Dinar currency", true, Currency.Code.RSD));
+        account.setEmployee(EmployeeObjectMother.generateBasicEmployee());
+        account.setClient(ClientObjectMother.generateClient(UUID.fromString("9df5e618-f21d-48a7-a7a4-ac55ea8bec97"), "markezaa@example.com"));
+        return account;
+    }
+
+    public static Account generateBasicToAccount() {
+        Account account = new Account();
+        account.setAccountNumber("444394438340523");
+        account.setBalance(BigDecimal.valueOf(10000.00));
+        account.setAvailableBalance(BigDecimal.valueOf(8000.00));
+        account.setActive(true);
+        account.setAccountType(AccountType.STANDARD);
+        account.setDailyLimit(BigDecimal.valueOf(1000.00));
+        account.setMonthlyLimit(BigDecimal.valueOf(10000.00));
+        account.setCurrency(new Currency(UUID.randomUUID(), "Serbian Dinar", "RSD", "Serbian Dinar currency", true, Currency.Code.RSD));
+        account.setEmployee(EmployeeObjectMother.generateBasicEmployee());
+        account.setClient(ClientObjectMother.generateClient(UUID.fromString("9df5e618-f21d-48a7-a7a4-ac55ea8bec93"), "zorz@example.com"));
+        return account;
+    }
+
 }
