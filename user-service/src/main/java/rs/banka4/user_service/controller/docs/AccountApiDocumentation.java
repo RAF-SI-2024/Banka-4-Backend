@@ -19,6 +19,7 @@ import rs.banka4.user_service.exceptions.EmployeeNotFound;
 import rs.banka4.user_service.exceptions.InvalidCurrency;
 
 import java.util.List;
+import java.util.Set;
 
 @Tag(name = "AccountController", description = "Endpoints for accounts")
 public interface AccountApiDocumentation {
@@ -79,19 +80,7 @@ public interface AccountApiDocumentation {
                             content = @Content(schema = @Schema(implementation = ClientNotFound.class)))
             }
     )
-    ResponseEntity<List<AccountDto>> getAccountsForClient(Authentication auth);
-
-    @Operation(
-            summary = "Get Recent Recipients",
-            description = "Retrieves recent recipient accounts for the authenticated client.",
-            security = @SecurityRequirement(name = "bearerAuth"),
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Successfully retrieved recent recipients",
-                            content = @Content(schema = @Schema(implementation = AccountDto.class))),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized - Token errors")
-            }
-    )
-    ResponseEntity<List<AccountDto>> getRecentRecipients(Authentication auth);
+    ResponseEntity<Set<AccountDto>> getAccountsForClient(Authentication auth);
 
     @Operation(
             summary = "Create a new Account",

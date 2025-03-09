@@ -9,15 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.ClientApiDocumentation;
-import rs.banka4.user_service.domain.user.client.dtos.ClientContactDto;
 import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
-import rs.banka4.user_service.domain.user.PrivilegesDto;
-import rs.banka4.user_service.domain.user.client.dtos.ClientContactRequest;
 import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
 import rs.banka4.user_service.domain.user.client.dtos.UpdateClientDto;
 import rs.banka4.user_service.service.abstraction.ClientService;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,13 +22,6 @@ import java.util.UUID;
 public class ClientController implements ClientApiDocumentation {
 
     private final ClientService clientService;
-
-    @Override
-    @GetMapping("/privileges")
-    public ResponseEntity<PrivilegesDto> getPrivileges(Authentication auth) {
-        PrivilegesDto privilegesDto = new PrivilegesDto(List.of());
-        return ResponseEntity.ok(privilegesDto);
-    }
 
     @Override
     @GetMapping("/me")

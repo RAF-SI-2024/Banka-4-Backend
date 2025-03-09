@@ -2,6 +2,7 @@ package rs.banka4.user_service.domain.user.client.mapper;
 
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
+import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
 import rs.banka4.user_service.domain.user.User;
 import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
 import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
@@ -16,6 +17,12 @@ public interface ClientMapper {
 
     @Mapping(target = "gender", source = "gender", qualifiedByName = "mapGender")
     Client toEntity(CreateClientDto dto);
+
+    @Mapping(target = "gender", source = "gender", qualifiedByName = "mapGender")
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "permissionBits", ignore = true)
+    Client toEntity(AccountClientIdDto dto);
+
     ClientDto toDto(Client client);
 
     @Mapping(target = "gender", source = "gender", qualifiedByName = "mapGender")

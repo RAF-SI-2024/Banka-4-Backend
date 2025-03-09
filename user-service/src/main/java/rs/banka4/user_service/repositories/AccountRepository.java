@@ -6,8 +6,8 @@ import org.springframework.stereotype.Repository;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.user.client.db.Client;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -16,7 +16,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID>, JpaSpec
 
     boolean existsByAccountNumber(String accountNumber);
 
-    List<Account> findAllByClient(Client client); // Fixed method}
+    Set<Account> findAllByClient(Client client); // Fixed method}
 
     Optional<Account> getAccountByAccountNumber(String accountNumber);
 }

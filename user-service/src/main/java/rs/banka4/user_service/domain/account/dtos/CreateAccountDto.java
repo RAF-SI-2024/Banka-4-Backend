@@ -2,7 +2,6 @@ package rs.banka4.user_service.domain.account.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
 import rs.banka4.user_service.domain.company.dtos.CompanyDto;
 import rs.banka4.user_service.domain.currency.db.Currency;
 
@@ -13,7 +12,7 @@ import java.math.BigDecimal;
 public record CreateAccountDto (
 
         @Schema(description = "Client associated with the account")
-        CreateClientDto client,
+        AccountClientIdDto client,
 
         @Nullable
         @Schema(description = "Company associated with the account")
