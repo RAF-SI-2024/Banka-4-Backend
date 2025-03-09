@@ -21,9 +21,9 @@ root_bp = Blueprint("root", __name__)
 def load_and_validate_config():
     commission = current_app.config.get("COMMISSION_RATE")
     if not isinstance(commission, float):
-        raise RuntimeError("COMMISION_RATE must be a float")
+        raise RuntimeError("COMMISSION_RATE must be a float")
     if not (0 <= commission <= 1):
-        raise RuntimeError("COMMISION_RATE must be [0, 1]")
+        raise RuntimeError("COMMISSION_RATE must be [0, 1]")
     g.commission = commission
 
     api_key = current_app.config.get("EXCHANGERATE_API_KEY")
