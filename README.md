@@ -18,6 +18,19 @@ By convention, for each of the services, the `dev` profile is activated.  This
 means that one can store development-specific properties in
 `application-dev.EXT`, where `EXT` is `yml` or `properties`.
 
+### Required setup
+To use the exchange office caching service, you need a `.env` with an API key.
+<!-- Ironically, an API key is already hard-coded in this repository.  I don't
+want to fish it out, and I also don't want to encourage that behaviour, so I'll
+pretqend it's fine.  -->
+
+Your `.env` file must look something like this (the API key is invalid):
+
+```env
+# -*- conf -*-
+EXCHANGERATE_API_KEY=776879617265796f7572656164696e6774686973
+```
+
 ### Getting to the PSQL CLI
 
 Use one of these two commands:
