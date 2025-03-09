@@ -1,5 +1,4 @@
-from datetime import datetime
-import pytz
+from datetime import datetime, timezone
 import json
 from time import time, sleep
 import threading
@@ -45,10 +44,10 @@ def make_exchange_table(api_response):
     time_last_update_unix = api_response['time_last_update_unix']
     time_next_update_unix = api_response['time_next_update_unix']
 
-    utc_time = datetime.fromtimestamp(time_last_update_unix).replace(tzinfo=pytz.utc)
+    utc_time = datetime.fromtimestamp(time_last_update_unix).replace(tzinfo=timezone.utc)
     last_update_iso_time = utc_time.isoformat()
 
-    utc_time = datetime.fromtimestamp(time_next_update_unix).replace(tzinfo=pytz.utc)
+    utc_time = datetime.fromtimestamp(time_next_update_unix).replace(tzinfo=timezone.utc)
     next_update_iso_time = utc_time.isoformat()
 
     neutral_rates = {currency : api_response['conversion_rates'][currency] for currency in currencies}
