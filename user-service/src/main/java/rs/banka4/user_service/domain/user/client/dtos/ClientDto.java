@@ -1,13 +1,14 @@
 package rs.banka4.user_service.domain.user.client.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.Privilege;
-import rs.banka4.user_service.domain.user.User;
 
 import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.UUID;
 
+@Schema(description = "DTO for returned clients in response")
 public record ClientDto(
         @Schema(description = "Client ID", example = "1fad2c01-f82f-41a6-822c-8ca1b3232575")
         UUID id,
@@ -22,7 +23,7 @@ public record ClientDto(
         LocalDate dateOfBirth,
 
         @Schema(description = "Gender", example = "Male")
-        User.Gender gender,
+        Gender gender,
 
         @Schema(description = "Email address", example = "danny.jo@example.com")
         String email,

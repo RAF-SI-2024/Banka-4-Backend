@@ -1,7 +1,7 @@
 package rs.banka4.user_service.generator;
 
 import rs.banka4.user_service.domain.auth.dtos.LoginDto;
-import rs.banka4.user_service.domain.user.User;
+import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.employee.dtos.EmployeeDto;
 import rs.banka4.user_service.domain.user.employee.dtos.EmployeeResponseDto;
 import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
@@ -78,7 +78,7 @@ public class EmployeeObjectMother {
         employee.setFirstName("John");
         employee.setLastName("Doe");
         employee.setDateOfBirth(LocalDate.of(1990, 1, 1));
-        employee.setGender(User.Gender.MALE);
+        employee.setGender(Gender.MALE);
         employee.setEmail("john.doe@example.com");
         employee.setUsername("johndoe");
         employee.setPhone("+1234567890");
@@ -93,14 +93,14 @@ public class EmployeeObjectMother {
     public static EmployeeDto generateBasicEmployeeDto() {
         return new EmployeeDto(
                 UUID.randomUUID(), "John", "Doe", LocalDate.of(1990, 1, 1),
-                User.Gender.MALE, "john.doe@example.com", "+1234567890", "123 Main St",
+                Gender.MALE, "john.doe@example.com", "+1234567890", "123 Main St",
                 "johndoe", "Developer", "IT", true);
     }
 
     public static EmployeeResponseDto generateBasicEmployeeResponseDto() {
         return new EmployeeResponseDto(
                 UUID.randomUUID(), "John", "Doe", LocalDate.of(1990, 1, 1),
-                User.Gender.MALE, "john.doe@example.com", "+1234567890", "123 Main St",
+                Gender.MALE, "john.doe@example.com", "+1234567890", "123 Main St",
                 "johndoe", "Developer", "IT", EnumSet.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS), true);
     }
 
