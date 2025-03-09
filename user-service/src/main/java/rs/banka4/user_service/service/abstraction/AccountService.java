@@ -9,12 +9,12 @@ import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
 import rs.banka4.user_service.domain.account.db.Account;
 
 import java.util.List;
+import java.util.Set;
 
 public interface AccountService {
-    ResponseEntity<List<AccountDto>> getAccountsForClient(String token);
-    ResponseEntity<List<AccountDto>> getRecentRecipientsFor(String token);
-    ResponseEntity<AccountDto> getAccount(String token, String id);
+    Set<AccountDto> getAccountsForClient(String token);
+    AccountDto getAccount(String token, String id);
     Account getAccountByAccountNumber(String accountNumber);
-    ResponseEntity<Void> createAccount(CreateAccountDto createAccountDto, String auth);
+    void createAccount(CreateAccountDto createAccountDto, String auth);
     ResponseEntity<Page<AccountDto>> getAll(Authentication authentication, String firstName, String lastName, String accountNumber, PageRequest pageRequest);
 }

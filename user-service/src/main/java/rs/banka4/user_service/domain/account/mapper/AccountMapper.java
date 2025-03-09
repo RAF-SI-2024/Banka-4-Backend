@@ -1,6 +1,7 @@
 package rs.banka4.user_service.domain.account.mapper;
 
 import org.mapstruct.*;
+import org.mapstruct.factory.Mappers;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.account.dtos.AccountTypeDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
@@ -17,9 +18,13 @@ import rs.banka4.user_service.domain.user.employee.mapper.EmployeeMapper;
         uses = {CompanyMapper.class, CurrencyMapper.class, ClientMapper.class, EmployeeMapper.class}
 )
 public interface AccountMapper {
+
+    AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
+
     @Mapping(target = "accountType", expression = "java(toAccountTypeDto(account))")
     AccountDto toDto(Account account);
     Account toEntity(CreateAccountDto dto);
+
     @Named("toAccountTypeDto")
     default AccountTypeDto toAccountTypeDto(Account account) {
         if (account == null || account.getCurrency() == null || account.getAccountType() == null) {

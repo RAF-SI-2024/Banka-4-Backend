@@ -24,19 +24,6 @@ import java.util.UUID;
 public interface ClientApiDocumentation {
 
     @Operation(
-            summary = "Get Client Privileges",
-            description = "Retrieves the list of privileges for the authenticated client. Requires authentication.",
-            security = @SecurityRequirement(name = "bearerAuth"),
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Successfully retrieved privileges",
-                            content = @Content(schema = @Schema(implementation = PrivilegesDto.class))),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized - Token errors"),
-                    @ApiResponse(responseCode = "403", description = "Forbidden - Access denied")
-            }
-    )
-    ResponseEntity<PrivilegesDto> getPrivileges(Authentication auth);
-
-    @Operation(
             summary = "Get Client Information",
             description = "Retrieves information about the authenticated client using the token provided in the Authorization header.",
             security = @SecurityRequirement(name = "bearerAuth"),

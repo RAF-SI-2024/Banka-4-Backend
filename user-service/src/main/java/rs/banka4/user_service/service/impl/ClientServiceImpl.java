@@ -9,9 +9,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
 import rs.banka4.user_service.domain.auth.dtos.LoginDto;
 import rs.banka4.user_service.domain.auth.dtos.LoginResponseDto;
-import rs.banka4.user_service.domain.user.PrivilegesDto;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.*;
 import rs.banka4.user_service.exceptions.*;
@@ -36,7 +36,6 @@ public class ClientServiceImpl implements ClientService {
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final BasicClientMapperForGetAll basicClientMapperForGetAll = new BasicClientMapperForGetAll();
-
 
     @Override
     public ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email, String phone,
@@ -103,11 +102,6 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ResponseEntity<PrivilegesDto> getPrivileges(String token) {
-        return null;
-    }
-
-    @Override
     public ClientDto getMe(String authorization) {
         String token = authorization.replace("Bearer ", "");
         String clientUsername = jwtUtil.extractUsername(token);
@@ -136,6 +130,20 @@ public class ClientServiceImpl implements ClientService {
 
         clientRepository.save(client);
         userService.sendVerificationEmail(createClientDto.firstName(),createClientDto.email());
+    }
+
+    @Override
+    public Client createClient(AccountClientIdDto request) {
+        if (userService.existsByEmail(request.email())){
+            throw new DuplicateEmail(request.email());
+        }
+
+        Client client = ClientMapper.INSTANCE.toEntity(request);
+        if (request.privilege() != null) {
+            client.setPrivileges(request.privilege());
+        }
+
+        return clientRepository.save(client);
     }
 
     @Override
