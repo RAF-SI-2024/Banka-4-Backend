@@ -28,7 +28,7 @@ public class MockMvcUtil {
                 .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
     }
 
-    public <T> void performPostRequest(org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request, T content) throws Exception {
+    public <T> void performPostRequest(MockHttpServletRequestBuilder request, T content) throws Exception {
         mockMvc.perform(request
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType(MediaType.APPLICATION_JSON)
