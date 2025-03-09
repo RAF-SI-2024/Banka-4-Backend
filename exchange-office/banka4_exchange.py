@@ -7,29 +7,30 @@ from datetime import datetime, timezone
 from time import sleep, time
 
 import requests
-from flask import Flask
+from flask import Blueprint, Flask, current_app, g, send_file
 
 __doc__ = "Exchange office rates caching API"
 __version__ = "0.1"
 
 exchanges_path = "./exchanges.json"
-secrets_path = "./secrets.json"
-config_path = "./config.json"
 currencies = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF"]
-commission = json.loads(open(config_path).read())["commission"]
-key = json.loads(open(secrets_path).read())["key"]
-url = f"https://v6.exchangerate-api.com/v6/{key}/latest/RSD"
 
-app = Flask(__name__)
+root_bp = Blueprint("root", __name__)
 
 
-@app.after_request
-def set_default_content_type(response):
-    response.headers["Content-Type"] = "application/json"
-    return response
+@root_bp.before_request
+def load_and_validate_config():
+    commission = current_app.config.get("COMMISSION_RATE")
+    if not isinstance(commission, float):
+        raise RuntimeError("COMMISION_RATE must be a float")
+    if not (0 <= commission <= 1):
+        raise RuntimeError("COMMISION_RATE must be [0, 1]")
+    g.commission = commission
 
-
-app.logger.setLevel(logging.INFO)
+    api_key = current_app.config.get("EXCHANGERATE_API_KEY")
+    if not isinstance(api_key, str):
+        raise RuntimeError("EXCHANGERATE_API_KEY must be a float")
+    g.api_url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/RSD"
 
 
 @contextlib.contextmanager
@@ -41,18 +42,30 @@ def file_lock(filename: str):
         yield
 
 
+class ExchangeRateFetchFailedError(RuntimeError):
+    """Raised when the exchange rate API is unreachable"""
+
+    pass
+
+
+@root_bp.errorhandler(ExchangeRateFetchFailedError)
+def exchange_rate_fetch_error(e: ExchangeRateFetchFailedError):
+    # Formatted per user-service convention.
+    return dict(failed=True, code="ExchangeRateFetchFailed"), 503
+
+
 def call_exchanges_api():
     ok = False
     retries = 0
     max_retry = 4
     while not ok and retries < max_retry:
-        response = requests.get(url)
+        response = requests.get(g.api_url)
         ok = response.status_code == 200
         if not ok:
             sleep(5000)
             retries += 1
-    if response.status_code != 200:
-        raise Exception("Network error")
+    if not ok:
+        raise ExchangeRateFetchFailedError()
     return response.json()
 
 
@@ -77,30 +90,32 @@ def make_exchange_table(api_response):
         currency: {
             "Base": currency,
             "Quote": "RSD",
-            "Buy": 1 / rate * (1 - commission),
+            "Buy": 1 / rate * (1 - g.commission),
             "Neutral": 1 / rate,
-            "Sell": 1 / rate * (1 + commission),
+            "Sell": 1 / rate * (1 + g.commission),
         }
         for currency, rate in neutral_rates.items()
     }
 
-    table = json.dumps(
-        {
-            "lastUpdatedISO8061withTimezone": last_update_iso_time,
-            "lastUpdatedUnix": time_last_update_unix,
-            "nextUpdateISO8061withTimezone": next_update_iso_time,
-            "nextUpdateUnix": time_next_update_unix,
-            "lastLocalUpdate": int(time()),
-            "exchanges": exchanges,
-        }
-    )
     tmp_file = exchanges_path + ".tmp"
-    open(tmp_file, "w").write(table)
+    with open(tmp_file, "w") as f:
+        json.dump(
+            {
+                "lastUpdatedISO8061withTimezone": last_update_iso_time,
+                "lastUpdatedUnix": time_last_update_unix,
+                "nextUpdateISO8061withTimezone": next_update_iso_time,
+                "nextUpdateUnix": time_next_update_unix,
+                "lastLocalUpdate": int(time()),
+                "exchanges": exchanges,
+            },
+            f,
+        )
     os.replace(tmp_file, exchanges_path)
 
 
 def is_old():
-    table = json.loads(open(exchanges_path).read())
+    with open(exchanges_path) as f:
+        table = json.load(f)
     return (
         time() - table["lastLocalUpdate"] > 2 * 60 * 60
         and table["nextUpdateUnix"] < time() - 300
@@ -114,15 +129,23 @@ def should_remake():
     return not os.path.exists(exchanges_path) or is_old()
 
 
-@app.route("/exchange-rate", methods=["GET"])
+@root_bp.get("/exchange-rate")
 def get_exchange_table():
     if should_remake():
         with file_lock(".refresh-task.lck"):
             if should_remake():
-                app.logger.info("remaking exchanges table")
+                current_app.logger.info("remaking exchanges table")
                 make_exchange_table(call_exchanges_api())
-                app.logger.info("spent 1 api token (out of 1500 monthly)")
-    return open(exchanges_path).read()
+                current_app.logger.info("spent 1 api token (out of 1500 monthly)")
+    return send_file(exchanges_path)
+
+
+def create_app():
+    app = Flask(__name__, instance_relative_config=True)
+    app.logger.setLevel(logging.INFO)
+    app.config.from_pyfile("config.py", silent=True)
+    app.register_blueprint(root_bp)
+    return app
 
 
 if __name__ == "__main__":

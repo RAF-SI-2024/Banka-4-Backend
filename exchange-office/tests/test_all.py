@@ -1,9 +1,6 @@
 import pytest
 
-from banka4_exchange import app
-
-
-def test_eur_buy_over_sell():
+def test_eur_buy_over_sell(app):
     with app.test_client() as client:
         response = client.get("/exchange-rate")
         assert response.status_code == 200
@@ -13,7 +10,7 @@ def test_eur_buy_over_sell():
         assert eur_rate["Buy"] < eur_rate["Sell"]
 
 
-def test_eur_neutral_above_1():
+def test_eur_neutral_above_1(app):
     with app.test_client() as client:
         response = client.get("/exchange-rate")
         assert response.status_code == 200
