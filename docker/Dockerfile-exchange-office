@@ -1,0 +1,18 @@
+# A -*- dockerfile -*- for the exchange office
+
+FROM python:3.13
+
+RUN mkdir /code
+ADD exchange-office/LICENSE /code/LICENSE
+ADD exchange-office/pyproject.toml /code/pyproject.toml
+ADD exchange-office/tests /code/tests
+ADD exchange-office/banka4_exchange /code/banka4_exchange
+
+RUN pip install /code gunicorn
+
+RUN mkdir -p /work /usr/var/banka4_exchange/
+
+COPY docker/exchange-config.py /usr/local/var/banka4_exchange-instance/config.py
+
+ENTRYPOINT ["gunicorn"]
+CMD ["-b", "0.0.0.0:8000", "banka4_exchange.wsgi:app"]
