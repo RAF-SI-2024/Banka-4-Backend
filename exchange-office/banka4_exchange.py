@@ -36,6 +36,11 @@ def load_and_validate_config():
         raise RuntimeError("EXCHANGE_STORAGE_PATH must be a string")
     g.exchanges_path = exchanges_path
 
+    lockfile_path = current_app.config.get("LOCKFILE_PATH", ".refresh-task.lck")
+    if not isinstance(lockfile_path, str):
+        raise RuntimeError("LOCKFILE_PATH must be a string")
+    g.lockfile_path = lockfile_path
+
 
 @contextlib.contextmanager
 def file_lock(filename: str):
@@ -136,7 +141,7 @@ def should_remake():
 @root_bp.get("/exchange-rate")
 def get_exchange_table():
     if should_remake():
-        with file_lock(".refresh-task.lck"):
+        with file_lock(g.lockfile_path):
             if should_remake():
                 current_app.logger.info("remaking exchanges table")
                 make_exchange_table(call_exchanges_api())
