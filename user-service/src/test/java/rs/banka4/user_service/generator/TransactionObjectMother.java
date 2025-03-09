@@ -13,8 +13,8 @@ public class TransactionObjectMother {
 
     public static CreateTransactionDto generateBasicCreateTransactionDto() {
         return new CreateTransactionDto(
-                "102-39443942389",
-                "102-394438340549",
+                "444394438340549",
+                "444394438340523",
                 BigDecimal.valueOf(1.00),
                 "EUR",
                 "Milutin Joncic",
@@ -29,7 +29,7 @@ public class TransactionObjectMother {
                 UUID.randomUUID(),
                 "1265463698391",
                 "444394438340549",
-                "444394438340549",
+                "444394438340523",
                 BigDecimal.valueOf(1.00),
                 "EUR",
                 BigDecimal.valueOf(1.00),
@@ -47,8 +47,8 @@ public class TransactionObjectMother {
 
     public static CreatePaymentDto generateBasicCreatePaymentDto() {
         return new CreatePaymentDto(
-                "102-39443942389",
-                "102-394438340549",
+                "444394438340549",
+                "444394438340523",
                 BigDecimal.valueOf(1.00),
                 "Milutin Joncic",
                 "289",

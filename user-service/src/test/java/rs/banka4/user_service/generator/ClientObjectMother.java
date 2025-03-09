@@ -81,14 +81,14 @@ public class ClientObjectMother {
         return new ClientContactDto(
                 UUID.randomUUID(),
                 "Wasketov racun od firme",
-                "444000000000123456"
+                "444394438340549"
         );
     }
 
     public static ClientContactRequest generateBasicClientContactRequest() {
         return new ClientContactRequest(
                 "Wasketov racun od firme",
-                "444000000000123456"
+                "444394438340549"
         );
     }
 
