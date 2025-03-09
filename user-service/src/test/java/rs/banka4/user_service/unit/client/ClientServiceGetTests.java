@@ -97,7 +97,7 @@ public class ClientServiceGetTests {
         // Arrange
         UUID clientId = UUID.randomUUID();
         Client client = ClientObjectMother.generateClient(clientId, "email@test.com");
-        ClientDto clientDto = ClientObjectMother.generateClientDto(clientId, "email@test.com");
+        ClientDto clientDto = ClientObjectMother.generateBasicClientDto(clientId, "email@test.com");
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(clientMapper.toDto(client)).thenReturn(clientDto);
@@ -144,7 +144,7 @@ public class ClientServiceGetTests {
         String bearerToken = "Bearer " + tokenStr;
         String email = "email@test.com";
         Client client = ClientObjectMother.generateClient(UUID.randomUUID(), email);
-        ClientDto clientDto = ClientObjectMother.generateClientDto(client.getId(), email);
+        ClientDto clientDto = ClientObjectMother.generateBasicClientDto(client.getId(), email);
 
         when(jwtUtil.extractUsername(tokenStr)).thenReturn(email);
         when(jwtUtil.isTokenExpired(tokenStr)).thenReturn(false);
