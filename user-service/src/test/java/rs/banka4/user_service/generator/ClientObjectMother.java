@@ -3,9 +3,7 @@ package rs.banka4.user_service.generator;
 import rs.banka4.user_service.domain.user.Privilege;
 import rs.banka4.user_service.domain.user.User;
 import rs.banka4.user_service.domain.user.client.db.Client;
-import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
-import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
-import rs.banka4.user_service.domain.user.client.dtos.UpdateClientDto;
+import rs.banka4.user_service.domain.user.client.dtos.*;
 
 import java.time.LocalDate;
 import java.util.EnumSet;
@@ -78,4 +76,20 @@ public class ClientObjectMother {
                 .address("123 Main St")
                 .build();
     }
+
+    public static ClientContactDto generateBasicClientContactDto() {
+        return new ClientContactDto(
+                UUID.randomUUID(),
+                "Wasketov racun od firme",
+                "444000000000123456"
+        );
+    }
+
+    public static ClientContactRequest generateBasicClientContactRequest() {
+        return new ClientContactRequest(
+                "Wasketov racun od firme",
+                "444000000000123456"
+        );
+    }
+
 }
