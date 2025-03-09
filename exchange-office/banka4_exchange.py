@@ -29,7 +29,7 @@ def load_and_validate_config():
 
     api_key = current_app.config.get("EXCHANGERATE_API_KEY")
     if not isinstance(api_key, str):
-        raise RuntimeError("EXCHANGERATE_API_KEY must be a float")
+        raise RuntimeError("EXCHANGERATE_API_KEY must be a string")
     g.api_url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/RSD"
 
 
