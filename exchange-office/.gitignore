@@ -1,5 +1,6 @@
 exchanges.json
 secrets.json
+.refresh-task.lck
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
