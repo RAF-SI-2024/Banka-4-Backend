@@ -1,5 +1,6 @@
 import pytest
 
+
 def test_eur_buy_over_sell(app):
     with app.test_client() as client:
         response = client.get("/exchange-rate")
