@@ -1,0 +1,119 @@
+openapi: 3.0.3
+info:
+  title: Exchange Office Rates Caching API
+  version: "0.1"
+paths:
+  /exchange-rate:
+    get:
+      summary: Retrieve exchange rate table
+      description: >
+        Returns a JSON file containing exchange rate information. The response includes metadata about the
+        last and next update times (both as ISO8601 strings and Unix timestamps) along with a table of exchange
+        rates for a predefined list of currencies adjusted with commission.
+      responses:
+        '200':
+          description: Successful retrieval of exchange rate table.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lastUpdatedISO8061withTimezone:
+                    type: string
+                    format: date-time
+                    description: The last update time in ISO 8601 format with timezone.
+                  lastUpdatedUnix:
+                    type: integer
+                    description: The last update time as a Unix timestamp.
+                  nextUpdateISO8061withTimezone:
+                    type: string
+                    format: date-time
+                    description: The next update time in ISO 8601 format with timezone.
+                  nextUpdateUnix:
+                    type: integer
+                    description: The next update time as a Unix timestamp.
+                  lastLocalUpdate:
+                    type: integer
+                    description: The timestamp of the last local update.
+                  exchanges:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        Base:
+                          type: string
+                        Quote:
+                          type: string
+                        Buy:
+                          type: number
+                        Neutral:
+                          type: number
+                        Sell:
+                          type: number
+              examples:
+                example:
+                  value:
+                    lastUpdatedISO8061withTimezone: "2025-03-09T01:00:01+00:00"
+                    lastUpdatedUnix: 1741478401
+                    nextUpdateISO8061withTimezone: "2025-03-10T01:00:01+00:00"
+                    nextUpdateUnix: 1741564801
+                    lastLocalUpdate: 1741492877
+                    exchanges:
+                      USD:
+                        Base: "USD"
+                        Quote: "RSD"
+                        Buy: 106.86528497409327
+                        Neutral: 107.94473229706391
+                        Sell: 109.02417962003454
+                      EUR:
+                        Base: "EUR"
+                        Quote: "RSD"
+                        Buy: 115.95221363316935
+                        Neutral: 117.12344811431248
+                        Sell: 118.29468259545561
+                      GBP:
+                        Base: "GBP"
+                        Quote: "RSD"
+                        Buy: 137.94064372300406
+                        Neutral: 139.33398355858995
+                        Sell: 140.72732339417584
+                      JPY:
+                        Base: "JPY"
+                        Quote: "RSD"
+                        Buy: 0.7247437774524157
+                        Neutral: 0.7320644216691068
+                        Sell: 0.7393850658857979
+                      AUD:
+                        Base: "AUD"
+                        Quote: "RSD"
+                        Buy: 67.34693877551021
+                        Neutral: 68.02721088435375
+                        Sell: 68.70748299319729
+                      CAD:
+                        Base: "CAD"
+                        Quote: "RSD"
+                        Buy: 74.38016528925618
+                        Neutral: 75.13148009015777
+                        Sell: 75.88279489105935
+                      CHF:
+                        Base: "CHF"
+                        Quote: "RSD"
+                        Buy: 121.63656468853667
+                        Neutral: 122.86521685710774
+                        Sell: 124.09386902567881
+        '503':
+          description: Exchange rate API fetch failed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  failed:
+                    type: boolean
+                  code:
+                    type: string
+              examples:
+                exchangeRateFetchFailed:
+                  value:
+                    failed: true
+                    code: "ExchangeRateFetchFailed"
