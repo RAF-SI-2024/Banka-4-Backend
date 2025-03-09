@@ -1,21 +1,17 @@
 package rs.banka4.user_service.service.impl;
 
 import jakarta.transaction.Transactional;
-import org.springframework.context.annotation.Lazy;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
-import rs.banka4.user_service.domain.account.dtos.AccountTypeDto;
 import rs.banka4.user_service.domain.company.db.Company;
-import rs.banka4.user_service.domain.company.dtos.CompanyDto;
-import rs.banka4.user_service.domain.currency.dtos.CurrencyDto;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
@@ -28,17 +24,17 @@ import rs.banka4.user_service.repositories.*;
 import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.abstraction.CompanyService;
+import rs.banka4.user_service.service.abstraction.EmployeeService;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.specification.AccountSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
     private final ClientService clientService;
@@ -48,21 +44,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final ClientRepository clientRepository;
     private final JwtUtil jwtUtil;
-    private final EmployeeRepository employeeRepository;
-    private final AccountMapper accountMapper;
-
-    public AccountServiceImpl(@Lazy ClientService clientService, CompanyService companyService, CurrencyRepository currencyRepository, CompanyMapper companyMapper,
-                              AccountRepository accountRepository, ClientRepository clientRepository, JwtUtil jwtUtil, EmployeeRepository employeeRepository, AccountMapper accountMapper) {
-        this.clientService = clientService;
-        this.companyService = companyService;
-        this.currencyRepository = currencyRepository;
-        this.companyMapper = companyMapper;
-        this.accountRepository = accountRepository;
-        this.clientRepository = clientRepository;
-        this.jwtUtil = jwtUtil;
-        this.employeeRepository = employeeRepository;
-        this.accountMapper = accountMapper;
-    }
+    private final EmployeeService employeeService;
 
     @Override
     public Set<AccountDto> getAccountsForClient(String token) {
@@ -134,7 +116,7 @@ public class AccountServiceImpl implements AccountService {
 
         Page<Account> accounts = accountRepository.findAll(combinator.build(), pageRequest);
 
-        return ResponseEntity.ok(accounts.map(accountMapper::toDto));
+        return ResponseEntity.ok(accounts.map(AccountMapper.INSTANCE::toDto));
     }
 
     @Override
@@ -194,7 +176,7 @@ public class AccountServiceImpl implements AccountService {
 
     private void connectEmployeeToAccount(Account account, String auth) {
         String username = jwtUtil.extractUsername(auth);
-        Optional<Employee> employee = employeeRepository.findByEmail(username);
+        Optional<Employee> employee = employeeService.findEmployeeByEmail(username);
 
         if (employee.isEmpty()) {
             throw new EmployeeNotFound(username);

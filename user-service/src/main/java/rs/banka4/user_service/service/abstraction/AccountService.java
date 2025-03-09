@@ -8,7 +8,6 @@ import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
 import rs.banka4.user_service.domain.account.db.Account;
 
-import java.util.List;
 import java.util.Set;
 
 public interface AccountService {
