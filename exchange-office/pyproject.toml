@@ -1,0 +1,23 @@
+[build-system]
+requires = ["flit_core >=3.11,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "banka4-exchange"
+authors = [{name = "mbaclija1921rn", email = "116192274+mbaclija1921rn@users.noreply.github.com"}]
+license = "MIT"
+license-files = ["LICENSE"]
+dynamic = ["version", "description"]
+dependencies = [
+    "Flask",
+    "requests"
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "flake8",
+    "black",
+    "isort",
+    "pytest"
+]

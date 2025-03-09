@@ -7,6 +7,8 @@ import requests
 from flask import Flask
 import logging
 
+__doc__ = "Exchange office rates caching API"
+__version__ = "0.1"
 
 exchanges_path = './exchanges.json'
 secrets_path = './secrets.json'
