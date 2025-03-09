@@ -1,0 +1,4 @@
+# -*- python -*-
+COMMISSION_RATE = 0.1
+EXCHANGERATE_API_KEY = "280153fe0016f484aedcecdd"
+EXCHANGE_STORAGE_PATH = "exchanges.json"
