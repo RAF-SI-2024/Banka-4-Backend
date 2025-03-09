@@ -44,7 +44,7 @@ public class Account {
     private LocalDate createdDate = LocalDate.now();
 
     @Builder.Default
-    private LocalDate expirationDate = LocalDate.now().plusYears(5);
+    private LocalDate expirationDate = LocalDate.now().plusYears(100);
 
     // When client is deleted, it must be set to false
     @Column(nullable = false)

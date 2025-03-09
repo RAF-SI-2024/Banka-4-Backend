@@ -69,10 +69,6 @@ public abstract class User {
                 .reduce(0L, (x, y) -> x | y);
     }
 
-    public enum Gender {
-        MALE, FEMALE
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -1,7 +1,7 @@
 package rs.banka4.user_service.domain.user.employee.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import rs.banka4.user_service.domain.user.User;
+import rs.banka4.user_service.domain.user.Gender;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -22,7 +22,7 @@ public record EmployeeDto (
         LocalDate dateOfBirth,
 
         @Schema(description = "Employee's gender", example = "Male")
-        User.Gender gender,
+        Gender gender,
 
         @Schema(description = "Employee's email address", example = "mljubic9422112rn@raf.rs")
         String email,

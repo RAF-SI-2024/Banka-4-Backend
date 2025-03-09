@@ -1,6 +1,7 @@
 package rs.banka4.user_service.domain.user.employee.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.Privilege;
 import rs.banka4.user_service.domain.user.User;
 
@@ -23,7 +24,7 @@ public record EmployeeResponseDto(
         LocalDate dateOfBirth,
 
         @Schema(description = "Gender", example = "Male")
-        User.Gender gender,
+        Gender gender,
 
         @Schema(description = "Email address", example = "john.doe@example.com")
         String email,

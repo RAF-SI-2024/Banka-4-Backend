@@ -24,5 +24,8 @@ public record CreateAccountDto (
 
         @NotNull(message = "Currency ID cannot be null")
         @Schema(description = "Currency ID associated with this account", example = "RSD")
-        Currency.Code currency
+        Currency.Code currency,
+
+        @Schema(description = "Flag to indicate if a card should be created")
+        Boolean createCard
 ) { }
