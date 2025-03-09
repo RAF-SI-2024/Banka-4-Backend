@@ -13,12 +13,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
-import rs.banka4.user_service.exceptions.ClientNotFound;
-import rs.banka4.user_service.exceptions.CompanyNotFound;
-import rs.banka4.user_service.exceptions.EmployeeNotFound;
-import rs.banka4.user_service.exceptions.InvalidCurrency;
+import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
+import rs.banka4.user_service.exceptions.company.CompanyNotFound;
+import rs.banka4.user_service.exceptions.user.employee.EmployeeNotFound;
+import rs.banka4.user_service.exceptions.account.InvalidCurrency;
 
-import java.util.List;
 import java.util.Set;
 
 @Tag(name = "AccountController", description = "Endpoints for accounts")
@@ -55,7 +54,7 @@ public interface AccountApiDocumentation {
                                             int size);
 
     @Operation(
-            summary = "Get Client Account by ID",
+            summary = "Get Client Account by account number",
             description = "Retrieves the account details for a given account ID. Requires authentication.",
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {

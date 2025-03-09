@@ -6,10 +6,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
-import rs.banka4.user_service.exceptions.DuplicateEmail;
-import rs.banka4.user_service.exceptions.DuplicateUsername;
+import rs.banka4.user_service.domain.user.employee.mapper.EmployeeMapper;
+import rs.banka4.user_service.exceptions.user.DuplicateEmail;
+import rs.banka4.user_service.exceptions.user.DuplicateUsername;
 import rs.banka4.user_service.generator.EmployeeObjectMother;
-import rs.banka4.user_service.domain.user.employee.mapper.BasicEmployeeMapper;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.impl.EmployeeServiceImpl;
@@ -24,7 +24,7 @@ public class EmployeeServiceCreateTests {
     @Mock
     private EmployeeRepository employeeRepository;
     @Mock
-    private BasicEmployeeMapper basicEmployeeMapper;
+    private EmployeeMapper employeeMapper;
     @Mock
     private UserService userService;
     @InjectMocks
@@ -43,7 +43,7 @@ public class EmployeeServiceCreateTests {
 
         when(userService.existsByEmail(dto.email())).thenReturn(false);
         when(employeeRepository.existsByUsername(dto.username())).thenReturn(false);
-        when(basicEmployeeMapper.toEntity(dto)).thenReturn(employee);
+        when(employeeMapper.toEntity(dto)).thenReturn(employee);
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
 
         // Act

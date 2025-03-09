@@ -14,6 +14,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import rs.banka4.user_service.config.filters.ExceptionHandlingFilter;
+import rs.banka4.user_service.config.filters.InvalidRouteFilter;
+import rs.banka4.user_service.config.filters.JwtAuthenticationFilter;
+import rs.banka4.user_service.config.filters.RateLimitingFilter;
 
 import java.util.Collections;
 import java.util.List;

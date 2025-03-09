@@ -14,11 +14,11 @@ import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.domain.transaction.dtos.CreatePaymentDto;
 import rs.banka4.user_service.domain.transaction.db.TransactionStatus;
 import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
-import rs.banka4.user_service.exceptions.AccountNotFound;
-import rs.banka4.user_service.exceptions.ClientNotFound;
-import rs.banka4.user_service.exceptions.InsufficientFunds;
-import rs.banka4.user_service.exceptions.NotAccountOwner;
-import rs.banka4.user_service.exceptions.TransactionNotFound;
+import rs.banka4.user_service.exceptions.account.AccountNotFound;
+import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
+import rs.banka4.user_service.exceptions.transaction.InsufficientFunds;
+import rs.banka4.user_service.exceptions.account.NotAccountOwner;
+import rs.banka4.user_service.exceptions.transaction.TransactionNotFound;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

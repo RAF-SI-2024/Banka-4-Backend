@@ -47,6 +47,6 @@ public record UpdateEmployeeDto(
         String department,
 
         @Schema(description = "Indicates if the employee is active", example = "true")
-        boolean active
+        Boolean active
 ) {
 }

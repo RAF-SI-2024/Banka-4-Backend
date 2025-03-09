@@ -13,7 +13,6 @@ import rs.banka4.user_service.domain.currency.mapper.CurrencyMapper;
 import rs.banka4.user_service.domain.user.employee.mapper.EmployeeMapper;
 
 @Mapper(
-        componentModel = MappingConstants.ComponentModel.SPRING,
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
         uses = {CompanyMapper.class, CurrencyMapper.class, ClientMapper.class, EmployeeMapper.class}
 )

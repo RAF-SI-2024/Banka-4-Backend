@@ -16,7 +16,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID>, JpaSpec
 
     boolean existsByAccountNumber(String accountNumber);
 
-    Set<Account> findAllByClient(Client client); // Fixed method}
+    Set<Account> findAllByClient(Client client);
 
     Optional<Account> getAccountByAccountNumber(String accountNumber);
 }

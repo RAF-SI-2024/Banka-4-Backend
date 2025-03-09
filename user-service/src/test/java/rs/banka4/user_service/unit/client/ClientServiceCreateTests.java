@@ -10,7 +10,7 @@ import rs.banka4.user_service.domain.auth.dtos.NotificationTransferDto;
 import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.auth.db.VerificationCode;
-import rs.banka4.user_service.exceptions.DuplicateEmail;
+import rs.banka4.user_service.exceptions.user.DuplicateEmail;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.impl.ClientServiceImpl;

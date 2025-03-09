@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
-import rs.banka4.user_service.exceptions.InvalidCurrency;
+import rs.banka4.user_service.exceptions.account.InvalidCurrency;
 
 import java.util.Objects;
 import java.util.UUID;
