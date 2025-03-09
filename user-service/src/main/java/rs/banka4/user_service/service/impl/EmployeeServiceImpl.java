@@ -1,6 +1,10 @@
 package rs.banka4.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +36,8 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
+    private static final Logger LOGGER
+        = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
@@ -51,6 +57,10 @@ public class EmployeeServiceImpl implements EmployeeService {
                     new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password())
             );
         } catch (BadCredentialsException e) {
+            LOGGER.debug(
+                "Login for {} failed",
+                loginDto, e
+            );
             throw new IncorrectCredentials();
         }
 
@@ -58,6 +68,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElseThrow(() -> new UsernameNotFoundException(loginDto.email()));
 
         if (!employee.isActive() || employee.getPassword() == null) {
+            LOGGER.debug("Login for {} failed: not activated", loginDto);
             throw new NotActivated();
         }
 
