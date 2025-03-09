@@ -1,5 +1,5 @@
 import pytest
-from exchange import app
+from banka4_exchange import app
 
 def test_eur_buy_over_sell():
     with app.test_client() as client:
