@@ -16,9 +16,9 @@ import rs.banka4.user_service.domain.user.employee.dtos.EmployeeResponseDto;
 import rs.banka4.user_service.domain.user.PrivilegesDto;
 import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
 import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
-import rs.banka4.user_service.exceptions.DuplicateEmail;
-import rs.banka4.user_service.exceptions.DuplicateUsername;
-import rs.banka4.user_service.exceptions.UserNotFound;
+import rs.banka4.user_service.exceptions.user.DuplicateEmail;
+import rs.banka4.user_service.exceptions.user.DuplicateUsername;
+import rs.banka4.user_service.exceptions.user.UserNotFound;
 
 import java.util.UUID;
 

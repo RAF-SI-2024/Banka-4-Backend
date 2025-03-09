@@ -14,9 +14,9 @@ import rs.banka4.user_service.domain.auth.dtos.LogoutDto;
 import rs.banka4.user_service.domain.auth.dtos.RefreshTokenDto;
 import rs.banka4.user_service.domain.auth.dtos.RefreshTokenResponseDto;
 import rs.banka4.user_service.domain.auth.dtos.UserVerificationRequestDto;
-import rs.banka4.user_service.exceptions.IncorrectCredentials;
-import rs.banka4.user_service.exceptions.UserNotFound;
-import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
+import rs.banka4.user_service.exceptions.user.IncorrectCredentials;
+import rs.banka4.user_service.exceptions.user.UserNotFound;
+import rs.banka4.user_service.exceptions.user.VerificationCodeExpiredOrInvalid;
 import rs.banka4.user_service.exceptions.jwt.RefreshTokenRevoked;
 
 @Tag(name = "AuthController", description = "Endpoints for authentication")

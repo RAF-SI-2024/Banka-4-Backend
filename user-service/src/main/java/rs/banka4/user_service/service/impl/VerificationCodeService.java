@@ -1,7 +1,7 @@
 package rs.banka4.user_service.service.impl;
 
 import org.springframework.stereotype.Service;
-import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
+import rs.banka4.user_service.exceptions.user.VerificationCodeExpiredOrInvalid;
 import rs.banka4.user_service.domain.auth.db.VerificationCode;
 import rs.banka4.user_service.repositories.VerificationCodeRepository;
 
@@ -13,7 +13,7 @@ import java.util.UUID;
 public class VerificationCodeService {
 
     private final VerificationCodeRepository verificationCodeRepository;
-    private final LocalDateTime expiration = LocalDateTime.now().plusDays(7); // TODO Maknuti ovo odavde jer se koristi samo na jednom mestu
+    private final LocalDateTime expiration = LocalDateTime.now().plusDays(7);
 
     public VerificationCodeService(VerificationCodeRepository verificationCodeRepository) {
         this.verificationCodeRepository = verificationCodeRepository;
@@ -22,7 +22,6 @@ public class VerificationCodeService {
     public VerificationCode createVerificationCode(String email) {
         String code = UUID.randomUUID().toString();
 
-//        new VerificationCode(code, expiration, email);
         VerificationCode verificationCode = VerificationCode.builder()
                 .code(code)
                 .email(email)

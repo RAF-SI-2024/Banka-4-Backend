@@ -15,8 +15,14 @@ import rs.banka4.user_service.domain.auth.dtos.LoginResponseDto;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.*;
 import rs.banka4.user_service.exceptions.*;
-import rs.banka4.user_service.domain.user.client.mapper.BasicClientMapperForGetAll;
 import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
+import rs.banka4.user_service.exceptions.user.DuplicateEmail;
+import rs.banka4.user_service.exceptions.user.IncorrectCredentials;
+import rs.banka4.user_service.exceptions.user.NotAuthenticated;
+import rs.banka4.user_service.exceptions.user.NotFound;
+import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
+import rs.banka4.user_service.exceptions.user.client.NonexistantSortByField;
+import rs.banka4.user_service.exceptions.user.client.NotActivated;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.utils.JwtUtil;
@@ -35,7 +41,6 @@ public class ClientServiceImpl implements ClientService {
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
-    private final BasicClientMapperForGetAll basicClientMapperForGetAll = new BasicClientMapperForGetAll();
 
     @Override
     public ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email, String phone,
@@ -76,7 +81,7 @@ public class ClientServiceImpl implements ClientService {
                 sort);
 
         Page<Client> clients = clientRepository.findAll(combinator.build(), pageRequestWithSort);
-        Page<ClientDto> dtos = clients.map(basicClientMapperForGetAll::toDto);
+        Page<ClientDto> dtos = clients.map(ClientMapper.INSTANCE::toDto);
         return ResponseEntity.ok(dtos);
     }
 

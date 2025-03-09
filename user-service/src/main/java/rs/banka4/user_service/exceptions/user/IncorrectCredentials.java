@@ -1,0 +1,10 @@
+package rs.banka4.user_service.exceptions.user;
+
+import org.springframework.http.HttpStatus;
+import rs.banka4.user_service.exceptions.BaseApiException;
+
+public class IncorrectCredentials extends BaseApiException {
+    public IncorrectCredentials() {
+        super(HttpStatus.UNAUTHORIZED, null);
+    }
+}

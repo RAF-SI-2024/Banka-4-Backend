@@ -9,7 +9,6 @@ import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.UUID;
 
 @Entity(name = "verification_tokens")
 @Getter
@@ -23,7 +22,7 @@ public class VerificationCode {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String code; // TODO proveri da li je ovo unique
+    private String code;
     private LocalDateTime expirationDate;
     private boolean used;
     private String email;

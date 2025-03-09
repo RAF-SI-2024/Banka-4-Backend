@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
+import rs.banka4.user_service.exceptions.user.VerificationCodeExpiredOrInvalid;
 import rs.banka4.user_service.domain.auth.db.VerificationCode;
 import rs.banka4.user_service.generator.VerificationCodeObjectMother;
 import rs.banka4.user_service.repositories.VerificationCodeRepository;
