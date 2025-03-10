@@ -4,13 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import rs.banka4.user_service.domain.user.Gender;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
-@Schema(description = "DTO representing an authorized user")
-public record AuthorizedUserDto(
-        @Schema(description = "User ID", example = "11111111-2222-3333-4444-555555555555")
-        UUID id,
-
+public record CreateAuthorizedUserDto(
         @Schema(description = "First name of the user", example = "Petar")
         String firstName,
 
@@ -33,4 +28,3 @@ public record AuthorizedUserDto(
         String address
 ) {
 }
-
