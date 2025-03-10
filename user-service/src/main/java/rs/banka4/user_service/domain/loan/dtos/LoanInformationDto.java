@@ -2,6 +2,8 @@ package rs.banka4.user_service.domain.loan.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import rs.banka4.user_service.domain.currency.dtos.CurrencyDto;
+import rs.banka4.user_service.domain.loan.db.Loan;
+import rs.banka4.user_service.domain.loan.db.LoanStatus;
 import rs.banka4.user_service.domain.loan.db.LoanType;
 
 import java.math.BigDecimal;
@@ -44,6 +46,11 @@ public record LoanInformationDto(
         BigDecimal remainingDebt,
 
         @Schema(description = "Currency of the loan", example = "EUR")
-        CurrencyDto currency
+        CurrencyDto currency,
 
+        @Schema(description = "Current status of the loan", example = "APPROVED")
+        LoanStatus status,
+
+        @Schema(description = "Type of interest applied", example = "FIXED")
+        Loan.InterestType interestType
 ) { }

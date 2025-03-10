@@ -2,6 +2,8 @@ package rs.banka4.user_service.generator;
 
 import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.currency.dtos.CurrencyDto;
+import rs.banka4.user_service.domain.loan.db.Loan;
+import rs.banka4.user_service.domain.loan.db.LoanStatus;
 import rs.banka4.user_service.domain.loan.db.LoanType;
 import rs.banka4.user_service.domain.loan.dtos.LoanApplicationDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanInformationDto;
@@ -40,7 +42,9 @@ public class LoanObjectMother {
                 BigDecimal.valueOf(100.00),
                 LocalDate.now().plusDays(30),
                 BigDecimal.valueOf(900.00),
-                new CurrencyDto(UUID.randomUUID(), "Serbian Dinar", "RSD", "Serbian Dinar currency", true, Currency.Code.RSD)
+                new CurrencyDto(UUID.randomUUID(), "Serbian Dinar", "RSD", "Serbian Dinar currency", true, Currency.Code.RSD),
+                LoanStatus.APPROVED,
+                Loan.InterestType.FIXED
         );
     }
 
