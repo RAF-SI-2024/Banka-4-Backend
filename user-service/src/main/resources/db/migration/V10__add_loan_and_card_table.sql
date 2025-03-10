@@ -11,12 +11,12 @@ CREATE TABLE cards
     created_at    date,
     expires_at    date,
     user_id       UUID,
-    first_name    OID,
-    last_name     OID,
+    first_name    VARCHAR(255),
+    last_name     VARCHAR(255),
     date_of_birth date,
-    email         OID,
-    phone_number  OID,
-    address       OID,
+    email         VARCHAR(255),
+    phone_number  VARCHAR(255),
+    address       VARCHAR(255),
     gender        VARCHAR(255),
     CONSTRAINT pk_cards PRIMARY KEY (id)
 );
