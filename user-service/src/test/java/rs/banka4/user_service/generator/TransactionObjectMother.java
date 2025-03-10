@@ -20,7 +20,8 @@ public class TransactionObjectMother {
                 "Milutin Joncic",
                 "289",
                 "1176926",
-                "Temu payment"
+                "Temu payment",
+                generateBasicCreateTransactionDto().otpCode()
         );
     }
 
@@ -53,7 +54,8 @@ public class TransactionObjectMother {
                 "Milutin Joncic",
                 "289",
                 "1176926",
-                "Temu payment"
+                "Temu payment",
+                generateBasicCreatePaymentDto().otpCode()
         );
     }
 }

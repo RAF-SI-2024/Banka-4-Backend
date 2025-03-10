@@ -50,6 +50,7 @@ dependencies {
 	implementation("org.springframework.amqp:spring-rabbit:3.2.3")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
 	implementation("org.springdoc:springdoc-openapi-starter-common:2.8.5")
+	implementation("dev.samstevens.totp:totp-spring-boot-starter:1.7.1")
 
 	runtimeOnly("javax.cache:cache-api:1.1.1")
 	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")

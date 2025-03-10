@@ -38,5 +38,9 @@ public record CreateTransactionDto(
 
         @NotBlank(message = "Payment purpose is required and cannot be blank.")
         @Schema(description = "Payment purpose (optional)", example = "za privatni čas")
-        String paymentPurpose
+        String paymentPurpose,
+
+        @NotBlank(message = "TOTP code content is required")
+        @NotNull(message = "TOTP code cannot be null")
+        String otpCode
 ) { }

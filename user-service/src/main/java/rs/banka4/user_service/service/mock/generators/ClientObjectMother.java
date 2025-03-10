@@ -34,7 +34,7 @@ public class ClientObjectMother {
         String address = "123 Main St";
         EnumSet<Privilege> privileges  = EnumSet.noneOf(Privilege.class);
 
-        return new ClientDto(id, firstName, lastName, dateOfBirth, gender, email, phone, address, privileges);
+        return new ClientDto(id, firstName, lastName, dateOfBirth, gender, email, phone, address, privileges, false);
     }
 
     public static ClientDto generateBasicClientDto() {
@@ -48,7 +48,8 @@ public class ClientObjectMother {
                 "john.doe@example.com",
                 "123-456-7890",
                 "123 Main St",
-                EnumSet.noneOf(Privilege.class)
+                EnumSet.noneOf(Privilege.class),
+                false
         );
     }
 
