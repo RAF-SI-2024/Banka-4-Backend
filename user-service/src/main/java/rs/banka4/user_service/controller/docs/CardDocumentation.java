@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
-import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedCardDto;
+import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 
 import java.util.UUID;
 
@@ -25,12 +25,12 @@ public interface CardDocumentation {
                     "the field will be stored as null.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Card successfully created",
-                            content = @Content(schema = @Schema(implementation = CreateAuthorizedCardDto.class))),
+                            content = @Content(schema = @Schema(implementation = CreateAuthorizedUserDto.class))),
                     @ApiResponse(responseCode = "400", description = "Invalid data or card limit exceeded"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized or invalid 2FA code"),
             }
     )
-    ResponseEntity<UUID> createAuthorizedCard(CreateAuthorizedCardDto createAuthorizedCardDto);
+    ResponseEntity<UUID> createAuthorizedCard(CreateAuthorizedUserDto createAuthorizedCardDto);
 
     @Operation(
             summary = "This endpoint is used to block existing card",
