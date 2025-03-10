@@ -5,10 +5,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
-import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedCardDto;
+import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 
 public interface CardService {
-    Card createAuthorizedCard(CreateAuthorizedCardDto createAuthorizedCardDto);
+    Card createAuthorizedCard(CreateAuthorizedUserDto createAuthorizedCardDto);
     Card blockCard(String cardNumber);
     Card unblockCard(String cardNumber);
     Card deactivateCard(String cardNumber);

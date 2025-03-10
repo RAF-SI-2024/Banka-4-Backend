@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.CardDocumentation;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
-import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedCardDto;
+import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.service.abstraction.CardService;
 
 import java.util.UUID;
@@ -22,8 +22,8 @@ public class CardController implements CardDocumentation {
 
     @Override
     @PostMapping("/create")
-    public ResponseEntity<UUID> createAuthorizedCard(@RequestBody @Valid CreateAuthorizedCardDto createAuthorizedCardDto) {
-        Card card = cardService.createAuthorizedCard(createAuthorizedCardDto);
+    public ResponseEntity<UUID> createAuthorizedCard(@RequestBody @Valid CreateAuthorizedUserDto createAuthorizedUserDto) {
+        Card card = cardService.createAuthorizedCard(createAuthorizedUserDto);
         return ResponseEntity.ok(card.getId());
     }
 

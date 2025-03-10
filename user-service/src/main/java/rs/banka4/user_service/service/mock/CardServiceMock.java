@@ -9,12 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
-import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedCardDto;
+import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.service.abstraction.CardService;
 import rs.banka4.user_service.service.mock.generators.CardObjectMother;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +22,7 @@ public class CardServiceMock implements CardService {
     private PageRequest pageRequest;
 
     @Override
-    public Card createAuthorizedCard(CreateAuthorizedCardDto createAuthorizedCardDto) {
+    public Card createAuthorizedCard(CreateAuthorizedUserDto createAuthorizedCardDto) {
         Card card = new Card();
         card.setId(UUID.randomUUID());
         return card;
