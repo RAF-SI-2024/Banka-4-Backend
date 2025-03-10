@@ -89,11 +89,12 @@ public class TransactionServiceImpl implements TransactionService {
             Account fromAccount = accountRepository.findAccountByAccountNumber(accountNumber)
                     .orElseThrow(AccountNotFound::new);
 
-            combinator.and(PaymentSpecification.hasFromAccount(fromAccount));
+            combinator.and(PaymentSpecification.hasFromAccount(fromAccount)); // todo we should U (UNIJA)
             combinator.and(PaymentSpecification.hasToAccount(fromAccount));
         }
 
         Page<Transaction> transactions = transactionRepository.findAll(combinator.build(), pageRequest);
+
 
         return transactions.map(TransactionMapper.INSTANCE::toDto);
     }
