@@ -22,21 +22,22 @@ public class CardObjectMother {
                 Gender.FEMALE,
                 "kruska@gmail.com",
                 "+38153513591",
-                "Groove St 5",
-                LocalDate.now(),
-                LocalDate.now().plusDays(7)
+                "Groove St 5"
         );
     }
 
     public static CardDto generateCardDto() {
         return new CardDto(
-                UUID.randomUUID(),
                 "1234567890123456",
                 "331",
                 CardName.VISA,
+                LocalDate.now().minusYears(10),
+                LocalDate.now().minusYears(5),
                 CardType.DEBIT,
                 BigDecimal.valueOf(500.00),
                 CardStatus.ACTIVATED,
+                "215351385938112",
+                ClientObjectMother.generateBasicClientDto(),
                 generateAuthorizedUserDto()
         );
     }
