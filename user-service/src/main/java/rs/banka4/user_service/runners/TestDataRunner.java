@@ -903,6 +903,7 @@ public class TestDataRunner implements CommandLineRunner {
                         .accountType(AccountType.DOO)
                         .dailyLimit(new BigDecimal("1000.00"))
                         .monthlyLimit(new BigDecimal("10000.00"))
+                        .client(client)
                         .company(company)
                         .currency(currency)
                         .build();
