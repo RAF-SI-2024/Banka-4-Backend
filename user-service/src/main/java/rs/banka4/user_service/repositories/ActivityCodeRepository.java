@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface ActivityCodeRepository extends JpaRepository<ActivityCode, UUID> {
     Optional<ActivityCode> findActivityCodeByCode(String activityCode);
+    boolean existsByCode(String code);
 }

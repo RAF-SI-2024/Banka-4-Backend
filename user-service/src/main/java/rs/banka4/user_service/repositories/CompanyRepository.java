@@ -12,6 +12,7 @@ public interface CompanyRepository extends JpaRepository<Company, UUID> {
     boolean existsByTin(String s);
     boolean existsByCrn(String crn);
     boolean existsByName(String name);
+    Optional<Company> findByName(String name);
 
     Optional<Company> findByCrn(String crn);
 }
