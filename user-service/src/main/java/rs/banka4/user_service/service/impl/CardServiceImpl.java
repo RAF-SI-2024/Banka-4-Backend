@@ -5,12 +5,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
-import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
+import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.service.abstraction.CardService;
 
 public class CardServiceImpl implements CardService {
     @Override
-    public Card createAuthorizedCard(CreateAuthorizedUserDto createAuthorizedCardDto) {
+    public Card createAuthorizedCard(CreateCardDto createCardDto) {
         return null;
     }
 

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.CardDocumentation;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
-import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
+import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.service.abstraction.CardService;
 
 import java.util.UUID;
@@ -18,13 +18,14 @@ import java.util.UUID;
 @RequestMapping("/cards")
 @RequiredArgsConstructor
 public class CardController implements CardDocumentation {
-    CardService cardService;
+
+    private final CardService cardService;
 
     @Override
     @PostMapping("/create")
-    public ResponseEntity<UUID> createAuthorizedCard(@RequestBody @Valid CreateAuthorizedUserDto createAuthorizedUserDto) {
-        Card card = cardService.createAuthorizedCard(createAuthorizedUserDto);
-        return ResponseEntity.ok(card.getId());
+    public ResponseEntity<UUID> createAuthorizedCard(@RequestBody @Valid CreateCardDto createCardDto) {
+        Card card = cardService.createAuthorizedCard(createCardDto);
+        return ResponseEntity.ok(card.getId()); // TODO: In near future there will be Map instead of this
     }
 
     @Override
@@ -42,14 +43,14 @@ public class CardController implements CardDocumentation {
     }
 
     @Override
-    @PutMapping("/unblock/{cardNumber}")
+    @PutMapping("/deactivate/{cardNumber}")
     public ResponseEntity<Void> deactivateCard(@PathVariable("cardNumber") String cardNumber) {
         cardService.deactivateCard(cardNumber);
         return ResponseEntity.ok().build();
     }
 
     @Override
-    @GetMapping("client/search")
+    @GetMapping("/client/search")
     public ResponseEntity<Page<CardDto>> clientSearchCards(
             @RequestParam(required = false) String accountNumber,
             @RequestParam(defaultValue = "0") int page,
@@ -58,7 +59,7 @@ public class CardController implements CardDocumentation {
     }
 
     @Override
-    @GetMapping("employee/search")
+    @GetMapping("/employee/search")
     public ResponseEntity<Page<CardDto>> employeeSearchCards(@RequestParam(required = false) String cardNumer,
                                                              @RequestParam(required = false) String firstName,
                                                              @RequestParam(required = false) String lastName,
