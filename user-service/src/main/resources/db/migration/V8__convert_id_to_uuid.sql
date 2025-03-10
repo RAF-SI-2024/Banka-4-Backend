@@ -7,6 +7,7 @@ UPDATE clients SET gender = 'FEMALE' WHERE gender = 'Female';
 ALTER TABLE accounts DROP CONSTRAINT fk_accounts_on_client;
 ALTER TABLE accounts DROP CONSTRAINT fk_accounts_on_employee;
 ALTER TABLE companies DROP CONSTRAINT fk_companies_on_majorityowner;
+ALTER TABLE client_contacts DROP CONSTRAINT fk_clicon_on_client;
 
 -- Convert character varying ID columns to UUID
 ALTER TABLE clients ALTER COLUMN id TYPE UUID USING id::uuid;

@@ -26,7 +26,7 @@ public record CreateClientDto(
         LocalDate dateOfBirth,
 
         @Schema(description = "Client's gender (Male or Female)", example = "Male")
-        @Pattern(regexp = "Male|Female", message = "Gender must be Male or Female")
+        @Pattern(regexp = "MALE|FEMALE", message = "Gender must be Male or Female")
         @NotBlank(message = "Gender is required")
         String gender,
 
