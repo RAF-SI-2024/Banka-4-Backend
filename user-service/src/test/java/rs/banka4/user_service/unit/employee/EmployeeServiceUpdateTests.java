@@ -59,7 +59,7 @@ public class EmployeeServiceUpdateTests {
         assertEquals(updateEmployeeDto.username(), employee.getUsername());
         assertEquals(updateEmployeeDto.firstName(), employee.getFirstName());
         assertEquals(updateEmployeeDto.lastName(), employee.getLastName());
-        assertEquals(updateEmployeeDto.phone(), employee.getPhone());
+        assertEquals(updateEmployeeDto.phoneNumber(), employee.getPhone());
         assertEquals(updateEmployeeDto.address(), employee.getAddress());
         assertEquals(updateEmployeeDto.position(), employee.getPosition());
         assertEquals(updateEmployeeDto.department(), employee.getDepartment());

@@ -25,6 +25,7 @@ public interface ClientMapper {
     ClientDto toDto(Client client);
 
     @Mapping(target = "gender", source = "gender", qualifiedByName = "mapGender")
+    @Mapping(target = "phone", source = "phoneNumber")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void fromUpdate(@MappingTarget Client target, UpdateClientDto dto);
 

@@ -33,7 +33,7 @@ public record LoanApplicationDto(
         @Schema(description = "Repayment period in months", example = "60")
         Integer repaymentPeriod,
 
-        @Schema(description = "Applicant's contact phone number", example = "+381641234567")
+        @Schema(description = "Applicant's contact phoneNumber number", example = "+381641234567")
         String contactPhone,
 
         @Schema(description = "Applicant's bank account number", example = "35123456789012345678")

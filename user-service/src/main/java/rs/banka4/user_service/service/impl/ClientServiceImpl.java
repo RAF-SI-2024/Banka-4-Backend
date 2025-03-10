@@ -162,6 +162,10 @@ public class ClientServiceImpl implements ClientService {
         }
 
         ClientMapper.INSTANCE.fromUpdate(client, updateClientDto);
+        if(updateClientDto.privilege() != null) {
+            client.setPrivileges(updateClientDto.privilege());
+        }
+
         clientRepository.save(client);
     }
 
