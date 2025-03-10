@@ -19,7 +19,7 @@ public record UpdateEmployeeDto(
         @Schema(description = "Employee's date of birth", example = "1990-05-15")
         LocalDate dateOfBirth,
 
-        @Pattern(regexp = "Male|Female", message = "Gender must be Male or Female")
+        @Pattern(regexp = "Male|Female", message = "Gender must be Male or Female") // UPPERCASE
         @Schema(description = "Gender", example = "Male")
         String gender,
 

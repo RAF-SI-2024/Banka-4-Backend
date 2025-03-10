@@ -147,8 +147,10 @@ public class ClientServiceImpl implements ClientService {
         if (request.privilege() != null) {
             client.setPrivileges(request.privilege());
         }
+        Client savedClient = clientRepository.save(client);
+        userService.sendVerificationEmail(request.firstName(), request.email());
 
-        return clientRepository.save(client);
+        return savedClient;
     }
 
     @Override
