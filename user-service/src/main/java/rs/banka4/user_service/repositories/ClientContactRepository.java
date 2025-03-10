@@ -15,4 +15,6 @@ import java.util.UUID;
 public interface ClientContactRepository extends JpaRepository<ClientContact, UUID> {
     @Query("SELECT c FROM ClientContact c WHERE c.deleted = false AND c.client = :client")
     Page<ClientContact> findAllActive(Pageable pageable, @Param("client") Client client);
+
+    boolean existsByAccountNumber(String accountNumber);
 }

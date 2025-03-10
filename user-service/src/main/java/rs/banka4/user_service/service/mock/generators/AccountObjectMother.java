@@ -69,7 +69,7 @@ public class AccountObjectMother {
         account.setAccountType(AccountType.STANDARD);
         account.setDailyLimit(BigDecimal.valueOf(1000.00));
         account.setMonthlyLimit(BigDecimal.valueOf(10000.00));
-        account.setCurrency(new Currency(UUID.randomUUID(), "Serbian Dinar", "RSD", "Serbian Dinar currency", true, Currency.Code.RSD));
+        account.setCurrency(new Currency(UUID.randomUUID(), 1L, "Serbian Dinar", "RSD", "Serbian Dinar currency", true, Currency.Code.RSD));
         account.setEmployee(EmployeeObjectMother.generateBasicEmployee());
         account.setClient(ClientObjectMother.generateClient(UUID.fromString("9df5e618-f21d-48a7-a7a4-ac55ea8bec97"), "markezaa@example.com"));
         return account;
@@ -84,7 +84,7 @@ public class AccountObjectMother {
         account.setAccountType(AccountType.STANDARD);
         account.setDailyLimit(BigDecimal.valueOf(1000.00));
         account.setMonthlyLimit(BigDecimal.valueOf(10000.00));
-        account.setCurrency(new Currency(UUID.randomUUID(), "Serbian Dinar", "RSD", "Serbian Dinar currency", true, Currency.Code.RSD));
+        account.setCurrency(new Currency(UUID.randomUUID(), 1L, "Serbian Dinar", "RSD", "Serbian Dinar currency", true, Currency.Code.RSD));
         account.setEmployee(EmployeeObjectMother.generateBasicEmployee());
         account.setClient(ClientObjectMother.generateClient(UUID.fromString("9df5e618-f21d-48a7-a7a4-ac55ea8bec93"), "zorz@example.com"));
         return account;
