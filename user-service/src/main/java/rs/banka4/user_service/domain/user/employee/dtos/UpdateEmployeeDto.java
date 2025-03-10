@@ -31,8 +31,8 @@ public record UpdateEmployeeDto(
         @Schema(description = "Employee's username", example = "funfa2c1t")
         String username,
 
-        @Schema(description = "Employee's phone number", example = "+1234567890")
-        String phone,
+        @Schema(description = "Employee's phoneNumber number", example = "+1234567890")
+        String phoneNumber,
 
         @Schema(description = "Employee's address", example = "123 Grove Street, City, Country")
         String address,

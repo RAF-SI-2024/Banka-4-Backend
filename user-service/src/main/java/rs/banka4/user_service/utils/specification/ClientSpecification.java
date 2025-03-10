@@ -24,7 +24,7 @@ public class ClientSpecification {
 
     public static Specification<Client> hasPhone(String phone) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.like(
-                criteriaBuilder.lower(root.get("phone")), "%" + phone.toLowerCase() + "%"
+                criteriaBuilder.lower(root.get("phoneNumber")), "%" + phone.toLowerCase() + "%"
         );
     }
 

@@ -41,7 +41,7 @@ public record AccountClientIdDto(
         @NotBlank(message = "Email is required")
         String email,
 
-        @Schema(description = "Client's phone number", example = "+1234567890")
+        @Schema(description = "Client's phoneNumber number", example = "+1234567890")
         @NotBlank(message = "Phone is required")
         String phone,
 

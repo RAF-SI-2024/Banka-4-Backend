@@ -156,6 +156,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         EmployeeMapper.INSTANCE.fromUpdate(employee, updateEmployeeDto);
+        if (updateEmployeeDto.privilege() != null) {
+            employee.setPrivileges(updateEmployeeDto.privilege());
+        }
         employeeRepository.save(employee);
     }
 

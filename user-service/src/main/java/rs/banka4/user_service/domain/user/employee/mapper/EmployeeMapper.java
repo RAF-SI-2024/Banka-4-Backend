@@ -21,6 +21,7 @@ public interface EmployeeMapper {
     EmployeeResponseDto toResponseDto(Employee employee);
 
     @Mapping(target = "gender", source = "gender", qualifiedByName = "mapGender")
+    @Mapping(target = "phone", source = "phoneNumber")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void fromUpdate(@MappingTarget Employee employee, UpdateEmployeeDto dto);
 

@@ -60,7 +60,8 @@ public class ClientObjectMother {
                 "Male",
                 "john.doe@example.com",
                 "1234567890",
-                "123 Grove Street, City, Country"
+                "123 Grove Street, City, Country",
+                Set.of(Privilege.SEARCH)
         );
     }
 

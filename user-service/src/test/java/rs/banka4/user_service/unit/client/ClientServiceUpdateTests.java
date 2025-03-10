@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import rs.banka4.user_service.domain.user.Privilege;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.UpdateClientDto;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
@@ -15,6 +16,7 @@ import rs.banka4.user_service.service.impl.UserService;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,7 +52,8 @@ public class ClientServiceUpdateTests {
                 "Male",
                 "new.email@example.com",
                 "1234567890",
-                "New Address"
+                "New Address",
+                Set.of(Privilege.SEARCH)
         );
     }
 
