@@ -66,9 +66,9 @@ services:
       test: "pg_isready -d user-service -U user-service"
       interval: 3s
       start_period: 3s
-    ports:
-      - "5432:5432"  # Default port for PostgreSQL
-      - "5433:5432"  # Map container's 5432 to host's 5433
+#    ports:
+#      - "5432:5432"  # Default port for PostgreSQL
+#      - "5433:5432"  # Map container's 5432 to host's 5433
 
 
   # Notification service and its state
