@@ -1,0 +1,58 @@
+{
+  "lastUpdatedISO8061withTimezone": "2025-03-09T00:00:01+00:00",
+  "lastUpdatedUnix": 1741478401,
+  "nextUpdateISO8061withTimezone": "2025-03-10T00:00:01+00:00",
+  "nextUpdateUnix": 1741564801,
+  "lastLocalUpdate": 1741533064,
+  "exchanges": {
+    "USD": {
+      "Base": "USD",
+      "Quote": "RSD",
+      "Buy": 106.86528497409327,
+      "Neutral": 107.94473229706391,
+      "Sell": 109.02417962003454
+    },
+    "EUR": {
+      "Base": "EUR",
+      "Quote": "RSD",
+      "Buy": 115.95221363316935,
+      "Neutral": 117.12344811431248,
+      "Sell": 118.29468259545561
+    },
+    "GBP": {
+      "Base": "GBP",
+      "Quote": "RSD",
+      "Buy": 137.94064372300406,
+      "Neutral": 139.33398355858995,
+      "Sell": 140.72732339417584
+    },
+    "JPY": {
+      "Base": "JPY",
+      "Quote": "RSD",
+      "Buy": 0.7247437774524157,
+      "Neutral": 0.7320644216691068,
+      "Sell": 0.7393850658857979
+    },
+    "AUD": {
+      "Base": "AUD",
+      "Quote": "RSD",
+      "Buy": 67.34693877551021,
+      "Neutral": 68.02721088435375,
+      "Sell": 68.70748299319729
+    },
+    "CAD": {
+      "Base": "CAD",
+      "Quote": "RSD",
+      "Buy": 74.38016528925618,
+      "Neutral": 75.13148009015777,
+      "Sell": 75.88279489105935
+    },
+    "CHF": {
+      "Base": "CHF",
+      "Quote": "RSD",
+      "Buy": 121.63656468853667,
+      "Neutral": 122.86521685710774,
+      "Sell": 124.09386902567881
+    }
+  }
+}
