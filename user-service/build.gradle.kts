@@ -73,6 +73,28 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-tasks.withType<Test> {
-	useJUnitPlatform()
+tasks.test {
+	useJUnitPlatform {
+		excludeTags("integration")
+	}
 }
+
+val test by testing.suites.existing(JvmTestSuite::class)
+tasks.register<Test>("integrationTest") {
+	group = "verification"
+	description = "Runs tests marked as integration tests.  These are slower, so, they are separate."
+	useJUnitPlatform {
+		includeTags("integration")
+		// Don't include untagged stuff.
+		excludeTags("none()")
+	}
+	shouldRunAfter("test")
+
+	testClassesDirs = files(test.map { it.sources.output.classesDirs })
+	classpath = files(test.map { it.sources.runtimeClasspath })
+}
+
+// Local Variables:
+// mode: prog
+// indent-tabs-mode: t
+// End:
