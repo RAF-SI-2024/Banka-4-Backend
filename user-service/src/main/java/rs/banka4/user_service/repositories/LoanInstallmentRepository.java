@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface LoanInstallment extends JpaRepository<rs.banka4.user_service.domain.loan.db.LoanInstallment, UUID> {
+public interface LoanInstallmentRepository extends JpaRepository<rs.banka4.user_service.domain.loan.db.LoanInstallment, UUID> {
 }
