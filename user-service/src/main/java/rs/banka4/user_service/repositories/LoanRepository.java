@@ -10,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface LoanRepository extends JpaRepository<Loan, UUID> {
-    List<Loan> findByInterestTypeAndLoanStatus(Loan.InterestType interestType, LoanStatus loanStatus);
+    List<Loan> findByInterestTypeAndStatus(Loan.InterestType interestType, LoanStatus status);
 }

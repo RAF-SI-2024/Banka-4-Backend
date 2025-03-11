@@ -20,7 +20,7 @@ public class LoanRateScheduler {
 
     @Scheduled(cron = "0 5 0 1 * *")  // Cron expression for the first day of every month at midnight
     public void applyVariableRateToAllVariableLoans(){
-        List<Loan> allVariableLoans = loanRepository.findByInterestTypeAndLoanStatus(Loan.InterestType.VARIABLE, LoanStatus.APPROVED);
+        List<Loan> allVariableLoans = loanRepository.findByInterestTypeAndStatus(Loan.InterestType.VARIABLE, LoanStatus.APPROVED);
         allVariableLoans.forEach(loan -> {
             loan.getInterestRate().setFixedRate(loan.getBaseInterestRate().add(interestRateVariant));
         });
