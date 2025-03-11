@@ -55,15 +55,15 @@ public class LoanController implements LoanDocumentation {
 
     @Override
     @PutMapping("/approve/{loanNumber}")
-    public ResponseEntity<Void> approveLoan(@PathVariable Long loanNumber) {
-        loanService.approveLoan(loanNumber);
+    public ResponseEntity<Void> approveLoan(@PathVariable Long loanNumber, Authentication auth) {
+        loanService.approveLoan(loanNumber, (String) auth.getCredentials());
         return ResponseEntity.ok().build();
     }
 
     @Override
     @PutMapping("/reject/{loanNumber}")
-    public ResponseEntity<Void> rejectLoan(@PathVariable Long loanNumber) {
-        loanService.rejectLoan(loanNumber);
+    public ResponseEntity<Void> rejectLoan(@PathVariable Long loanNumber, Authentication auth) {
+        loanService.rejectLoan(loanNumber, (String) auth.getCredentials());
         return ResponseEntity.ok().build();
     }
 }

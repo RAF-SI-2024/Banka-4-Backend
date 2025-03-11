@@ -11,6 +11,6 @@ public interface LoanService {
     void createLoanApplication(LoanApplicationDto loanApplicationDto);
     ResponseEntity<Page<LoanInformationDto>> getAllLoans(PageRequest pageRequest , LoanFilterDto filterDto);
     ResponseEntity<Page<LoanInformationDto>> getMyLoans(String token, PageRequest pageRequest);
-    void approveLoan(Long loanNumber);
-    void rejectLoan(Long loanNumber);
+    void approveLoan(Long loanNumber, String auth);
+    void rejectLoan(Long loanNumber, String auth);
 }

@@ -76,12 +76,12 @@ public class LoanServiceMock implements LoanService {
     }
 
     @Override
-    public void approveLoan(Long loanNumber) {
+    public void approveLoan(Long loanNumber, String auth) {
 
     }
 
     @Override
-    public void rejectLoan(Long loanNumber) {
+    public void rejectLoan(Long loanNumber, String auth) {
 
     }
 }

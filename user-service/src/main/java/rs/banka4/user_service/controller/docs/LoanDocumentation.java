@@ -79,7 +79,7 @@ public interface LoanDocumentation {
                             content = @Content(schema = @Schema(implementation = LoanNotFound.class))),
             }
     )
-    ResponseEntity<Void> approveLoan(@Parameter(description = "Number of the loan") Long loanNumber);
+    ResponseEntity<Void> approveLoan(@Parameter(description = "Number of the loan") Long loanNumber, Authentication auth);
 
     @Operation(
             summary = "Approve Loan",
@@ -92,6 +92,6 @@ public interface LoanDocumentation {
                             content = @Content(schema = @Schema(implementation = LoanNotFound.class))),
             }
     )
-    ResponseEntity<Void> rejectLoan(@Parameter(description = "Number of the loan") Long loanNumber);
+    ResponseEntity<Void> rejectLoan(@Parameter(description = "Number of the loan") Long loanNumber, Authentication auth);
 
 }
