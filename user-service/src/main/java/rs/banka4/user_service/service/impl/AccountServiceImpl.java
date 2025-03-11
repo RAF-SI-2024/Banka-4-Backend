@@ -29,7 +29,6 @@ import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.exceptions.company.CompanyNotFound;
 import rs.banka4.user_service.exceptions.user.employee.EmployeeNotFound;
 import rs.banka4.user_service.repositories.*;
-import rs.banka4.user_service.runners.TestDataRunner;
 import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.abstraction.CompanyService;

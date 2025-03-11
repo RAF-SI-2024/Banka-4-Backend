@@ -25,10 +25,7 @@ import rs.banka4.user_service.domain.user.Privilege;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.db.ClientContact;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
-import rs.banka4.user_service.exceptions.account.AccountNotFound;
-import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.repositories.*;
-import rs.banka4.user_service.service.impl.EmployeeServiceImpl;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
