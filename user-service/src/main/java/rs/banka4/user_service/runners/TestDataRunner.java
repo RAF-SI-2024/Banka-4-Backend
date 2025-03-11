@@ -955,4 +955,36 @@ public class TestDataRunner implements CommandLineRunner {
         }
     }
 
+    private void seedBankMargins() {
+        BankMargin cashMargin = BankMargin.builder()
+                .type(LoanType.CASH)
+                .margin(new BigDecimal("1.75"))
+                .build();
+
+        BankMargin mortgageMargin = BankMargin.builder()
+                .type(LoanType.MORTGAGE)
+                .margin(new BigDecimal("1.50"))
+                .build();
+
+        BankMargin autoLoanMargin = BankMargin.builder()
+                .type(LoanType.AUTO_LOAN)
+                .margin(new BigDecimal("1.25"))
+                .build();
+
+        BankMargin refinancingMargin = BankMargin.builder()
+                .type(LoanType.REFINANCING)
+                .margin(new BigDecimal("1.00"))
+                .build();
+
+        BankMargin studentLoanMargin = BankMargin.builder()
+                .type(LoanType.STUDENT_LOAN)
+                .margin(new BigDecimal("0.75"))
+                .build();
+
+        // Save all the bank margins to the database
+        bankMarginRepository.saveAll(
+                List.of(cashMargin, mortgageMargin, autoLoanMargin, refinancingMargin, studentLoanMargin)
+        );
+    }
+
 }
