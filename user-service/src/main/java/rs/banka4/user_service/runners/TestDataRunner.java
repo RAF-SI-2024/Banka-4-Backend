@@ -30,7 +30,6 @@ import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.db.ClientContact;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.repositories.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -56,6 +55,8 @@ public class TestDataRunner implements CommandLineRunner {
     private final TransactionRepository transactionRepository;
     private final LoanRepository loanRepository;
     private final CardRepository cardRepository;
+    private final BankMarginRepositroy bankMarginRepository;
+
 
     @Override
     public void run(String... args) {
@@ -69,6 +70,7 @@ public class TestDataRunner implements CommandLineRunner {
         loanSeeder();
         transactionSeeder();
         cardSeeder();
+        seedBankMargins();
     }
 
     private void cardSeeder() {
@@ -1035,7 +1037,6 @@ public class TestDataRunner implements CommandLineRunner {
                 .margin(new BigDecimal("0.75"))
                 .build();
 
-        // Save all the bank margins to the database
         bankMarginRepository.saveAll(
                 List.of(cashMargin, mortgageMargin, autoLoanMargin, refinancingMargin, studentLoanMargin)
         );
