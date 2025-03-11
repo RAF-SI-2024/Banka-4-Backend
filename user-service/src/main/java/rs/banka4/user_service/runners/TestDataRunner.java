@@ -1,6 +1,8 @@
 package rs.banka4.user_service.runners;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +28,7 @@ import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.repositories.*;
+import rs.banka4.user_service.service.impl.EmployeeServiceImpl;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,6 +41,8 @@ import java.util.stream.IntStream;
 @Component
 @RequiredArgsConstructor
 public class TestDataRunner implements CommandLineRunner {
+    private static final Logger LOGGER
+            = LoggerFactory.getLogger(TestDataRunner.class);
 
     private final ClientRepository clientRepository;
     private final EmployeeRepository employeeRepository;
@@ -67,7 +72,7 @@ public class TestDataRunner implements CommandLineRunner {
         long loanCount = loanRepository.count();
 
         if (loanCount > 10) {
-            System.out.println("Seeder skipped. There are already more than 10 loans in the database.");
+            LOGGER.debug("Seeder skipped. There are already more than 10 loans in the database.");
             return;
         }
 
