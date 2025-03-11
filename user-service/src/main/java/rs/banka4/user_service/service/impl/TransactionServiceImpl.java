@@ -14,8 +14,10 @@ import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.transaction.db.MonetaryAmount;
 import rs.banka4.user_service.domain.transaction.db.Transaction;
+import rs.banka4.user_service.exceptions.account.AccountNotActive;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
 import rs.banka4.user_service.exceptions.account.NotAccountOwner;
+import rs.banka4.user_service.exceptions.authenticator.NotValidTotpException;
 import rs.banka4.user_service.exceptions.transaction.InsufficientFunds;
 import rs.banka4.user_service.exceptions.transaction.TransactionNotFound;
 import rs.banka4.user_service.exceptions.user.UserNotFound;
@@ -39,15 +41,22 @@ public class TransactionServiceImpl implements TransactionService {
     private final AccountRepository accountRepository;
     private final ClientRepository clientRepository;
     private final TransactionRepository transactionRepository;
+    private final TotpService totpService;
     private final JwtUtil jwtUtil;
 
     @Override
     @Transactional
     public TransactionDto createTransaction(Authentication authentication, CreatePaymentDto createPaymentDto) {
         Client client = getClient(authentication);
+
+        if (!veifyClient(authentication, createPaymentDto.otpCode())) {
+            throw new NotValidTotpException();
+        }
+
         Account fromAccount = getAccount(createPaymentDto.fromAccount());
         Account toAccount = getAccount(createPaymentDto.toAccount());
 
+        validateAccountActive(fromAccount);
         validateClientAccountOwnership(client, fromAccount);
         validateSufficientFunds(fromAccount, createPaymentDto.fromAmount().add(BigDecimal.ONE));
 
@@ -63,9 +72,15 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public TransactionDto createTransfer(Authentication authentication, CreatePaymentDto createPaymentDto) {
         Client client = getClient(authentication);
+
+        if (!veifyClient(authentication, createPaymentDto.otpCode())) {
+            throw new NotValidTotpException();
+        }
+
         Account fromAccount = getAccount(createPaymentDto.fromAccount());
         Account toAccount = getAccount(createPaymentDto.toAccount());
 
+        validateAccountActive(fromAccount);
         validateClientAccountOwnership(client, fromAccount, toAccount);
         validateSufficientFunds(fromAccount, createPaymentDto.fromAmount());
 
@@ -129,6 +144,17 @@ public class TransactionServiceImpl implements TransactionService {
     private void validateSufficientFunds(Account fromAccount, BigDecimal amount) {
         if (fromAccount.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
             throw new InsufficientFunds();
+        }
+    }
+
+    private boolean veifyClient(Authentication authentication, String otpCode) {
+        return totpService.validate(authentication.getCredentials().toString(), otpCode);
+    }
+
+    private void validateAccountActive(Account account) {
+        boolean isActive = account.isActive();
+        if (!isActive) {
+            throw new AccountNotActive();
         }
     }
 

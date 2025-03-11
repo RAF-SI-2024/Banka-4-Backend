@@ -40,4 +40,8 @@ public interface ClientMapper {
             client.setPrivileges(dto.privilege());
         }
     }
+
+    @Mapping(target = "has2FA", source = "has2FA")
+    ClientDto toDto(Client client, Boolean has2FA);
+
 }
