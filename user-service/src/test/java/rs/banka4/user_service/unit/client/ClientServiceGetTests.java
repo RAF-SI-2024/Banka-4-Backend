@@ -101,6 +101,7 @@ public class ClientServiceGetTests {
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(clientMapper.toDto(client)).thenReturn(clientDto);
+        clientRepository.save(client);
 
         // Act
         ClientDto result = clientService.getClientById(clientId);
