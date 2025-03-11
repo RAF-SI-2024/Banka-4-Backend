@@ -12,6 +12,7 @@ import rs.banka4.user_service.domain.account.db.AccountType;
 import rs.banka4.user_service.domain.company.db.ActivityCode;
 import rs.banka4.user_service.domain.company.db.Company;
 import rs.banka4.user_service.domain.currency.db.Currency;
+import rs.banka4.user_service.domain.loan.db.BankMargin;
 import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.db.LoanStatus;
 import rs.banka4.user_service.domain.loan.db.LoanType;
@@ -49,6 +50,7 @@ public class TestDataRunner implements CommandLineRunner {
     private final ClientContactRepository clientContactRepository;
     private final TransactionRepository transactionRepository;
     private final LoanRepository loanRepository;
+    private final BankMarginRepositroy bankMarginRepository;
 
     @Override
     public void run(String... args) {
@@ -61,6 +63,7 @@ public class TestDataRunner implements CommandLineRunner {
         accountSeeder();
         loanSeeder();
         transactionSeeder();
+        seedBankMargins();
     }
 
     private void loanSeeder() {
