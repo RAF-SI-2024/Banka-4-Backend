@@ -18,7 +18,7 @@ import java.util.UUID;
 public class InterestRate {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "min_amount", nullable = false)
