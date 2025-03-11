@@ -14,6 +14,5 @@ public interface LoanService {
     ResponseEntity<Page<LoanInformationDto>> getMyLoans(String token, PageRequest pageRequest);
     void approveLoan(Long loanNumber);
     void rejectLoan(Long loanNumber);
-    BigDecimal calculateLoanInterestRate();
-    boolean monthlyPaymentCheck();
+
 }

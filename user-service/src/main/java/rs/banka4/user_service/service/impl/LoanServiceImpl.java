@@ -10,6 +10,7 @@ import rs.banka4.user_service.domain.loan.dtos.LoanInformationDto;
 import rs.banka4.user_service.repositories.LoanInstallmentRepository;
 import rs.banka4.user_service.repositories.LoanRepository;
 import rs.banka4.user_service.service.abstraction.LoanService;
+import rs.banka4.user_service.utils.loans.LoanRateUtil;
 
 import java.math.BigDecimal;
 
@@ -44,15 +45,5 @@ public class LoanServiceImpl implements LoanService {
     @Override
     public void rejectLoan(Long loanNumber) {
 
-    }
-
-    @Override
-    public BigDecimal calculateLoanInterestRate() {
-        return null;
-    }
-
-    @Override
-    public boolean monthlyPaymentCheck() {
-        return false;
     }
 }

@@ -84,6 +84,9 @@ public class EmailService {
         return switch (topic) {
             case "account-activation" -> Subjects.ACTIVATION.getSubject();
             case "password-reset" -> Subjects.PASSWORD_RESET.getSubject();
+            case "loan-installment-paid" -> Subjects.LOAN_INSTALLMENT_PAID.getSubject();
+            case "loan-installment-payment-denied" -> Subjects.LOAN_INSTALLMENT_PAYMENT_DENIED.getSubject();
+            case "loan-penalty" -> Subjects.LOAN_PENALTY.getSubject();
             default -> throw new IllegalArgumentException("unsupported topic " + topic);
         };
     }
