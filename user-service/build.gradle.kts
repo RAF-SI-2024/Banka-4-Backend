@@ -2,6 +2,7 @@ plugins {
 	java
 	id("org.springframework.boot") version "3.4.3"
 	id("io.spring.dependency-management") version "1.1.7"
+        id("jacoco")
 }
 
 group = "rs.banka4"
@@ -80,7 +81,7 @@ tasks.test {
 }
 
 val test by testing.suites.existing(JvmTestSuite::class)
-tasks.register<Test>("integrationTest") {
+val integrationTest = tasks.register<Test>("integrationTest") {
 	group = "verification"
 	description = "Runs tests marked as integration tests.  These are slower, so, they are separate."
 	useJUnitPlatform {
@@ -92,6 +93,28 @@ tasks.register<Test>("integrationTest") {
 
 	testClassesDirs = files(test.map { it.sources.output.classesDirs })
 	classpath = files(test.map { it.sources.runtimeClasspath })
+}
+
+tasks.jacocoTestReport {
+	// Sync the path up with below.
+	reports {
+		xml.required = true
+		csv.required = true
+		html.outputLocation = layout.buildDirectory.dir("reports/jacocoTest")
+	}
+}
+
+tasks.register<JacocoReport>("jacocoIntegrationTestReport") {
+	// For some reason, the dumb thing misdetects this path if I pass it
+	// 'integrationTest' directly.
+	executionData(layout.buildDirectory.file("jacoco/integrationTest.exec"))
+	sourceSets(sourceSets.main.get())
+	reports {
+		xml.required = true
+		csv.required = true
+		html.outputLocation = layout.buildDirectory.dir("reports/jacocoIntegrationTest")
+	}
+	dependsOn(integrationTest)
 }
 
 // Local Variables:
