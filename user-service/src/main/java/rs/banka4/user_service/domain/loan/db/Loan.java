@@ -32,7 +32,12 @@ public class Loan {
     private BigDecimal monthlyInstallment;
     private LocalDate nextInstallmentDate;
     private BigDecimal remainingDebt;
-    private BigDecimal interestRate;
+    private BigDecimal baseInterestRate;
+
+    @ManyToOne
+    @JoinColumn(name = "interest_rate_id", nullable = false)
+    private InterestRate interestRate;
+
 
     @ManyToOne
     private Account account;

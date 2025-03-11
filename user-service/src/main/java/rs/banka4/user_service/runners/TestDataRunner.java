@@ -56,6 +56,7 @@ public class TestDataRunner implements CommandLineRunner {
     private final LoanRepository loanRepository;
     private final CardRepository cardRepository;
     private final BankMarginRepositroy bankMarginRepository;
+    private final InterestRateRepository interestRateRepository;
 
 
     @Override
@@ -67,10 +68,12 @@ public class TestDataRunner implements CommandLineRunner {
         clientContactsSeeder();
         companySeeder();
         accountSeeder();
+        interestRateSeeder();
         loanSeeder();
         transactionSeeder();
         cardSeeder();
         seedBankMargins();
+
     }
 
     private void cardSeeder() {
@@ -129,7 +132,7 @@ public class TestDataRunner implements CommandLineRunner {
 
         Random random = new Random();
         List<Account> accounts = accountRepository.findAll();
-
+        List<InterestRate> interestRates = interestRateRepository.findAll();
         List<Loan> loans = random.ints(10, 0, 10000)
                 .mapToObj(i -> Loan.builder()
                         .loanNumber(generateRandomLoanNumber())
@@ -140,8 +143,11 @@ public class TestDataRunner implements CommandLineRunner {
                         .monthlyInstallment(generateRandomAmount())
                         .nextInstallmentDate(generateRandomDate().plusMonths(1))
                         .remainingDebt(generateRandomAmount())
-                        .interestRate(generateRandomInterestRate())
+                        .baseInterestRate(generateRandomInterestRate())
                         .account(accounts.get(random.nextInt(accounts.size())))
+                        //addition
+                        .interestRate(interestRates.get(Random.from(new Random()).nextInt() % interestRates.size()))
+
                         .status(randomEnumValue(LoanStatus.class))
                         .type(randomEnumValue(LoanType.class))
                         .interestType(randomEnumValue(Loan.InterestType.class))
@@ -1040,6 +1046,30 @@ public class TestDataRunner implements CommandLineRunner {
         bankMarginRepository.saveAll(
                 List.of(cashMargin, mortgageMargin, autoLoanMargin, refinancingMargin, studentLoanMargin)
         );
+    }
+
+    private void interestRateSeeder(){
+        List<InterestRate> interestRates = List.of(
+                createInterestRate(0, 500000L, 6.25),
+                createInterestRate(500_001, 1000000L, 6.00),
+                createInterestRate(1_000_001, 2000000L, 5.75),
+                createInterestRate(2_000_001, 5000000L, 5.50),
+                createInterestRate(5_000_001, 10000000L, 5.25),
+                createInterestRate(10_000_001, 20000000L, 5.00),
+                createInterestRate(20_000_001, null, 4.75)  // No upper limit
+        );
+
+        interestRateRepository.saveAll(interestRates);
+    }
+
+    private InterestRate createInterestRate(long minAmount, Long maxAmount, double fixedRate) {
+        return InterestRate.builder()
+                .minAmount(BigDecimal.valueOf(minAmount))
+                .maxAmount(maxAmount != null ? BigDecimal.valueOf(maxAmount) : null)
+                .fixedRate(BigDecimal.valueOf(fixedRate))
+                .dateActiveFrom(LocalDate.now())
+                .dateActiveTo(LocalDate.now().plusYears(1))
+                .build();
     }
 
 }
