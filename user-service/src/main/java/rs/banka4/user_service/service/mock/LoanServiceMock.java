@@ -12,6 +12,7 @@ import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.db.LoanStatus;
 import rs.banka4.user_service.domain.loan.db.LoanType;
 import rs.banka4.user_service.domain.loan.dtos.LoanApplicationDto;
+import rs.banka4.user_service.domain.loan.dtos.LoanFilterDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanInformationDto;
 import rs.banka4.user_service.service.abstraction.LoanService;
 
@@ -63,7 +64,7 @@ public class LoanServiceMock implements LoanService {
     }
 
     @Override
-    public ResponseEntity<Page<LoanInformationDto>> getAllLoans(PageRequest pageRequest) {
+    public ResponseEntity<Page<LoanInformationDto>> getAllLoans(PageRequest pageRequest , LoanFilterDto filterDto) {
         Page<LoanInformationDto> dtos = new PageImpl<>(mockLoans, pageRequest, mockLoans.size());
         return ResponseEntity.ok(dtos);
     }
