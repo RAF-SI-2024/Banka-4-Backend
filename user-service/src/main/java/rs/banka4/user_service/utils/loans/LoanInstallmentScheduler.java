@@ -28,7 +28,6 @@ public class LoanInstallmentScheduler {
     private final LoanRepository loanRepository;
     private final AccountRepository accountRepository;
     private final RabbitTemplate rabbitTemplate;
-    private final MessageHelper messageHelper;
 
     private static final BigDecimal LATE_PAYMENT_PENALTY = new BigDecimal("0.05");
     private static final BigDecimal LEGAL_THRESHOLD = new BigDecimal("1000");
