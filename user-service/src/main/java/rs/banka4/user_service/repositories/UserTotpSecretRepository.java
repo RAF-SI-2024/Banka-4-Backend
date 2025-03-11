@@ -6,7 +6,7 @@ import rs.banka4.user_service.domain.authenticator.db.UserTotpSecret;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface UserTotpSecretRepository extends JpaRepository<UserTotpSecret, Long> {
+public interface UserTotpSecretRepository extends JpaRepository<UserTotpSecret, UUID> {
     Optional<UserTotpSecret> findByClient_Email(String email);
     Optional<UserTotpSecret> findByEmployee_Email(String email);
     Optional<UserTotpSecret> findByClient_Id(UUID clientId);
