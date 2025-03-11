@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.CardDocumentation;
 import rs.banka4.user_service.domain.card.db.Card;
+import rs.banka4.user_service.domain.card.db.CardStatus;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.service.abstraction.CardService;
@@ -31,7 +32,16 @@ public class CardController implements CardDocumentation {
     @Override
     @PutMapping("/block/{cardNumber}")
     public ResponseEntity<Void> blockCard(@PathVariable("cardNumber") String cardNumber) {
-        cardService.blockCard(cardNumber);
+        Card card = cardService.blockCard(cardNumber);
+
+        if (card == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (card.getCardStatus() == CardStatus.DEACTIVATED) {
+            return ResponseEntity.badRequest().build();
+        }
+
         return ResponseEntity.ok().build();
     }
 
