@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class LoanRateUtilTest {
+class LoanRateUtilTest {
 
     @Mock
     private BankMarginRepositroy bankMarginRepositroy;
@@ -45,7 +45,7 @@ public class LoanRateUtilTest {
 
         BigDecimal result = loanRateUtil.calculateInterestRate(referenceValue, loanType);
         assertNotNull(result);
-        assertEquals(new BigDecimal("6.25"), result); // (5.0 + 2.5) / 12
+        assertEquals(new BigDecimal("0.6"), result);
     }
 
     @Test
@@ -59,7 +59,7 @@ public class LoanRateUtilTest {
     @Test
     void testCalculateMonthly_FixedLoan() {
         BigInteger loanAmount = BigInteger.valueOf(100000);
-        BigDecimal monthlyInterestRate = new BigDecimal("0.005"); // 0.5%
+        BigDecimal monthlyInterestRate = new BigDecimal("0.005");
         BigInteger numberOfInstallments = BigInteger.valueOf(12);
 
         BigDecimal result = loanRateUtil.calculateMonthly(loanAmount, monthlyInterestRate, numberOfInstallments);

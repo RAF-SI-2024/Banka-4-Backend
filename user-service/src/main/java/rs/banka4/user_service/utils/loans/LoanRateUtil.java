@@ -32,11 +32,6 @@ public class LoanRateUtil {
      * Za fiksan kredit ta suma uvjiek bude ista, za varijabilni ta suma se mijenja na mjesecnom nivou (valjda)
      * tada bi se na kraju svakog mjeseca pozvala metoda caculateInterestRate koja racuna novu kamatnu stopu za taj varijabilni kredit
      * za taj mjesec i racuna ratu za placanje za taj mjesec
-     * (to sve preko cron joba se radi)
-     * @param loanAmount
-     * @param monthlyInterestRate
-     * @param numberOfInstallments
-     * @return
      */
     public BigDecimal calculateMonthly(BigInteger loanAmount, BigDecimal monthlyInterestRate, BigInteger numberOfInstallments) {
         if (monthlyInterestRate.compareTo(BigDecimal.ZERO) == 0) {
