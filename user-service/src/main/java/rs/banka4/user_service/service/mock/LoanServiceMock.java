@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.currency.dtos.CurrencyDto;
+import rs.banka4.user_service.domain.loan.db.Loan;
+import rs.banka4.user_service.domain.loan.db.LoanStatus;
 import rs.banka4.user_service.domain.loan.db.LoanType;
 import rs.banka4.user_service.domain.loan.dtos.LoanApplicationDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanInformationDto;
@@ -29,8 +31,9 @@ public class LoanServiceMock implements LoanService {
                     LocalDate.now(), LocalDate.now().plusYears(5),
                     BigDecimal.valueOf(500), LocalDate.now().plusMonths(1),
                     BigDecimal.valueOf(5000),
-                    new CurrencyDto(UUID.randomUUID(), "Euro", "EUR", "European currency", true, Currency.Code.EUR)
-
+                    new CurrencyDto(UUID.randomUUID(), "Euro", "EUR", "European currency", true, Currency.Code.EUR),
+                    LoanStatus.APPROVED,
+                    Loan.InterestType.FIXED
             ),
             new LoanInformationDto(
                     1234967L, LoanType.CASH, BigDecimal.valueOf(10000), 60,
@@ -38,7 +41,9 @@ public class LoanServiceMock implements LoanService {
                     LocalDate.now(), LocalDate.now().plusYears(5),
                     BigDecimal.valueOf(500), LocalDate.now().plusMonths(1),
                     BigDecimal.valueOf(5000),
-                    new CurrencyDto(UUID.randomUUID(), "Euro", "€", "Official currency of the eurozone", true, Currency.Code.EUR)
+                    new CurrencyDto(UUID.randomUUID(), "Euro", "€", "Official currency of the eurozone", true, Currency.Code.EUR),
+                    LoanStatus.APPROVED,
+                    Loan.InterestType.FIXED
 
             ), new LoanInformationDto(
                     4434967L, LoanType.CASH, BigDecimal.valueOf(10000), 60,
@@ -46,8 +51,9 @@ public class LoanServiceMock implements LoanService {
                     LocalDate.now(), LocalDate.now().plusYears(5),
                     BigDecimal.valueOf(500), LocalDate.now().plusMonths(1),
                     BigDecimal.valueOf(5000),
-                    new CurrencyDto(UUID.randomUUID(), "Euro", "€", "Official currency of the eurozone", true, Currency.Code.EUR)
-
+                    new CurrencyDto(UUID.randomUUID(), "Euro", "€", "Official currency of the eurozone", true, Currency.Code.EUR),
+                    LoanStatus.APPROVED,
+                    Loan.InterestType.FIXED
             )
     );
 
