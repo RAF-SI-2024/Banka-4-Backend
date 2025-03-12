@@ -32,8 +32,8 @@ public class CardController implements CardDocumentation {
 
     @Override
     @PutMapping("/block/{cardNumber}")
-    public ResponseEntity<Void> blockCard(@PathVariable("cardNumber") String cardNumber, @RequestHeader("Authorization")String authHeader) {
-        String token = authHeader.substring(7);
+    public ResponseEntity<Void> blockCard(Authentication authentication, @PathVariable("cardNumber") String cardNumber) {
+        String token = authentication.getCredentials().toString();
         Card card = cardService.blockCard(cardNumber, token);
         if (card == null) {
             return ResponseEntity.notFound().build();
