@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
@@ -42,7 +43,7 @@ public interface CardDocumentation {
                     @ApiResponse(responseCode = "403", description = "Forbidden - Card privileges required"),
             }
     )
-    ResponseEntity<Void> blockCard(String cardNumber);
+    ResponseEntity<Void> blockCard(Authentication authentication, String cardNumber);
 
     @Operation(
             summary = "This endpoint is used to unblock existing card",
@@ -53,7 +54,7 @@ public interface CardDocumentation {
                     @ApiResponse(responseCode = "403", description = "Forbidden - Employee privileges required"),
             }
     )
-    ResponseEntity<Void> unblockCard(String cardNumber);
+    ResponseEntity<Void> unblockCard(Authentication authentication, String cardNumber);
 
     @Operation(
             summary = "This endpoint is used to deactivate existing card",
@@ -64,7 +65,7 @@ public interface CardDocumentation {
                     @ApiResponse(responseCode = "403", description = "Forbidden - Card privileges required"),
             }
     )
-    ResponseEntity<Void> deactivateCard(String cardNumber);
+    ResponseEntity<Void> deactivateCard( Authentication authentication, String cardNumber);
 
     @Operation(
             summary = "This endpoint is used to return all cards for specific accountNumber filter",

@@ -16,6 +16,7 @@ import rs.banka4.user_service.repositories.LoanInstallmentRepository;
 import rs.banka4.user_service.repositories.LoanRepository;
 import rs.banka4.user_service.utils.loans.LoanRateUtil;
 import rs.banka4.user_service.exceptions.jwt.Unauthorized;
+import rs.banka4.user_service.exceptions.loan.InvalidLoanStatus;
 import rs.banka4.user_service.exceptions.loan.LoanNotFound;
 import rs.banka4.user_service.domain.loan.mapper.LoanMapper;
 import rs.banka4.user_service.domain.loan.specification.LoanSpecification;
@@ -69,6 +70,11 @@ public class LoanServiceImpl implements LoanService {
         if (loan.isEmpty())
             throw new LoanNotFound();
 
+        if(!loan.get().getStatus().equals(LoanStatus.PROCESSING))
+            throw new InvalidLoanStatus(loan.get().getStatus().name());
+
+        loan.get().setNextInstallmentDate(LocalDate.now().plusMonths(1));
+        loan.get().setDueDate(LocalDate.now().plusMonths(loan.get().getRepaymentPeriod()));
         loan.get().setStatus(LoanStatus.APPROVED);
         loan.get().setAgreementDate(LocalDate.now());
 
@@ -85,6 +91,9 @@ public class LoanServiceImpl implements LoanService {
 
         if (loan.isEmpty())
             throw new LoanNotFound();
+
+        if(!loan.get().getStatus().equals(LoanStatus.PROCESSING))
+            throw new InvalidLoanStatus(loan.get().getStatus().name());
 
         loan.get().setStatus(LoanStatus.REJECTED);
 
