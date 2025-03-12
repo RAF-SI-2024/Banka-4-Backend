@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.CardDocumentation;
 import rs.banka4.user_service.domain.card.db.Card;
@@ -31,13 +32,12 @@ public class CardController implements CardDocumentation {
 
     @Override
     @PutMapping("/block/{cardNumber}")
-    public ResponseEntity<Void> blockCard(@PathVariable("cardNumber") String cardNumber) {
-        Card card = cardService.blockCard(cardNumber);
-
+    public ResponseEntity<Void> blockCard(@PathVariable("cardNumber") String cardNumber, @RequestHeader("Authorization")String authHeader) {
+        String token = authHeader.substring(7);
+        Card card = cardService.blockCard(cardNumber, token);
         if (card == null) {
             return ResponseEntity.notFound().build();
         }
-
         if (card.getCardStatus() == CardStatus.DEACTIVATED) {
             return ResponseEntity.badRequest().build();
         }
@@ -47,15 +47,30 @@ public class CardController implements CardDocumentation {
 
     @Override
     @PutMapping("/unblock/{cardNumber}")
-    public ResponseEntity<Void> unblockCard(@PathVariable("cardNumber") String cardNumber) {
-        cardService.unblockCard(cardNumber);
+    public ResponseEntity<Void> unblockCard(@PathVariable("cardNumber") String cardNumber, @RequestHeader("Authorization")String authHeader) {
+        String token = authHeader.substring(7);
+        Card card = cardService.unblockCard(cardNumber, token);
+
+        if (card == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        if(card.getCardStatus().equals(CardStatus.DEACTIVATED)){
+            return ResponseEntity.badRequest().build();
+        }
+
         return ResponseEntity.ok().build();
     }
 
     @Override
     @PutMapping("/deactivate/{cardNumber}")
-    public ResponseEntity<Void> deactivateCard(@PathVariable("cardNumber") String cardNumber) {
-        cardService.deactivateCard(cardNumber);
+    public ResponseEntity<Void> deactivateCard(@PathVariable("cardNumber") String cardNumber, @RequestHeader("Authorization")String authHeader) {
+        String token = authHeader.substring(7);
+        Card card = cardService.deactivateCard(cardNumber, token);
+
+        if (card == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
         return ResponseEntity.ok().build();
     }
 
