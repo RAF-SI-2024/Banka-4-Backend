@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
+import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 
 import java.util.UUID;
@@ -88,7 +89,7 @@ public interface CardDocumentation {
                     ),
             }
     )
-    ResponseEntity<Page<CardDto>> clientSearchCards(String accountNumber, int page, int size);
+    ResponseEntity<Page<CardDto>> clientSearchCards(Authentication auth, String accountNumber, int page, int size);
 
     @Operation(
             summary = "This endpoint is used to return all cards for specific cardNumber, firstName," +
@@ -114,6 +115,6 @@ public interface CardDocumentation {
                     ),
             }
     )
-    ResponseEntity<Page<CardDto>> employeeSearchCards(String cardNumer, String firstName, String lastName,
+    ResponseEntity<Page<CardDto>> employeeSearchCards(Authentication auth, String cardNumber, String firstName, String lastName,
                                                       String email, String cardStatus, int page, int size);
 }

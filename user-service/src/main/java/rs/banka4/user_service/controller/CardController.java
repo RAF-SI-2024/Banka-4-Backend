@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.CardDocumentation;
 import rs.banka4.user_service.domain.card.db.Card;
@@ -51,22 +52,23 @@ public class CardController implements CardDocumentation {
 
     @Override
     @GetMapping("/client/search")
-    public ResponseEntity<Page<CardDto>> clientSearchCards(
+    public ResponseEntity<Page<CardDto>> clientSearchCards(Authentication auth,
             @RequestParam(required = false) String accountNumber,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return cardService.clientSearchCards(accountNumber, PageRequest.of(page, size));
+                                                           @RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "10") int size) {
+        return cardService.clientSearchCards(auth.getCredentials().toString(), accountNumber, PageRequest.of(page, size));
     }
 
     @Override
     @GetMapping("/employee/search")
-    public ResponseEntity<Page<CardDto>> employeeSearchCards(@RequestParam(required = false) String cardNumer,
+    public ResponseEntity<Page<CardDto>> employeeSearchCards(Authentication auth,
+                                                             @RequestParam(required = false) String cardNumber,
                                                              @RequestParam(required = false) String firstName,
                                                              @RequestParam(required = false) String lastName,
                                                              @RequestParam(required = false) String email,
                                                              @RequestParam(required = false) String cardStatus,
                                                              @RequestParam(defaultValue = "0") int page,
                                                              @RequestParam(defaultValue = "10") int size) {
-        return cardService.employeeSearchCards(cardNumer, firstName, lastName, email, cardStatus, PageRequest.of(page, size));
+        return cardService.employeeSearchCards(auth.getCredentials().toString(), cardNumber, firstName, lastName, email, cardStatus, PageRequest.of(page, size));
     }
 }

@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Primary
 public class CardServiceMock implements CardService {
 
     @Override
@@ -42,7 +41,7 @@ public class CardServiceMock implements CardService {
     }
 
     @Override
-    public ResponseEntity<Page<CardDto>> clientSearchCards(String accountNumber, Pageable pageable) {
+    public ResponseEntity<Page<CardDto>> clientSearchCards(String token, String accountNumber, Pageable pageable) {
         List<CardDto> dtos = new ArrayList<>();
         dtos.add(CardObjectMother.generateCardDto());
         dtos.add(CardObjectMother.generateCardDto());
@@ -52,7 +51,7 @@ public class CardServiceMock implements CardService {
     }
 
     @Override
-    public ResponseEntity<Page<CardDto>> employeeSearchCards(String cardNumber, String firstName, String lastName, String email, String cardStatus, Pageable pageable) {
+    public ResponseEntity<Page<CardDto>> employeeSearchCards(String token, String cardNumber, String firstName, String lastName, String email, String cardStatus, Pageable pageable) {
         List<CardDto> dtos = new ArrayList<>();
         dtos.add(CardObjectMother.generateCardDto());
         dtos.add(CardObjectMother.generateCardDto());

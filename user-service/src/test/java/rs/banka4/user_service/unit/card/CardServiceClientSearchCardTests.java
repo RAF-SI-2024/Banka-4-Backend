@@ -8,16 +8,25 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.db.Card;
+import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.generator.CardObjectMother;
+import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.CardRepository;
+import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.service.impl.CardServiceImpl;
+import rs.banka4.user_service.utils.JwtUtil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,6 +41,15 @@ public class CardServiceClientSearchCardTests {
 
     @InjectMocks
     private CardServiceImpl cardService;
+
+    @Mock
+    private JwtUtil jwtUtil;
+
+    @Mock
+    private ClientRepository clientRepository;
+
+    @Mock
+    private AccountRepository accountRepository;
 
     @BeforeEach
     void setUp() {
@@ -53,16 +71,30 @@ public class CardServiceClientSearchCardTests {
         // Arrange
         PageRequest pageRequest = PageRequest.of(0, 10);
         List<Card> cardList = hasCards ? Collections.singletonList(CardObjectMother.generateCardWithAllAttributes()) : Collections.emptyList();
+        Page<Card> cardPage = new PageImpl<>(cardList, pageRequest, cardList.size());
 
-        when(cardRepository.findByAccount_AccountNumber(eq(accountNumber))).thenReturn(cardList);
+        String token = "mocked-token";
+        String email = "johndoe@example.com";
+        Client mockClient = new Client();
+        Account mockAccount = new Account();
+        mockAccount.setAccountNumber(accountNumber);
+        Set<Account> mockAccounts = Set.of(mockAccount);
+
+        // Mock JWT token extraction
+        when(jwtUtil.extractUsername(token)).thenReturn(email);
+
+        // Mock repository calls
+        when(clientRepository.findByEmail(email)).thenReturn(Optional.of(mockClient));
+        when(accountRepository.findAllByClient(mockClient)).thenReturn(mockAccounts);
+        when(cardRepository.findByAccountAccountNumber(eq(accountNumber))).thenReturn(cardList);
 
         // Act
-        ResponseEntity<Page<CardDto>> response = cardService.clientSearchCards(accountNumber, pageRequest);
+        ResponseEntity<Page<CardDto>> response = cardService.clientSearchCards(token, accountNumber, pageRequest);
 
         // Assert
-        assertEquals(200, response.getStatusCode().value());
-        Page<CardDto> cardPage = response.getBody();
-        assertNotNull(cardPage);
-        assertEquals(cardList.size(), cardPage.getTotalElements());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<CardDto> responseBody = response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(cardList.size(), responseBody.getTotalElements());
     }
 }

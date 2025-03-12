@@ -40,6 +40,7 @@ public class Card {
     private CardType cardType;
 
     @Builder.Default
+    @Column(name = "\"limit\"")
     private BigDecimal limit = BigDecimal.valueOf(10000);
 
     @Enumerated(EnumType.STRING)

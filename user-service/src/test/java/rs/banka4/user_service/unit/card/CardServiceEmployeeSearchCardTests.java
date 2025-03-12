@@ -11,18 +11,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.db.Card;
+import rs.banka4.user_service.exceptions.user.IncorrectCredentials;
 import rs.banka4.user_service.generator.CardObjectMother;
 import rs.banka4.user_service.repositories.CardRepository;
 import rs.banka4.user_service.service.impl.CardServiceImpl;
+import rs.banka4.user_service.utils.JwtUtil;
 
 import java.util.Collections;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -34,6 +36,9 @@ public class CardServiceEmployeeSearchCardTests {
 
     @InjectMocks
     private CardServiceImpl cardService;
+
+    @Mock
+    private JwtUtil jwtUtil;
 
     @BeforeEach
     void setUp() {
@@ -61,13 +66,19 @@ public class CardServiceEmployeeSearchCardTests {
         Card card = CardObjectMother.generateCardWithAllAttributes();
         Page<Card> cardPage = new PageImpl<>(Collections.singletonList(card));
 
+        String token = "mocked-token";
+
+        // Mock JWT role extraction
+        when(jwtUtil.extractRole(token)).thenReturn("employee");
+
+        // Mock repository call
         when(cardRepository.findAll(any(Specification.class), eq(pageRequest))).thenReturn(cardPage);
 
         // Act
-        ResponseEntity<Page<CardDto>> response = cardService.employeeSearchCards(cardNumber, firstName, lastName, email, cardStatus, pageRequest);
+        ResponseEntity<Page<CardDto>> response = cardService.employeeSearchCards(token, cardNumber, firstName, lastName, email, cardStatus, pageRequest);
 
         // Assert
-        assertEquals(200, response.getStatusCode().value());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().getTotalElements());
     }

@@ -9,6 +9,10 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
+import rs.banka4.user_service.domain.card.db.Card;
+import rs.banka4.user_service.domain.card.db.CardName;
+import rs.banka4.user_service.domain.card.db.CardStatus;
+import rs.banka4.user_service.domain.card.db.CardType;
 import rs.banka4.user_service.domain.company.db.ActivityCode;
 import rs.banka4.user_service.domain.company.db.Company;
 import rs.banka4.user_service.domain.currency.db.Currency;
@@ -49,6 +53,7 @@ public class TestDataRunner implements CommandLineRunner {
     private final ClientContactRepository clientContactRepository;
     private final TransactionRepository transactionRepository;
     private final LoanRepository loanRepository;
+    private final CardRepository cardRepository;
 
     @Override
     public void run(String... args) {
@@ -61,6 +66,7 @@ public class TestDataRunner implements CommandLineRunner {
         accountSeeder();
         loanSeeder();
         transactionSeeder();
+        seedCards();
     }
 
     private void loanSeeder() {
@@ -953,6 +959,58 @@ public class TestDataRunner implements CommandLineRunner {
                 transactionRepository.saveAll(Set.of(transaction1, transaction2));
             }
         }
+    }
+
+    private void seedCards() {
+        long cardCount = cardRepository.count();
+
+        if (cardCount > 10) {
+            System.out.println("Seeder skipped. There are already more than 10 cards in the database.");
+            return;
+        }
+
+        List<Account> accounts = accountRepository.findAll();
+        if (accounts.isEmpty()) {
+            System.out.println("Seeder skipped. No accounts found in the database.");
+            return;
+        }
+
+        Random random = new Random();
+
+        List<Card> cards = IntStream.range(0, 10)
+                .mapToObj(i -> Card.builder()
+                        .cardNumber(generateRandomCardNumber())
+                        .cvv(generateRandomCVV())
+                        .cardName(randomEnumValue(CardName.class))
+                        .cardType(randomEnumValue(CardType.class))
+                        .limit(generateRandomLimit())
+                        .cardStatus(randomEnumValue(CardStatus.class))
+                        .account(accounts.get(random.nextInt(accounts.size())))
+                        .createdAt(LocalDate.now().minusMonths(random.nextInt(24)))
+                        .expiresAt(LocalDate.now().plusYears(4).plusMonths(random.nextInt(12)))
+                        .build())
+                .collect(Collectors.toList());
+
+        cardRepository.saveAll(cards);
+    }
+
+    private String generateRandomCardNumber() {
+        Random random = new Random();
+        return String.format("%04d%04d%04d%04d",
+                random.nextInt(10000),
+                random.nextInt(10000),
+                random.nextInt(10000),
+                random.nextInt(10000));
+    }
+
+    private String generateRandomCVV() {
+        Random random = new Random();
+        return String.format("%03d", random.nextInt(1000));
+    }
+
+    private BigDecimal generateRandomLimit() {
+        Random random = new Random();
+        return BigDecimal.valueOf(random.nextInt(20000) + 1000);
     }
 
 }
