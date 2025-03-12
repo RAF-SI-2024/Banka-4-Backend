@@ -4,9 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.Privilege;
-import rs.banka4.user_service.domain.user.User;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -30,10 +29,9 @@ public record CreateEmployeeDto(
         @NotNull(message = "Date of birth is required")
         LocalDate dateOfBirth,
 
-        @Schema(description = "Employee's gender", example = "man")
-        @Pattern(regexp = "Male|Female", message = "Gender must be Male or Female")
-        @NotBlank(message = "Gender is required")
-        String gender,
+        @Schema(description = "Employee's gender", example = "MALE")
+        @NotNull(message = "Gender is required")
+        Gender gender,
 
         @Schema(description = "Employee's email address", example = "mljubic9422112rn@raf.rs")
         @Email(message = "Email should be valid")

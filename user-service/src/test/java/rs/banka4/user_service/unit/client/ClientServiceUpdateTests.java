@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.Privilege;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.UpdateClientDto;
@@ -49,7 +50,7 @@ public class ClientServiceUpdateTests {
                 "NewFirstName",
                 "NewLastName",
                 LocalDate.of(1990, 1, 1),
-                "Male",
+                Gender.MALE,
                 "new.email@example.com",
                 "1234567890",
                 "New Address",
