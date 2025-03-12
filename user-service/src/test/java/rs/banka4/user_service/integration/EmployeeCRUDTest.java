@@ -11,8 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
+import rs.banka4.testlib.integration.DbEnabledTest;
 import rs.banka4.user_service.integration.generator.UserGenerator;
-import rs.banka4.user_service.integration.utils.DbEnabledTest;
 import rs.banka4.user_service.repositories.ClientRepository;
 
 @SpringBootTest

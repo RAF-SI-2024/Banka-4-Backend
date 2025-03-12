@@ -1,4 +1,4 @@
-package rs.banka4.user_service.integration.utils;
+package rs.banka4.testlib.integration;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
