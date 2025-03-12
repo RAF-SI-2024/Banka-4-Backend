@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
@@ -60,5 +61,10 @@ public class CardServiceMock implements CardService {
         dtos.add(CardObjectMother.generateCardDto());
         Page<CardDto> page = new PageImpl<>(dtos, pageable, 3);
         return ResponseEntity.ok(page);
+    }
+
+    @Override
+    public Card createEmployeeCard(CreateCardDto dto, Account account) {
+        return null;
     }
 }

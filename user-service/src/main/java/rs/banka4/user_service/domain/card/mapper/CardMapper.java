@@ -2,8 +2,12 @@ package rs.banka4.user_service.domain.card.mapper;
 
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
+import rs.banka4.user_service.domain.account.db.Account;
+import rs.banka4.user_service.domain.account.db.AccountType;
+import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
 import rs.banka4.user_service.domain.card.db.AuthorizedUser;
 import rs.banka4.user_service.domain.card.db.Card;
+import rs.banka4.user_service.domain.card.db.CardName;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
@@ -14,10 +18,17 @@ import java.util.UUID;
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CardMapper {
 
-    @Mapping(target = "authorizedUser", source = "createAuthorizedUserDto", qualifiedByName = "mapAuthorizedUser")
+    @Mapping(target = "cardName", source = "account", qualifiedByName = "mapCardName")
+    @Mapping(target = "authorizedUser", source = "cardDto.createAuthorizedUserDto")
     @Mapping(target = "cardType", constant = "DEBIT")
-    @Mapping(target = "cardStatus", constant = "ACTIVATED")
-    Card fromCreate(CreateCardDto cardDto);
+    Card fromCreate(CreateCardDto cardDto, Account account);
+
+    @Named("mapCardName")
+    default CardName mapCardName(Account account) {
+        return account.getAccountType() == AccountType.DOO
+                ? CardName.AMERICAN_EXPRESS
+                : CardName.VISA;
+    }
 
     @Mapping(target = "accountNumber", source = "account.accountNumber")
     @Mapping(target = "client", source = "account.client")
@@ -37,4 +48,8 @@ public interface CardMapper {
                 dto.gender()
         );
     }
+
+    @Mapping(target = "phoneNumber", source = "phone")
+    CreateAuthorizedUserDto toAuthorizedUserDto(AccountClientIdDto dto);
+
 }

@@ -82,8 +82,10 @@ public interface AccountApiDocumentation {
     ResponseEntity<Set<AccountDto>> getAccountsForClient(Authentication auth);
 
     @Operation(
-            summary = "Create a new Account",
-            description = "Creates a new account with the provided details.",
+            summary = "Create a new Account with optional card",
+            description = "Creates a new banking account. For business accounts, automatically generates " +
+                    "a card with client as authorized user if requested. Personal accounts can have " +
+                    "up to 2 cards, business accounts 1 per authorized user.",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Successfully created new account"),
                     @ApiResponse(responseCode = "400", description = "Invalid currency",
@@ -95,6 +97,7 @@ public interface AccountApiDocumentation {
                             content = @Content(schema = @Schema(implementation = CompanyNotFound.class))),
                     @ApiResponse(responseCode = "404", description = "Employee not found",
                             content = @Content(schema = @Schema(implementation = EmployeeNotFound.class))),
+                    @ApiResponse(responseCode = "409", description = "Card limit exceeded")
             }
     )
     ResponseEntity<Void> createAccount(@Valid CreateAccountDto createAccountDto, Authentication auth);

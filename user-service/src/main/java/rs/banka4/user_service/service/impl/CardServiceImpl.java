@@ -48,7 +48,7 @@ public class CardServiceImpl implements CardService {
 
         validateCardLimits(account, dto.createAuthorizedUserDto());
 
-        Card card = cardMapper.fromCreate(dto);
+        Card card = cardMapper.fromCreate(dto, account);
         card.setCardNumber(generateUniqueCardNumber());
         card.setCvv(generateRandomCVV());
         card.setAccount(account);
@@ -85,6 +85,15 @@ public class CardServiceImpl implements CardService {
     }
 
     // ---- Private methods ----
+
+    @Transactional
+    public Card createEmployeeCard(CreateCardDto dto, Account account) {
+        Card card = cardMapper.fromCreate(dto, account);
+        card.setCardNumber(generateUniqueCardNumber());
+        card.setCvv(generateRandomCVV());
+        card.setAccount(account);
+        return cardRepository.save(card);
+    }
 
     private void validateCardLimits(Account account,
                                     @Nullable CreateAuthorizedUserDto authorizedUser) {
