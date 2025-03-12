@@ -17,8 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Service
 @Primary
+@Service
 public class CardServiceMock implements CardService {
 
     @Override
@@ -29,17 +29,17 @@ public class CardServiceMock implements CardService {
     }
 
     @Override
-    public Card blockCard(String cardNumber) {
+    public Card blockCard(String cardNumber, String token) {
         return null;
     }
 
     @Override
-    public Card unblockCard(String cardNumber) {
+    public Card unblockCard(String cardNumber, String token) {
         return null;
     }
 
     @Override
-    public Card deactivateCard(String cardNumber) {
+    public Card deactivateCard(String cardNumber, String token) {
         return null;
     }
 

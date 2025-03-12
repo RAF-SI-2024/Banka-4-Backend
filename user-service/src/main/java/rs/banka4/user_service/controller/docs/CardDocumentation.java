@@ -56,7 +56,7 @@ public interface CardDocumentation {
                     @ApiResponse(responseCode = "403", description = "Forbidden - Card privileges required"),
             }
     )
-    ResponseEntity<Void> blockCard(String cardNumber);
+    ResponseEntity<Void> blockCard(Authentication authentication, String cardNumber);
 
     @Operation(
             summary = "This endpoint is used to unblock existing card",
@@ -67,7 +67,7 @@ public interface CardDocumentation {
                     @ApiResponse(responseCode = "403", description = "Forbidden - Employee privileges required"),
             }
     )
-    ResponseEntity<Void> unblockCard(String cardNumber);
+    ResponseEntity<Void> unblockCard(Authentication authentication, String cardNumber);
 
     @Operation(
             summary = "This endpoint is used to deactivate existing card",
@@ -78,7 +78,7 @@ public interface CardDocumentation {
                     @ApiResponse(responseCode = "403", description = "Forbidden - Card privileges required"),
             }
     )
-    ResponseEntity<Void> deactivateCard(String cardNumber);
+    ResponseEntity<Void> deactivateCard( Authentication authentication, String cardNumber);
 
     @Operation(
             summary = "This endpoint is used to return all cards for specific accountNumber filter",

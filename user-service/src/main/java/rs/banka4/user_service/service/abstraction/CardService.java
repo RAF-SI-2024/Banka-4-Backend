@@ -10,12 +10,12 @@ import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 
 public interface CardService {
-    Card createAuthorizedCard(Authentication auth, CreateCardDto createCardDto);
-    Card blockCard(String cardNumber);
-    Card unblockCard(String cardNumber);
-    Card deactivateCard(String cardNumber);
+    void createAuthorizedCard(Authentication auth, CreateCardDto createCardDto);
+    Card blockCard(String cardNumber, String token);
+    Card unblockCard(String cardNumber, String token);
+    Card deactivateCard(String cardNumber, String token);
     ResponseEntity<Page<CardDto>> clientSearchCards(String accountNumber, Pageable pageable);
     ResponseEntity<Page<CardDto>> employeeSearchCards(String cardNumber, String firstName, String lastName,
-                                                    String email, String cardStatus, Pageable pageable);
-    Card createEmployeeCard(CreateCardDto dto, Account account);
+                                                      String email, String cardStatus, Pageable pageable);
+    void createEmployeeCard(CreateCardDto dto, Account account);
 }
