@@ -37,9 +37,12 @@ public class LoanController implements LoanDocumentation {
             @RequestParam(required = false) String loanType,
             @RequestParam(required = false) String loanStatus,
             @RequestParam(required = false) String accountNumber) {
-        LoanFilterDto filter = new LoanFilterDto(loanType != null ? LoanType.fromString(loanType) : null,
-                loanStatus != null ? LoanStatus.fromString(loanStatus) : null,
-                accountNumber);
+        LoanFilterDto filter = new LoanFilterDto(
+                (loanType != null && !loanType.isEmpty()) ? LoanType.fromString(loanType) : null,
+                (loanStatus != null && !loanStatus.isEmpty()) ? LoanStatus.fromString(loanStatus) : null,
+                accountNumber
+        );
+
 
         return loanService.getAllLoans(PageRequest.of(page, size), filter);
     }
