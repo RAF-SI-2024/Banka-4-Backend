@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Primary
 @Service
 public class CardServiceMock implements CardService {
 
