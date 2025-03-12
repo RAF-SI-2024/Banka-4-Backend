@@ -23,8 +23,6 @@ services:
       dockerfile: docker/Dockerfile-java
       args:
         SERVICE: user-service
-    ports:
-      - "8080:8080"
     command:
       - /code/build/libs/user-service-0.0.1-SNAPSHOT.jar
       - --spring.profiles.active=dev,local
@@ -120,6 +118,16 @@ services:
   #     interval: 3s
   #     start_period: 3s
 
+  exchange_office:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-exchange-office
+    environment:
+      EXCHANGERATE_API_KEY: ${EXCHANGERATE_API_KEY}
+    volumes:
+      - exchange_office_data:/data
+
+
   # Central message broker.  The version below provides the management
   # interface to ease development.  Uses default credentials of guest / guest.
   # Good enough for dev.
@@ -129,9 +137,38 @@ services:
       # Management interface.
       - "15672:15672"
 
+  # API docs viewer.
+  swagger_ui:
+    image: docker.swagger.io/swaggerapi/swagger-ui
+    environment:
+      URLS: |
+        [ { url: "/docs/api", "name": "User service" },
+          { url: "/exchange/openapi.yml", "name": "Exchange office" }
+        ]
+      BASE_URL: /docs/ui
+
+  # API gateway.  Routes requests between the mICRoSErViCEs.
+  gateway:
+    volumes:
+      - ./docker/gateway-nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./exchange-office/openapi.yaml:/srv/exchange-office-openapi.yml
+    image: nginx:1
+    ports:
+      - 8080:80
+    depends_on:
+      - user_service
+      - exchange_office
+      - swagger_ui
+    develop:
+      watch:
+        - action: restart
+          path: ./docker/gateway-nginx.conf
+
+
 volumes:
   user_service_gradle:
   notification_service_gradle:
   # Database storage persistence.
   # notification_service_db_data:
   user_service_db_data:
+  exchange_office_data:

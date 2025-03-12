@@ -2,7 +2,7 @@ package rs.banka4.user_service.domain.user.client.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Pattern;
+import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.Privilege;
 
 import java.time.LocalDate;
@@ -20,9 +20,8 @@ public record UpdateClientDto(
         @Schema(description = "Date of birth", example = "1990-01-01")
         LocalDate dateOfBirth,
 
-        @Pattern(regexp = "Male|Female", message = "Gender must be Male or Female")
-        @Schema(description = "Gender", example = "Male")
-        String gender,
+        @Schema(description = "Gender", example = "MALE")
+        Gender gender,
 
         @Email(message = "Invalid email format.")
         @Schema(description = "Email address", example = "danny.jo@example.com")

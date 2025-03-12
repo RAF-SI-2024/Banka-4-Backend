@@ -20,6 +20,7 @@ import rs.banka4.user_service.generator.TransactionObjectMother;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.TransactionRepository;
+import rs.banka4.user_service.service.impl.TotpService;
 import rs.banka4.user_service.service.impl.TransactionServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
 
@@ -45,6 +46,8 @@ public class TransactionServiceCreateTests {
     private Authentication authentication;
     @Mock
     private TransactionMapper transactionMapper;
+    @Mock
+    private TotpService totpService;
     @InjectMocks
     private TransactionServiceImpl transactionService;
 
@@ -52,6 +55,8 @@ public class TransactionServiceCreateTests {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         when(authentication.getCredentials()).thenReturn("mocked-token");
+        when(totpService.validate(anyString(), eq("123123")))
+                .thenReturn(true);
     }
 
     @Test

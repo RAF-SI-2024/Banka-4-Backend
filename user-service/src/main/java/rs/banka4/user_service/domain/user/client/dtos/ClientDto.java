@@ -35,6 +35,9 @@ public record ClientDto(
         String address,
 
         @Schema(description = "List of privileges", example = "[\"CAN_TRADE\"]")
-        EnumSet<Privilege> privileges
+        EnumSet<Privilege> privileges,
+
+        @Schema(description = "Flag that indicates if the user has completed 2FA setup", example = "False")
+        Boolean has2FA
 ) {
 }

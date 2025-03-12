@@ -17,6 +17,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import rs.banka4.user_service.controller.LoanController;
 import rs.banka4.user_service.domain.loan.dtos.LoanApplicationDto;
+import rs.banka4.user_service.domain.loan.dtos.LoanFilterDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanInformationDto;
 import rs.banka4.user_service.generator.LoanObjectMother;
 import rs.banka4.user_service.service.abstraction.LoanService;
@@ -61,7 +62,7 @@ public class LoanControllerTests {
     void testGetAllLoans() throws Exception {
         LoanInformationDto loanInformationDto = LoanObjectMother.generateLoanInformationDto();
         Page<LoanInformationDto> page = new PageImpl<>(Collections.singletonList(loanInformationDto));
-        Mockito.when(loanService.getAllLoans(any(PageRequest.class))).thenReturn(ResponseEntity.ok(page));
+        Mockito.when(loanService.getAllLoans(any(PageRequest.class),any(LoanFilterDto.class))).thenReturn(ResponseEntity.ok(page));
 
         mockMvcUtil.performRequest(get("/loans/search"), page);
     }

@@ -1,7 +1,6 @@
 package rs.banka4.user_service.generator;
 
 import rs.banka4.user_service.domain.transaction.dtos.CreatePaymentDto;
-import rs.banka4.user_service.domain.transaction.dtos.CreateTransactionDto;
 import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
 import rs.banka4.user_service.domain.transaction.db.TransactionStatus;
 
@@ -10,19 +9,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class TransactionObjectMother {
-
-    public static CreateTransactionDto generateBasicCreateTransactionDto() {
-        return new CreateTransactionDto(
-                "444394438340549",
-                "444394438340523",
-                BigDecimal.valueOf(1.00),
-                "EUR",
-                "Milutin Joncic",
-                "289",
-                "1176926",
-                "Temu payment"
-        );
-    }
 
     public static TransactionDto generateBasicTransactionDto() {
         return new TransactionDto(
@@ -53,7 +39,8 @@ public class TransactionObjectMother {
                 "Milutin Joncic",
                 "289",
                 "1176926",
-                "Temu payment"
+                "Temu payment",
+                "123123"
         );
     }
 }

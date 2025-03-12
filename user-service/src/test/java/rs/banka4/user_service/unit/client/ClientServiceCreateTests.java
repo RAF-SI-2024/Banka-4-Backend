@@ -46,7 +46,7 @@ public class ClientServiceCreateTests {
     void testCreateClientSuccess() {
         // Arrange
         userService = new UserService(employeeRepository, clientRepository, verificationCodeService, rabbitTemplate);
-        clientService = new ClientServiceImpl(userService, clientRepository, null, null, null, null);
+        clientService = new ClientServiceImpl(userService, clientRepository, null, null, null, null, null);
 
         CreateClientDto createClientDto = ClientObjectMother.generateBasicCreateClientDto();
         VerificationCode verificationCode = new VerificationCode();
