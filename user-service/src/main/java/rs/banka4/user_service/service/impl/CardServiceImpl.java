@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.db.CardStatus;
@@ -24,19 +25,31 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public Card blockCard(String cardNumber) {
-
+    public Card blockCard(String cardNumber, String token) {
         Optional<Card> optionalCard = cardRepository.findCardByCardNumber(cardNumber);
-
         if (optionalCard.isEmpty()) {
             return null;
         }
-        Card card = optionalCard.get();
 
-        if (card.getCardStatus().equals(CardStatus.BLOCKED) || card.getCardStatus() == CardStatus.DEACTIVATED) {
+        Card card = optionalCard.get();
+        String role = jwtUtil.extractRole(token);
+        String userId = jwtUtil.extractClaim(token, claims -> claims.get("id", String.class));
+        String email = jwtUtil.extractUsername(token);
+
+        if ("client".equalsIgnoreCase(role)) {
+            if (card.getAccount() == null || card.getAccount().getClient() == null) {
+                return null;
+            }
+            String ownerId = card.getAccount().getClient().getId().toString();
+            String ownerEmail = card.getAccount().getClient().getEmail();
+
+            if (!userId.equals(ownerId) && !email.equals(ownerEmail)) {
+                return null;
+            }
+        }
+        if (card.getCardStatus() == CardStatus.BLOCKED || card.getCardStatus() == CardStatus.DEACTIVATED) {
             return card;
         }
-
         card.setCardStatus(CardStatus.BLOCKED);
         return cardRepository.save(card);
     }
@@ -48,9 +61,27 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public Card deactivateCard(String cardNumber) {
-        return null;
+    public Card deactivateCard(String cardNumber, String token) {
+        Optional<Card> optionalCard = cardRepository.findCardByCardNumber(cardNumber);
+        if (optionalCard.isEmpty()) {
+            return null;
+        }
+
+        Card card = optionalCard.get();
+        String role = jwtUtil.extractRole(token);
+
+        if (!"employee".equalsIgnoreCase(role)) {
+            return null;
+        }
+
+        if (card.getCardStatus() == CardStatus.DEACTIVATED) {
+            return null;
+        }
+
+        card.setCardStatus(CardStatus.DEACTIVATED);
+        return cardRepository.save(card);
     }
+
 
     @Override
     public ResponseEntity<Page<CardDto>> clientSearchCards(String accountNumber, Pageable pageable) {
