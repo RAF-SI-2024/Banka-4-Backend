@@ -1,6 +1,9 @@
 package rs.banka4.user_service.service.impl;
 
 import jakarta.transaction.Transactional;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
+import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -25,10 +28,6 @@ import rs.banka4.user_service.repositories.CardRepository;
 import rs.banka4.user_service.service.abstraction.CardService;
 import rs.banka4.user_service.utils.JwtUtil;
 
-import javax.annotation.Nullable;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.Optional;
-
 @Service
 @Primary
 @RequiredArgsConstructor
@@ -41,11 +40,18 @@ public class CardServiceImpl implements CardService {
 
     @Transactional
     public void createAuthorizedCard(Authentication auth, CreateCardDto dto) {
-        if (!totpService.validate(auth.getCredentials().toString(), dto.otpCode())) {
+        if (
+            !totpService.validate(
+                auth.getCredentials()
+                    .toString(),
+                dto.otpCode()
+            )
+        ) {
             throw new NotValidTotpException();
         }
 
-        Account account = accountRepository.findAccountByAccountNumber(dto.accountNumber())
+        Account account =
+            accountRepository.findAccountByAccountNumber(dto.accountNumber())
                 .orElseThrow(AccountNotFound::new);
 
         validateCardLimits(account, dto.authorizedUser());
@@ -72,17 +78,32 @@ public class CardServiceImpl implements CardService {
         String email = jwtUtil.extractUsername(token);
 
         if ("client".equalsIgnoreCase(role)) {
-            if (card.getAccount() == null || card.getAccount().getClient() == null) {
+            if (
+                card.getAccount() == null
+                    || card.getAccount()
+                        .getClient()
+                        == null
+            ) {
                 return null;
             }
-            String ownerId = card.getAccount().getClient().getId().toString();
-            String ownerEmail = card.getAccount().getClient().getEmail();
+            String ownerId =
+                card.getAccount()
+                    .getClient()
+                    .getId()
+                    .toString();
+            String ownerEmail =
+                card.getAccount()
+                    .getClient()
+                    .getEmail();
 
             if (!userId.equals(ownerId) && !email.equals(ownerEmail)) {
                 return null;
             }
         }
-        if (card.getCardStatus() == CardStatus.BLOCKED || card.getCardStatus() == CardStatus.DEACTIVATED) {
+        if (
+            card.getCardStatus() == CardStatus.BLOCKED
+                || card.getCardStatus() == CardStatus.DEACTIVATED
+        ) {
             return card;
         }
         card.setCardStatus(CardStatus.BLOCKED);
@@ -136,14 +157,24 @@ public class CardServiceImpl implements CardService {
 
 
     @Override
-    public ResponseEntity<Page<CardDto>> clientSearchCards(String accountNumber, Pageable pageable) {
+    public ResponseEntity<Page<CardDto>> clientSearchCards(
+        String accountNumber,
+        Pageable pageable
+    ) {
         return null;
         // check out /client/search
     }
 
     // Private functions
     @Override
-    public ResponseEntity<Page<CardDto>> employeeSearchCards(String cardNumber, String firstName, String lastName, String email, String cardStatus, Pageable pageable) {
+    public ResponseEntity<Page<CardDto>> employeeSearchCards(
+        String cardNumber,
+        String firstName,
+        String lastName,
+        String email,
+        String cardStatus,
+        Pageable pageable
+    ) {
         return null;
         // check out /client/search
     }
@@ -163,8 +194,14 @@ public class CardServiceImpl implements CardService {
         cardRepository.save(card);
     }
 
-    private void validateCardLimits(Account account, @Nullable CreateAuthorizedUserDto authorizedUser) {
-        if (account.getAccountType().isBusiness()) {
+    private void validateCardLimits(
+        Account account,
+        @Nullable CreateAuthorizedUserDto authorizedUser
+    ) {
+        if (
+            account.getAccountType()
+                .isBusiness()
+        ) {
             int existingCards = cardRepository.countByAccount(account);
 
             if (authorizedUser == null) {
@@ -172,7 +209,12 @@ public class CardServiceImpl implements CardService {
                     throw new AuthorizedUserNotAllowed();
                 }
             } else {
-                if (cardRepository.existsByAccountAndAuthorizedUserEmail(account, authorizedUser.email())) {
+                if (
+                    cardRepository.existsByAccountAndAuthorizedUserEmail(
+                        account,
+                        authorizedUser.email()
+                    )
+                ) {
                     throw new DuplicateAuthorizationException();
                 }
             }
@@ -190,13 +232,22 @@ public class CardServiceImpl implements CardService {
     private String generateUniqueCardNumber() {
         String number;
         do {
-            number = String.format("%016d", ThreadLocalRandom.current().nextLong(1_000_000_000_000_000L));
+            number =
+                String.format(
+                    "%016d",
+                    ThreadLocalRandom.current()
+                        .nextLong(1_000_000_000_000_000L)
+                );
         } while (cardRepository.existsByCardNumber(number));
         return number;
     }
 
     private String generateRandomCVV() {
-        return String.format("%03d", ThreadLocalRandom.current().nextInt(1000));
+        return String.format(
+            "%03d",
+            ThreadLocalRandom.current()
+                .nextInt(1000)
+        );
     }
 
 }

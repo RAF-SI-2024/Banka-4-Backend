@@ -1,5 +1,10 @@
 package rs.banka4.user_service.unit.employee;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -11,23 +16,17 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import rs.banka4.user_service.domain.auth.dtos.LoginDto;
 import rs.banka4.user_service.domain.auth.dtos.LoginResponseDto;
+import rs.banka4.user_service.domain.user.Privilege;
 import rs.banka4.user_service.domain.user.PrivilegesDto;
+import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.domain.user.employee.dtos.EmployeeResponseDto;
 import rs.banka4.user_service.exceptions.user.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.user.NotAuthenticated;
 import rs.banka4.user_service.generator.EmployeeObjectMother;
-import rs.banka4.user_service.domain.user.employee.db.Employee;
-import rs.banka4.user_service.domain.user.Privilege;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.impl.CustomUserDetailsService;
 import rs.banka4.user_service.service.impl.EmployeeServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 public class EmployeeServiceTests {
 
@@ -76,7 +75,9 @@ public class EmployeeServiceTests {
         // Arrange
         LoginDto loginDto = EmployeeObjectMother.generateLoginDtoWithIncorrectPassword();
 
-        when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("Bad credentials"));
+        when(authenticationManager.authenticate(any())).thenThrow(
+            new BadCredentialsException("Bad credentials")
+        );
 
         // Act & Assert
         assertThrows(IncorrectCredentials.class, () -> employeeService.login(loginDto));
@@ -88,7 +89,9 @@ public class EmployeeServiceTests {
         LoginDto loginDto = EmployeeObjectMother.generateLoginDtoWithNonExistentUser();
 
         when(authenticationManager.authenticate(any())).thenReturn(null);
-        when(employeeRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+        when(employeeRepository.findByEmail("nonexistent@example.com")).thenReturn(
+            Optional.empty()
+        );
 
         // Act & Assert
         assertThrows(UsernameNotFoundException.class, () -> employeeService.login(loginDto));
@@ -128,19 +131,28 @@ public class EmployeeServiceTests {
     @Test
     void testGetPrivilegesWithNoPrivileges() {
         Privilege[] emptyPrivileges = new Privilege[0];
-        // Mocking static methods - need to use try with resources to ensure that the mocked static method is restored after the test
+        // Mocking static methods - need to use try with resources to ensure that the mocked static
+        // method is restored after the test
         try (MockedStatic<Privilege> mockedPrivilege = mockStatic(Privilege.class)) {
             // Arrange
-            mockedPrivilege.when(Privilege::values).thenReturn(emptyPrivileges);
+            mockedPrivilege.when(Privilege::values)
+                .thenReturn(emptyPrivileges);
 
             // Act
             var response = employeeService.getPrivileges();
 
             // Assert
-            assertEquals(200, response.getStatusCode().value());
+            assertEquals(
+                200,
+                response.getStatusCode()
+                    .value()
+            );
             PrivilegesDto privilegesDto = response.getBody();
             assertNotNull(privilegesDto);
-            assertTrue(privilegesDto.privileges().isEmpty());
+            assertTrue(
+                privilegesDto.privileges()
+                    .isEmpty()
+            );
         }
     }
 }

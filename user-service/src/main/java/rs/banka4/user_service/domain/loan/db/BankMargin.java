@@ -1,10 +1,9 @@
 package rs.banka4.user_service.domain.loan.db;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.util.UUID;
+import lombok.*;
 
 @Entity
 @Getter
@@ -19,7 +18,10 @@ public class BankMargin {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, unique = true)
+    @Column(
+        nullable = false,
+        unique = true
+    )
     private LoanType type;
 
     private BigDecimal margin;
@@ -37,10 +39,6 @@ public class BankMargin {
 
     @Override
     public String toString() {
-        return "BankMargin{" +
-                "id=" + id +
-                ", type=" + type +
-                ", margin=" + margin +
-                '}';
+        return "BankMargin{" + "id=" + id + ", type=" + type + ", margin=" + margin + '}';
     }
 }

@@ -2,7 +2,10 @@ package rs.banka4.notification_service.email;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -14,27 +17,28 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.Optional;
-
 @Service
 public class EmailService {
-    private static final Logger LOGGER
-        = LoggerFactory.getLogger(EmailService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmailService.class);
     private final Optional<JavaMailSender> emailSender;
     private final String baseUrl;
 
-    public EmailService(@Autowired(required = false) JavaMailSender emailSender,
-                        @Value("${app.base-url:BASEURL}") String baseUrl) {
+    public EmailService(
+        @Autowired(required = false) JavaMailSender emailSender,
+        @Value("${app.base-url:BASEURL}") String baseUrl
+    ) {
         this.emailSender = Optional.ofNullable(emailSender);
         this.baseUrl = baseUrl;
     }
 
-    public void sendEmail(String to, String subject, String htmlBody, String textBody) throws MessagingException {
-        LOGGER.debug("Sending email with subject {}\nHTML:\n{}\n\nTXT:\n{}",
-                     subject, htmlBody, textBody);
+    public void sendEmail(String to, String subject, String htmlBody, String textBody)
+        throws MessagingException {
+        LOGGER.debug(
+            "Sending email with subject {}\nHTML:\n{}\n\nTXT:\n{}",
+            subject,
+            htmlBody,
+            textBody
+        );
         if (emailSender.isPresent()) {
             var sender = emailSender.get();
             MimeMessage message = sender.createMimeMessage();
@@ -62,16 +66,26 @@ public class EmailService {
         String template = loadEmailTemplate(templateName, format);
 
         String body = template;
-        emailDetailDto.params().put("baseUrl", baseUrl);
-        for (Map.Entry<String, Object> entry : emailDetailDto.params().entrySet()) {
-            body = body.replace("{{" + entry.getKey() + "}}", entry.getValue().toString());
+        emailDetailDto.params()
+            .put("baseUrl", baseUrl);
+        for (
+            Map.Entry<String, Object> entry : emailDetailDto.params()
+                .entrySet()
+        ) {
+            body =
+                body.replace(
+                    "{{" + entry.getKey() + "}}",
+                    entry.getValue()
+                        .toString()
+                );
         }
 
         return body;
     }
 
     public String loadEmailTemplate(String templateName, String format) {
-        ClassPathResource resource = new ClassPathResource("templates/" + templateName + "." + format);
+        ClassPathResource resource =
+            new ClassPathResource("templates/" + templateName + "." + format);
         try {
             return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -82,12 +96,13 @@ public class EmailService {
     private String setSubject(String topic) {
         // In future maybe we have more than two html for sending email
         return switch (topic) {
-            case "account-activation" -> Subjects.ACTIVATION.getSubject();
-            case "password-reset" -> Subjects.PASSWORD_RESET.getSubject();
-            case "loan-installment-paid" -> Subjects.LOAN_INSTALLMENT_PAID.getSubject();
-            case "loan-installment-payment-denied" -> Subjects.LOAN_INSTALLMENT_PAYMENT_DENIED.getSubject();
-            case "loan-penalty" -> Subjects.LOAN_PENALTY.getSubject();
-            default -> throw new IllegalArgumentException("unsupported topic " + topic);
+        case "account-activation" -> Subjects.ACTIVATION.getSubject();
+        case "password-reset" -> Subjects.PASSWORD_RESET.getSubject();
+        case "loan-installment-paid" -> Subjects.LOAN_INSTALLMENT_PAID.getSubject();
+        case "loan-installment-payment-denied"
+            -> Subjects.LOAN_INSTALLMENT_PAYMENT_DENIED.getSubject();
+        case "loan-penalty" -> Subjects.LOAN_PENALTY.getSubject();
+        default -> throw new IllegalArgumentException("unsupported topic " + topic);
         };
     }
 }

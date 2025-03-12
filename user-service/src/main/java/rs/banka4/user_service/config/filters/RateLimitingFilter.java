@@ -10,25 +10,27 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-import rs.banka4.user_service.exceptions.RateLimitExceeded;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+import rs.banka4.user_service.exceptions.RateLimitExceeded;
 
 /**
- * Filter that applies rate limiting to incoming requests based on the client's IP address.
- * This filter ensures that a client cannot exceed a predefined number of requests within a specified time period.
+ * Filter that applies rate limiting to incoming requests based on the client's IP address. This
+ * filter ensures that a client cannot exceed a predefined number of requests within a specified
+ * time period.
  * <p>
  * The rate limiting is implemented using a token bucket algorithm provided by the Bucket4j library.
- * Each client is assigned a bucket that refills at a fixed rate, and tokens are consumed with each request.
+ * Each client is assigned a bucket that refills at a fixed rate, and tokens are consumed with each
+ * request.
  * <p>
- * The filter uses a Guava cache to store the buckets for each client IP address. The cache entries expire
- * after one hour of inactivity.
+ * The filter uses a Guava cache to store the buckets for each client IP address. The cache entries
+ * expire after one hour of inactivity.
  * <p>
+ *
  * @see OncePerRequestFilter
  * @see Bucket4j
  * @see Cache
@@ -39,14 +41,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private final Cache<String, Bucket> cache;
 
     public RateLimitingFilter() {
-        this.cache = CacheBuilder.newBuilder()
+        this.cache =
+            CacheBuilder.newBuilder()
                 .expireAfterAccess(1, TimeUnit.HOURS)
                 .build();
     }
 
     /**
-     * Filters the incoming request to apply rate limiting based on the client's IP address.
-     * If the client exceeds the rate limit, a {@link RateLimitExceeded} exception is thrown.
+     * Filters the incoming request to apply rate limiting based on the client's IP address. If the
+     * client exceeds the rate limit, a {@link RateLimitExceeded} exception is thrown.
      *
      * @param request the incoming HTTP request
      * @param response the HTTP response that will be sent back to the client
@@ -55,7 +58,12 @@ public class RateLimitingFilter extends OncePerRequestFilter {
      * @throws IOException if an I/O error occurs during request or response handling
      */
     @Override
-    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    public void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
+    ) throws ServletException,
+        IOException {
         String ip = getClientIP(request);
         Bucket bucket;
         try {
@@ -66,8 +74,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
         if (bucket.tryConsume(1)) {
             filterChain.doFilter(request, response);
-        }
-        else {
+        } else {
             throw new RateLimitExceeded();
         }
     }
@@ -88,7 +95,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
      */
     private Bucket newBucket(String key) {
         return Bucket4j.builder()
-                .addLimit(Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(1))))
-                .build();
+            .addLimit(Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(1))))
+            .build();
     }
 }

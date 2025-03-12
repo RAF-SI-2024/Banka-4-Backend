@@ -15,7 +15,7 @@ import rs.banka4.user_service.repositories.ClientRepository;
 public class ClientCRUDTest {
     @Test
     void emptyOutOfTheBox(@Autowired ClientRepository clientRepo) {
-        /* Verify that there's no clients OOTB.  */
+        /* Verify that there's no clients OOTB. */
         assertThat(clientRepo.count()).isEqualTo(0);
     }
 }

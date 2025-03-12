@@ -9,6 +9,7 @@ import dev.samstevens.totp.secret.DefaultSecretGenerator;
 import dev.samstevens.totp.secret.SecretGenerator;
 import dev.samstevens.totp.time.SystemTimeProvider;
 import dev.samstevens.totp.time.TimeProvider;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -26,8 +27,6 @@ import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.repositories.UserTotpSecretRepository;
 import rs.banka4.user_service.service.abstraction.TotpAbs;
 import rs.banka4.user_service.utils.JwtUtil;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +78,8 @@ public class TotpService implements TotpAbs {
 
         if (client.isPresent()) {
             Client safeClient = client.get();
-            userTotpSecret = repository.findByClient_Email(email)
+            userTotpSecret =
+                repository.findByClient_Email(email)
                     .map(secretObj -> {
                         secretObj.setSecret(newSecret);
                         secretObj.setIsActive(false);
@@ -88,20 +88,26 @@ public class TotpService implements TotpAbs {
                     .orElseGet(() -> new UserTotpSecret(null, newSecret, safeClient, null, false));
         } else if (employee.isPresent()) {
             Employee safeEmployee = employee.get();
-            userTotpSecret = repository.findByEmployee_Email(email)
+            userTotpSecret =
+                repository.findByEmployee_Email(email)
                     .map(secretObj -> {
                         secretObj.setSecret(newSecret);
                         secretObj.setIsActive(false);
                         return secretObj;
                     })
-                    .orElseGet(() -> new UserTotpSecret(null, newSecret, null, safeEmployee, false));
+                    .orElseGet(
+                        () -> new UserTotpSecret(null, newSecret, null, safeEmployee, false)
+                    );
         } else {
             throw new NotFound();
         }
 
         repository.save(userTotpSecret);
 
-        return new RegenerateAuthenticatorResponseDto(createTotpUrl("RAFeisen", email, newSecret), newSecret);
+        return new RegenerateAuthenticatorResponseDto(
+            createTotpUrl("RAFeisen", email, newSecret),
+            newSecret
+        );
     }
 
     @Override
@@ -142,8 +148,8 @@ public class TotpService implements TotpAbs {
 
     private UserTotpSecret getTotpSecretByEmail(String email) {
         return repository.findByClient_Email(email)
-                .or(() -> repository.findByEmployee_Email(email))
-                .orElseThrow(NoTotpException::new);
+            .or(() -> repository.findByEmployee_Email(email))
+            .orElseThrow(NoTotpException::new);
     }
 
     private String extractEmailFromToken(String token) {
@@ -152,15 +158,28 @@ public class TotpService implements TotpAbs {
     }
 
     private String extractEmailFromAuth(Authentication auth) {
-        return extractEmailFromToken(auth.getCredentials().toString());
+        return extractEmailFromToken(
+            auth.getCredentials()
+                .toString()
+        );
     }
 
     private String extractToken(Authentication auth) {
-        return auth.getCredentials().toString().replace("Bearer ", "");
+        return auth.getCredentials()
+            .toString()
+            .replace("Bearer ", "");
     }
 
     private String createTotpUrl(String issuer, String email, String secret) {
-        return String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d",
-                issuer, email, secret, issuer, ALGORITHM, CODE_LENGTH, TIME_PERIOD);
+        return String.format(
+            "otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d",
+            issuer,
+            email,
+            secret,
+            issuer,
+            ALGORITHM,
+            CODE_LENGTH,
+            TIME_PERIOD
+        );
     }
 }

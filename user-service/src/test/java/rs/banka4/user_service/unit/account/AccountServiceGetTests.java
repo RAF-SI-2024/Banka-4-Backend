@@ -1,5 +1,11 @@
 package rs.banka4.user_service.unit.account;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,13 +23,6 @@ import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.impl.AccountServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
-
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 public class AccountServiceGetTests {
 
@@ -61,7 +60,9 @@ public class AccountServiceGetTests {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        AccountDto accountDto = result.iterator().next();
+        AccountDto accountDto =
+            result.iterator()
+                .next();
         assertEquals(account.getAccountNumber(), accountDto.accountNumber());
         assertEquals(account.getBalance(), accountDto.balance());
         assertEquals(account.getAvailableBalance(), accountDto.availableBalance());
@@ -93,7 +94,9 @@ public class AccountServiceGetTests {
         account.setAccountNumber(accountNumber);
 
         when(jwtUtil.extractUsername(token)).thenReturn(email);
-        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(Optional.of(account));
+        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(
+            Optional.of(account)
+        );
 
         // Act
         AccountDto result = accountService.getAccount(token, accountNumber);
@@ -112,7 +115,9 @@ public class AccountServiceGetTests {
         String token = "authToken";
         String accountNumber = "123456789";
 
-        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(Optional.empty());
+        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(
+            Optional.empty()
+        );
 
         // Act & Assert
         assertThrows(AccountNotFound.class, () -> accountService.getAccount(token, accountNumber));
@@ -130,10 +135,15 @@ public class AccountServiceGetTests {
         account.setClient(client);
 
         when(jwtUtil.extractUsername(token)).thenReturn(email);
-        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(Optional.of(account));
+        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(
+            Optional.of(account)
+        );
 
         // Act & Assert
-        assertThrows(IncorrectCredentials.class, () -> accountService.getAccount(token, accountNumber));
+        assertThrows(
+            IncorrectCredentials.class,
+            () -> accountService.getAccount(token, accountNumber)
+        );
     }
 
     @Test
@@ -143,7 +153,9 @@ public class AccountServiceGetTests {
         Account account = new Account();
         account.setAccountNumber(accountNumber);
 
-        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(Optional.of(account));
+        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(
+            Optional.of(account)
+        );
 
         // Act
         Account result = accountService.getAccountByAccountNumber(accountNumber);
@@ -158,10 +170,15 @@ public class AccountServiceGetTests {
         // Arrange
         String accountNumber = "123456789";
 
-        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(Optional.empty());
+        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(
+            Optional.empty()
+        );
 
         // Act & Assert
-        assertThrows(AccountNotFound.class, () -> accountService.getAccountByAccountNumber(accountNumber));
+        assertThrows(
+            AccountNotFound.class,
+            () -> accountService.getAccountByAccountNumber(accountNumber)
+        );
     }
 
 }

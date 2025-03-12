@@ -1,5 +1,10 @@
 package rs.banka4.user_service.routes;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,11 +27,6 @@ import rs.banka4.user_service.service.impl.CustomUserDetailsService;
 import rs.banka4.user_service.util.MockMvcUtil;
 import rs.banka4.user_service.utils.JwtUtil;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @WebMvcTest(CardController.class)
 @Import(CardControllerTests.MockBeansConfig.class)
 public class CardControllerTests {
@@ -48,8 +48,8 @@ public class CardControllerTests {
     }
 
     /**
-     * Test the successful creation of an authorized card.
-     * The controller delegates to the service and returns HTTP 201 Created.
+     * Test the successful creation of an authorized card. The controller delegates to the service
+     * and returns HTTP 201 Created.
      */
     @Test
     @WithMockUser(username = "client")
@@ -58,15 +58,17 @@ public class CardControllerTests {
         CreateCardDto createCardDto = CardObjectMother.validRequest();
 
         // Stub the service to do nothing (simulate success).
-        Mockito.doNothing().when(cardService).createAuthorizedCard(any(Authentication.class), eq(createCardDto));
+        Mockito.doNothing()
+            .when(cardService)
+            .createAuthorizedCard(any(Authentication.class), eq(createCardDto));
 
         // Use the custom MockMvcUtil to perform a POST request.
         mockMvcUtil.performPostRequest(post("/cards/create"), createCardDto, 201);
     }
 
     /**
-     * Test the create endpoint with invalid input.
-     * Expect a 403 Forbidden due to missing required fields.
+     * Test the create endpoint with invalid input. Expect a 403 Forbidden due to missing required
+     * fields.
      */
     @Test
     @WithMockUser(username = "client")
@@ -75,16 +77,16 @@ public class CardControllerTests {
         CreateCardDto invalidRequest = new CreateCardDto("", null, null);
 
         mockMvc.perform(
-                post("/cards/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer dummyToken")
-                        .content(objectMapper.writeValueAsString(invalidRequest))
-        ).andExpect(status().isForbidden());
+            post("/cards/create").contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer dummyToken")
+                .content(objectMapper.writeValueAsString(invalidRequest))
+        )
+            .andExpect(status().isForbidden());
     }
 
     /**
-     * Test the create endpoint when the service throws an exception
-     * (for example, due to an invalid TOTP), expecting a 403 is Forbidden.
+     * Test the create endpoint when the service throws an exception (for example, due to an invalid
+     * TOTP), expecting a 403 is Forbidden.
      */
     @Test
     @WithMockUser(username = "client")
@@ -93,15 +95,15 @@ public class CardControllerTests {
 
         // Simulate the service throwing a NotValidTotpException.
         Mockito.doThrow(new NotValidTotpException())
-                .when(cardService)
-                .createAuthorizedCard(any(Authentication.class), eq(createCardDto));
+            .when(cardService)
+            .createAuthorizedCard(any(Authentication.class), eq(createCardDto));
 
         mockMvc.perform(
-                post("/cards/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer dummyToken")
-                        .content(objectMapper.writeValueAsString(createCardDto))
-        ).andExpect(status().isForbidden());
+            post("/cards/create").contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer dummyToken")
+                .content(objectMapper.writeValueAsString(createCardDto))
+        )
+            .andExpect(status().isForbidden());
     }
 
     @TestConfiguration

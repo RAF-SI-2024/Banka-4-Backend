@@ -1,5 +1,8 @@
 package rs.banka4.user_service.service.mock;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -12,9 +15,6 @@ import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.service.abstraction.CardService;
 import rs.banka4.user_service.service.mock.generators.CardObjectMother;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class CardServiceMock implements CardService {
@@ -41,7 +41,10 @@ public class CardServiceMock implements CardService {
     }
 
     @Override
-    public ResponseEntity<Page<CardDto>> clientSearchCards(String accountNumber, Pageable pageable) {
+    public ResponseEntity<Page<CardDto>> clientSearchCards(
+        String accountNumber,
+        Pageable pageable
+    ) {
         List<CardDto> dtos = new ArrayList<>();
         dtos.add(CardObjectMother.generateCardDto());
         dtos.add(CardObjectMother.generateCardDto());
@@ -51,7 +54,14 @@ public class CardServiceMock implements CardService {
     }
 
     @Override
-    public ResponseEntity<Page<CardDto>> employeeSearchCards(String cardNumber, String firstName, String lastName, String email, String cardStatus, Pageable pageable) {
+    public ResponseEntity<Page<CardDto>> employeeSearchCards(
+        String cardNumber,
+        String firstName,
+        String lastName,
+        String email,
+        String cardStatus,
+        Pageable pageable
+    ) {
         List<CardDto> dtos = new ArrayList<>();
         dtos.add(CardObjectMother.generateCardDto());
         dtos.add(CardObjectMother.generateCardDto());

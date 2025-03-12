@@ -1,22 +1,21 @@
 package rs.banka4.user_service.unit.company;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import rs.banka4.user_service.domain.company.dtos.CreateCompanyDto;
 import rs.banka4.user_service.domain.company.db.Company;
+import rs.banka4.user_service.domain.company.dtos.CreateCompanyDto;
 import rs.banka4.user_service.domain.company.mapper.CompanyMapper;
 import rs.banka4.user_service.exceptions.company.DuplicateCrn;
 import rs.banka4.user_service.exceptions.company.DuplicateTin;
 import rs.banka4.user_service.generator.CompanyObjectMother;
 import rs.banka4.user_service.repositories.CompanyRepository;
 import rs.banka4.user_service.service.impl.CompanyServiceImpl;
-
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class CompanyServiceTests {
 
@@ -68,7 +67,10 @@ class CompanyServiceTests {
         when(companyRepository.existsByCrn(createCompanyDto.crn())).thenReturn(true);
 
         // Act & Assert
-        assertThrows(DuplicateCrn.class, () -> companyService.createCompany(createCompanyDto, null));
+        assertThrows(
+            DuplicateCrn.class,
+            () -> companyService.createCompany(createCompanyDto, null)
+        );
 
         verify(companyRepository, never()).existsByTin(anyString());
         verify(companyMapper, never()).toEntity(any(CreateCompanyDto.class));
@@ -82,7 +84,10 @@ class CompanyServiceTests {
         when(companyRepository.existsByTin(createCompanyDto.tin())).thenReturn(true);
 
         // Act & Assert
-        assertThrows(DuplicateTin.class, () -> companyService.createCompany(createCompanyDto, null));
+        assertThrows(
+            DuplicateTin.class,
+            () -> companyService.createCompany(createCompanyDto, null)
+        );
 
         verify(companyRepository).existsByCrn(createCompanyDto.crn());
         verify(companyRepository).existsByTin(createCompanyDto.tin());
@@ -119,5 +124,4 @@ class CompanyServiceTests {
         assertEquals(companyEntity, result.get());
         verify(companyRepository).findByCrn(crn);
     }
-
 }

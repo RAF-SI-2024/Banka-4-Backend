@@ -1,5 +1,13 @@
 package rs.banka4.user_service.unit.authenticator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import java.lang.reflect.Method;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,15 +26,6 @@ import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.repositories.UserTotpSecretRepository;
 import rs.banka4.user_service.service.impl.TotpService;
 import rs.banka4.user_service.utils.JwtUtil;
-
-import java.lang.reflect.Method;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TotpServiceTest {
@@ -61,7 +60,8 @@ public class TotpServiceTest {
         // Arrange
         Authentication auth = mock(Authentication.class);
         when(auth.getCredentials()).thenReturn("Bearer validToken");
-        UserTotpSecret totpSecret = new UserTotpSecret(UUID.randomUUID(), testSecret, null, null, false);
+        UserTotpSecret totpSecret =
+            new UserTotpSecret(UUID.randomUUID(), testSecret, null, null, false);
         when(repository.findByClient_Email(testEmail)).thenReturn(Optional.of(totpSecret));
 
         String validCode = generateCodeForSecret(testSecret);
@@ -79,12 +79,13 @@ public class TotpServiceTest {
         // Arrange
         Authentication auth = mock(Authentication.class);
         when(auth.getCredentials()).thenReturn("Bearer validToken");
-        UserTotpSecret totpSecret = new UserTotpSecret(UUID.randomUUID(), testSecret, null, null, false);
+        UserTotpSecret totpSecret =
+            new UserTotpSecret(UUID.randomUUID(), testSecret, null, null, false);
         when(repository.findByClient_Email(testEmail)).thenReturn(Optional.of(totpSecret));
 
         // Act & Assert
         assertThatThrownBy(() -> totpService.verifyNewAuthenticator(auth, "INVALID_CODE"))
-                .isInstanceOf(NotValidTotpException.class);
+            .isInstanceOf(NotValidTotpException.class);
         verify(repository, never()).save(any());
     }
 
@@ -92,7 +93,8 @@ public class TotpServiceTest {
     @Test
     void validate_validCodeAndActive_returnsTrue() throws Exception {
         // Arrange
-        UserTotpSecret activeTotp = new UserTotpSecret(UUID.randomUUID(), testSecret, null, null, true);
+        UserTotpSecret activeTotp =
+            new UserTotpSecret(UUID.randomUUID(), testSecret, null, null, true);
         when(repository.findByClient_Email(testEmail)).thenReturn(Optional.of(activeTotp));
         String validCode = generateCodeForSecret(testSecret);
 
@@ -103,12 +105,14 @@ public class TotpServiceTest {
     @Test
     void validate_inactive_throwsException() {
         // Arrange
-        UserTotpSecret inactiveTotp = new UserTotpSecret(UUID.randomUUID(), testSecret, null, null, false);
+        UserTotpSecret inactiveTotp =
+            new UserTotpSecret(UUID.randomUUID(), testSecret, null, null, false);
         when(repository.findByClient_Email(testEmail)).thenReturn(Optional.of(inactiveTotp));
 
         // Act & Assert
-        assertThatThrownBy(() -> totpService.validate("Bearer token", "anyCode"))
-                .isInstanceOf(NotActiveTotpException.class);
+        assertThatThrownBy(() -> totpService.validate("Bearer token", "anyCode")).isInstanceOf(
+            NotActiveTotpException.class
+        );
     }
 
     // ------------------------- regenerateSecret Tests -------------------------
@@ -118,7 +122,8 @@ public class TotpServiceTest {
         Authentication auth = mock(Authentication.class);
         when(auth.getCredentials()).thenReturn("Bearer validToken");
         Client client = new Client();
-        UserTotpSecret existingSecret = new UserTotpSecret(UUID.randomUUID(), "OLD_SECRET", client, null, true);
+        UserTotpSecret existingSecret =
+            new UserTotpSecret(UUID.randomUUID(), "OLD_SECRET", client, null, true);
         when(clientRepository.findByEmail(testEmail)).thenReturn(Optional.of(client));
         when(repository.findByClient_Email(testEmail)).thenReturn(Optional.of(existingSecret));
 
@@ -141,8 +146,7 @@ public class TotpServiceTest {
         when(employeeRepository.findByEmail(testEmail)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThatThrownBy(() -> totpService.regenerateSecret(auth))
-                .isInstanceOf(NotFound.class);
+        assertThatThrownBy(() -> totpService.regenerateSecret(auth)).isInstanceOf(NotFound.class);
     }
 
     // ------------------------- generateCode Tests -------------------------

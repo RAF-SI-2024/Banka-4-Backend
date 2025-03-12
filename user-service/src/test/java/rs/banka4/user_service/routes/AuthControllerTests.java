@@ -1,5 +1,11 @@
 package rs.banka4.user_service.routes;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -25,12 +31,6 @@ import rs.banka4.user_service.service.abstraction.EmployeeService;
 import rs.banka4.user_service.service.impl.CustomUserDetailsService;
 import rs.banka4.user_service.utils.JwtUtil;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-
 @WebMvcTest(AuthController.class)
 @Import(AuthControllerTests.MockBeansConfig.class)
 public class AuthControllerTests {
@@ -51,14 +51,16 @@ public class AuthControllerTests {
     void testEmployeeLogin() throws Exception {
         LoginDto loginDto = new LoginDto("waskeee@example.com", "password");
         LoginResponseDto responseDto = new LoginResponseDto("token", "refreshToken");
-        Mockito.when(employeeService.login(any(LoginDto.class))).thenReturn(responseDto);
+        Mockito.when(employeeService.login(any(LoginDto.class)))
+            .thenReturn(responseDto);
 
-        mockMvc.perform(post("/auth/employee/login")
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginDto)))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(responseDto)));
+        mockMvc.perform(
+            post("/auth/employee/login").with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDto))
+        )
+            .andExpect(status().isOk())
+            .andExpect(content().json(objectMapper.writeValueAsString(responseDto)));
     }
 
     @Test
@@ -66,14 +68,16 @@ public class AuthControllerTests {
     void testClientLogin() throws Exception {
         LoginDto loginDto = new LoginDto("mahd@example.com", "password");
         LoginResponseDto responseDto = new LoginResponseDto("token", "refreshToken");
-        Mockito.when(clientService.login(any(LoginDto.class))).thenReturn(responseDto);
+        Mockito.when(clientService.login(any(LoginDto.class)))
+            .thenReturn(responseDto);
 
-        mockMvc.perform(post("/auth/client/login")
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginDto)))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(responseDto)));
+        mockMvc.perform(
+            post("/auth/client/login").with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDto))
+        )
+            .andExpect(status().isOk())
+            .andExpect(content().json(objectMapper.writeValueAsString(responseDto)));
     }
 
     @Test
@@ -81,53 +85,65 @@ public class AuthControllerTests {
     void testRefreshToken() throws Exception {
         RefreshTokenDto refreshTokenDto = new RefreshTokenDto("sample-refresh-token");
         RefreshTokenResponseDto responseDto = new RefreshTokenResponseDto("new-refresh-token");
-        Mockito.when(authService.refreshToken(eq(refreshTokenDto.refreshToken()))).thenReturn(responseDto);
+        Mockito.when(authService.refreshToken(eq(refreshTokenDto.refreshToken())))
+            .thenReturn(responseDto);
 
-        mockMvc.perform(post("/auth/refresh-token")
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(refreshTokenDto)))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(responseDto)));
+        mockMvc.perform(
+            post("/auth/refresh-token").with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(refreshTokenDto))
+        )
+            .andExpect(status().isOk())
+            .andExpect(content().json(objectMapper.writeValueAsString(responseDto)));
     }
 
     @Test
     @WithMockUser
     void testLogout() throws Exception {
         LogoutDto logoutDto = new LogoutDto("sample-token");
-        Mockito.doNothing().when(authService).logout(any(LogoutDto.class));
+        Mockito.doNothing()
+            .when(authService)
+            .logout(any(LogoutDto.class));
 
-        mockMvc.perform(post("/auth/logout")
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .header("Authorization", "Bearer dummyToken")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(logoutDto)))
-                .andExpect(status().isOk());
+        mockMvc.perform(
+            post("/auth/logout").with(SecurityMockMvcRequestPostProcessors.csrf())
+                .header("Authorization", "Bearer dummyToken")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(logoutDto))
+        )
+            .andExpect(status().isOk());
     }
 
     @Test
     @WithMockUser
     void testVerifyAccount() throws Exception {
-        UserVerificationRequestDto requestDto = new UserVerificationRequestDto("oogilee@example.com", "verification-code");
-        Mockito.doNothing().when(authService).verifyAccount(any(UserVerificationRequestDto.class));
+        UserVerificationRequestDto requestDto =
+            new UserVerificationRequestDto("oogilee@example.com", "verification-code");
+        Mockito.doNothing()
+            .when(authService)
+            .verifyAccount(any(UserVerificationRequestDto.class));
 
-        mockMvc.perform(post("/auth/verify")
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isOk());
+        mockMvc.perform(
+            post("/auth/verify").with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+        )
+            .andExpect(status().isOk());
     }
 
     @Test
     @WithMockUser
     void testForgotPassword() throws Exception {
         String email = "user@example.com";
-        Mockito.doNothing().when(authService).forgotPassword(eq(email));
+        Mockito.doNothing()
+            .when(authService)
+            .forgotPassword(eq(email));
 
-        mockMvc.perform(post("/auth/forgot-password/" + email)
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        mockMvc.perform(
+            post("/auth/forgot-password/" + email).with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk());
     }
 
     @TestConfiguration

@@ -20,14 +20,18 @@ public class RabbitMqConfig {
 
     @Bean
     public Queue notificationQueue() {
-        return QueueBuilder.durable(QUEUE_NAME).build();
+        return QueueBuilder.durable(QUEUE_NAME)
+            .build();
     }
 
     @Bean
-    public Binding notificationBinding(Queue notificationQueue, TopicExchange notificationExchange) {
+    public Binding notificationBinding(
+        Queue notificationQueue,
+        TopicExchange notificationExchange
+    ) {
         return BindingBuilder.bind(notificationQueue)
-                .to(notificationExchange)
-                .with(ROUTING_KEY);
+            .to(notificationExchange)
+            .with(ROUTING_KEY);
     }
 
     @Bean

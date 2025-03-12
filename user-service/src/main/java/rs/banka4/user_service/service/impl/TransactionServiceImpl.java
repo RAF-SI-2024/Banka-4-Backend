@@ -1,6 +1,10 @@
 package rs.banka4.user_service.service.impl;
 
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,11 +36,6 @@ import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.specification.PaymentSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
@@ -50,7 +49,10 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public TransactionDto createTransaction(Authentication authentication, CreatePaymentDto createPaymentDto) {
+    public TransactionDto createTransaction(
+        Authentication authentication,
+        CreatePaymentDto createPaymentDto
+    ) {
         Client client = getClient(authentication);
 
         if (!veifyClient(authentication, createPaymentDto.otpCode())) {
@@ -62,14 +64,26 @@ public class TransactionServiceImpl implements TransactionService {
 
         validateAccountActive(fromAccount);
         validateClientAccountOwnership(client, fromAccount);
-        validateSufficientFunds(fromAccount, createPaymentDto.fromAmount().add(BigDecimal.ONE));
+        validateSufficientFunds(
+            fromAccount,
+            createPaymentDto.fromAmount()
+                .add(BigDecimal.ONE)
+        );
 
         processTransaction(fromAccount, toAccount, createPaymentDto.fromAmount(), BigDecimal.ONE);
 
-        Transaction transaction = buildTransaction(fromAccount, toAccount, createPaymentDto, BigDecimal.ONE, TransactionStatus.REALIZED);
+        Transaction transaction =
+            buildTransaction(
+                fromAccount,
+                toAccount,
+                createPaymentDto,
+                BigDecimal.ONE,
+                TransactionStatus.REALIZED
+            );
 
         if (createPaymentDto.saveRecipient()) {
-            ClientContact clientContact = ClientContact.builder()
+            ClientContact clientContact =
+                ClientContact.builder()
                     .client(client)
                     .accountNumber(toAccount.getAccountNumber())
                     .nickname(createPaymentDto.recipient())
@@ -85,7 +99,10 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public TransactionDto createTransfer(Authentication authentication, CreateTransferDto createTransferDto) {
+    public TransactionDto createTransfer(
+        Authentication authentication,
+        CreateTransferDto createTransferDto
+    ) {
         Client client = getClient(authentication);
 
         if (!veifyClient(authentication, createTransferDto.otpCode())) {
@@ -101,7 +118,14 @@ public class TransactionServiceImpl implements TransactionService {
 
         processTransaction(fromAccount, toAccount, createTransferDto.fromAmount(), BigDecimal.ZERO);
 
-        Transaction transaction = buildTransfer(fromAccount, toAccount, createTransferDto, BigDecimal.ZERO, TransactionStatus.REALIZED);
+        Transaction transaction =
+            buildTransfer(
+                fromAccount,
+                toAccount,
+                createTransferDto,
+                BigDecimal.ZERO,
+                TransactionStatus.REALIZED
+            );
 
         transactionRepository.save(transaction);
 
@@ -109,7 +133,14 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Page<TransactionDto> getAllTransactionsForClient(String token, TransactionStatus paymentStatus, BigDecimal amount, LocalDate paymentDate, String accountNumber, PageRequest pageRequest) {
+    public Page<TransactionDto> getAllTransactionsForClient(
+        String token,
+        TransactionStatus paymentStatus,
+        BigDecimal amount,
+        LocalDate paymentDate,
+        String accountNumber,
+        PageRequest pageRequest
+    ) {
         SpecificationCombinator<Transaction> combinator = new SpecificationCombinator<>();
 
         if (paymentStatus != null) combinator.and(PaymentSpecification.hasStatus(paymentStatus));
@@ -117,14 +148,16 @@ public class TransactionServiceImpl implements TransactionService {
         if (paymentDate != null) combinator.and(PaymentSpecification.hasDate(paymentDate));
 
         if (accountNumber != null && !accountNumber.isEmpty()) {
-            Account fromAccount = accountRepository.findAccountByAccountNumber(accountNumber)
+            Account fromAccount =
+                accountRepository.findAccountByAccountNumber(accountNumber)
                     .orElseThrow(AccountNotFound::new);
 
             combinator.or(PaymentSpecification.hasFromAccount(fromAccount));
             combinator.or(PaymentSpecification.hasToAccount(fromAccount));
         }
 
-        Page<Transaction> transactions = transactionRepository.findAll(combinator.build(), pageRequest);
+        Page<Transaction> transactions =
+            transactionRepository.findAll(combinator.build(), pageRequest);
 
 
         return transactions.map(TransactionMapper.INSTANCE::toDto);
@@ -132,39 +165,58 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public TransactionDto getTransactionById(String token, UUID transactionId) {
-        Transaction transaction = transactionRepository.findById(transactionId)
+        Transaction transaction =
+            transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new TransactionNotFound(transactionId.toString()));
 
-        //TODO: check if user is owner of transaction
+        // TODO: check if user is owner of transaction
 
         return TransactionMapper.INSTANCE.toDto(transaction);
     }
 
     private Client getClient(Authentication authentication) {
-        String email = jwtUtil.extractUsername(authentication.getCredentials().toString());
-        return clientRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(email));
+        String email =
+            jwtUtil.extractUsername(
+                authentication.getCredentials()
+                    .toString()
+            );
+        return clientRepository.findByEmail(email)
+            .orElseThrow(() -> new UserNotFound(email));
     }
 
     private Account getAccount(String accountNumber) {
-        return accountRepository.findAccountByAccountNumber(accountNumber).orElseThrow(AccountNotFound::new);
+        return accountRepository.findAccountByAccountNumber(accountNumber)
+            .orElseThrow(AccountNotFound::new);
     }
 
     private void validateClientAccountOwnership(Client client, Account... accounts) {
         for (Account account : accounts) {
-            if (!client.getAccounts().contains(account)) {
+            if (
+                !client.getAccounts()
+                    .contains(account)
+            ) {
                 throw new NotAccountOwner();
             }
         }
     }
 
     private void validateSufficientFunds(Account fromAccount, BigDecimal amount) {
-        if (fromAccount.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
+        if (
+            fromAccount.getBalance()
+                .subtract(amount)
+                .compareTo(BigDecimal.ZERO)
+                < 0
+        ) {
             throw new InsufficientFunds();
         }
     }
 
     private boolean veifyClient(Authentication authentication, String otpCode) {
-        return totpService.validate(authentication.getCredentials().toString(), otpCode);
+        return totpService.validate(
+            authentication.getCredentials()
+                .toString(),
+            otpCode
+        );
     }
 
     private void validateAccountActive(Account account) {
@@ -174,42 +226,77 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    private void processTransaction(Account fromAccount, Account toAccount, BigDecimal amount, BigDecimal fee) {
-        fromAccount.setBalance(fromAccount.getBalance().subtract(amount).subtract(fee));
-        toAccount.setBalance(toAccount.getBalance().add(amount));
+    private void processTransaction(
+        Account fromAccount,
+        Account toAccount,
+        BigDecimal amount,
+        BigDecimal fee
+    ) {
+        fromAccount.setBalance(
+            fromAccount.getBalance()
+                .subtract(amount)
+                .subtract(fee)
+        );
+        toAccount.setBalance(
+            toAccount.getBalance()
+                .add(amount)
+        );
     }
 
-    private Transaction buildTransaction(Account fromAccount, Account toAccount, CreatePaymentDto createPaymentDto, BigDecimal fee, TransactionStatus status) {
+    private Transaction buildTransaction(
+        Account fromAccount,
+        Account toAccount,
+        CreatePaymentDto createPaymentDto,
+        BigDecimal fee,
+        TransactionStatus status
+    ) {
         return Transaction.builder()
-                .transactionNumber(UUID.randomUUID().toString())
-                .fromAccount(fromAccount)
-                .toAccount(toAccount)
-                .from(new MonetaryAmount(createPaymentDto.fromAmount(), fromAccount.getCurrency()))
-                .to(new MonetaryAmount(createPaymentDto.fromAmount(), toAccount.getCurrency()))
-                .fee(new MonetaryAmount(fee, fromAccount.getCurrency()))
-                .recipient(createPaymentDto.recipient())
-                .paymentCode(createPaymentDto.paymentCode())
-                .referenceNumber(createPaymentDto.referenceNumber())
-                .paymentPurpose(createPaymentDto.paymentPurpose())
-                .paymentDateTime(LocalDateTime.now())
-                .status(status)
-                .build();
+            .transactionNumber(
+                UUID.randomUUID()
+                    .toString()
+            )
+            .fromAccount(fromAccount)
+            .toAccount(toAccount)
+            .from(new MonetaryAmount(createPaymentDto.fromAmount(), fromAccount.getCurrency()))
+            .to(new MonetaryAmount(createPaymentDto.fromAmount(), toAccount.getCurrency()))
+            .fee(new MonetaryAmount(fee, fromAccount.getCurrency()))
+            .recipient(createPaymentDto.recipient())
+            .paymentCode(createPaymentDto.paymentCode())
+            .referenceNumber(createPaymentDto.referenceNumber())
+            .paymentPurpose(createPaymentDto.paymentPurpose())
+            .paymentDateTime(LocalDateTime.now())
+            .status(status)
+            .build();
     }
 
-    private Transaction buildTransfer(Account fromAccount, Account toAccount, CreateTransferDto createTransferDto, BigDecimal fee, TransactionStatus status) {
+    private Transaction buildTransfer(
+        Account fromAccount,
+        Account toAccount,
+        CreateTransferDto createTransferDto,
+        BigDecimal fee,
+        TransactionStatus status
+    ) {
         return Transaction.builder()
-                .transactionNumber(UUID.randomUUID().toString())
-                .fromAccount(fromAccount)
-                .toAccount(toAccount)
-                .from(new MonetaryAmount(createTransferDto.fromAmount(), fromAccount.getCurrency()))
-                .to(new MonetaryAmount(createTransferDto.fromAmount(), toAccount.getCurrency()))
-                .fee(new MonetaryAmount(fee, fromAccount.getCurrency()))
-                .recipient(toAccount.getClient().firstName)
-                .paymentCode("101")
-                .referenceNumber(String.valueOf(toAccount.getClient().getId()))
-                .paymentPurpose("Internal")
-                .paymentDateTime(LocalDateTime.now())
-                .status(status)
-                .build();
+            .transactionNumber(
+                UUID.randomUUID()
+                    .toString()
+            )
+            .fromAccount(fromAccount)
+            .toAccount(toAccount)
+            .from(new MonetaryAmount(createTransferDto.fromAmount(), fromAccount.getCurrency()))
+            .to(new MonetaryAmount(createTransferDto.fromAmount(), toAccount.getCurrency()))
+            .fee(new MonetaryAmount(fee, fromAccount.getCurrency()))
+            .recipient(toAccount.getClient().firstName)
+            .paymentCode("101")
+            .referenceNumber(
+                String.valueOf(
+                    toAccount.getClient()
+                        .getId()
+                )
+            )
+            .paymentPurpose("Internal")
+            .paymentDateTime(LocalDateTime.now())
+            .status(status)
+            .build();
     }
 }

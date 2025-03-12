@@ -1,5 +1,8 @@
 package rs.banka4.user_service.routes;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,13 +17,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import rs.banka4.user_service.controller.TotpController;
 import rs.banka4.user_service.domain.authenticator.db.SentCode;
 import rs.banka4.user_service.domain.authenticator.dtos.RegenerateAuthenticatorResponseDto;
-import rs.banka4.user_service.service.impl.TotpService;
 import rs.banka4.user_service.service.impl.CustomUserDetailsService;
-import rs.banka4.user_service.utils.JwtUtil;
+import rs.banka4.user_service.service.impl.TotpService;
 import rs.banka4.user_service.util.MockMvcUtil;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import rs.banka4.user_service.utils.JwtUtil;
 
 @WebMvcTest(TotpController.class)
 @Import(TotpControllerTests.MockBeansConfig.class)
@@ -43,8 +43,10 @@ public class TotpControllerTests {
     @Test
     @WithMockUser(username = "user")
     void testRegenerateAuthenticator() throws Exception {
-        RegenerateAuthenticatorResponseDto responseDto = new RegenerateAuthenticatorResponseDto("url","newSecret");
-        Mockito.when(totpService.regenerateSecret(any())).thenReturn(responseDto);
+        RegenerateAuthenticatorResponseDto responseDto =
+            new RegenerateAuthenticatorResponseDto("url", "newSecret");
+        Mockito.when(totpService.regenerateSecret(any()))
+            .thenReturn(responseDto);
         mockMvcUtil.performRequest(get("/verify/regenerate-authenticator"), responseDto);
     }
 
@@ -52,7 +54,9 @@ public class TotpControllerTests {
     @WithMockUser(username = "user")
     void testVerifyNewAuthenticator() throws Exception {
         SentCode sentCode = new SentCode("123456");
-        Mockito.doNothing().when(totpService).verifyNewAuthenticator(any(), any(String.class));
+        Mockito.doNothing()
+            .when(totpService)
+            .verifyNewAuthenticator(any(), any(String.class));
         mockMvcUtil.performPostRequest(post("/verify/verify-new-authenticator"), sentCode, 200);
     }
 
@@ -60,7 +64,8 @@ public class TotpControllerTests {
     @WithMockUser(username = "user")
     void testVerifyCode() throws Exception {
         SentCode sentCode = new SentCode("123456");
-        Mockito.when(totpService.validate(any(String.class), any(String.class))).thenReturn(true);
+        Mockito.when(totpService.validate(any(String.class), any(String.class)))
+            .thenReturn(true);
         mockMvcUtil.performPostRequest(post("/verify/validate"), sentCode, 200);
     }
 

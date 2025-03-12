@@ -1,8 +1,13 @@
 package rs.banka4.notification_service.unit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -11,12 +16,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mail.javamail.JavaMailSender;
 import rs.banka4.notification_service.email.EmailService;
-
-import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
 
 public class MailSenderTest {
 
@@ -41,8 +40,11 @@ public class MailSenderTest {
         MimeMessage mimeMessage = mock(MimeMessage.class);
 
         when(emailSender.createMimeMessage()).thenReturn(mimeMessage);
-        doNothing().when(emailSender).send(mimeMessage);
-        when(mimeMessage.getRecipients(MimeMessage.RecipientType.TO)).thenReturn(InternetAddress.parse(to));
+        doNothing().when(emailSender)
+            .send(mimeMessage);
+        when(mimeMessage.getRecipients(MimeMessage.RecipientType.TO)).thenReturn(
+            InternetAddress.parse(to)
+        );
         when(mimeMessage.getSubject()).thenReturn(subject);
         when(mimeMessage.getContent()).thenReturn(htmlBody);
 
@@ -53,9 +55,17 @@ public class MailSenderTest {
 
         MimeMessage sentMessage = mimeMessageCaptor.getValue();
 
-        assertEquals(to, ((InternetAddress) sentMessage.getRecipients(MimeMessage.RecipientType.TO)[0]).getAddress());
+        assertEquals(
+            to,
+            ((InternetAddress) sentMessage.getRecipients(MimeMessage.RecipientType.TO)[0])
+                .getAddress()
+        );
         assertEquals(subject, sentMessage.getSubject());
-        assertEquals(htmlBody, sentMessage.getContent().toString());
+        assertEquals(
+            htmlBody,
+            sentMessage.getContent()
+                .toString()
+        );
     }
 
     @Test
@@ -68,8 +78,11 @@ public class MailSenderTest {
         MimeMessage mimeMessage = mock(MimeMessage.class);
 
         when(emailSender.createMimeMessage()).thenReturn(mimeMessage);
-        doNothing().when(emailSender).send(mimeMessage);
-        when(mimeMessage.getRecipients(MimeMessage.RecipientType.TO)).thenReturn(InternetAddress.parse(to));
+        doNothing().when(emailSender)
+            .send(mimeMessage);
+        when(mimeMessage.getRecipients(MimeMessage.RecipientType.TO)).thenReturn(
+            InternetAddress.parse(to)
+        );
         when(mimeMessage.getSubject()).thenReturn(subject);
         when(mimeMessage.getContent()).thenReturn(textBody);
 
@@ -80,9 +93,17 @@ public class MailSenderTest {
 
         MimeMessage sentMessage = mimeMessageCaptor.getValue();
 
-        assertEquals(to, ((InternetAddress) sentMessage.getRecipients(MimeMessage.RecipientType.TO)[0]).getAddress());
+        assertEquals(
+            to,
+            ((InternetAddress) sentMessage.getRecipients(MimeMessage.RecipientType.TO)[0])
+                .getAddress()
+        );
         assertEquals(subject, sentMessage.getSubject());
-        assertEquals(textBody, sentMessage.getContent().toString());
+        assertEquals(
+            textBody,
+            sentMessage.getContent()
+                .toString()
+        );
     }
 
 }

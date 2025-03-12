@@ -5,32 +5,59 @@ import org.mapstruct.factory.Mappers;
 import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.user.Gender;
+import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
 import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
-import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.UpdateClientDto;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(
+    componentModel = MappingConstants.ComponentModel.SPRING,
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 public interface ClientMapper {
 
     ClientMapper INSTANCE = Mappers.getMapper(ClientMapper.class);
 
-    @Mapping(target = "gender", source = "gender", qualifiedByName = "mapGender")
+    @Mapping(
+        target = "gender",
+        source = "gender",
+        qualifiedByName = "mapGender"
+    )
     Client toEntity(CreateClientDto dto);
 
-    @Mapping(target = "gender", source = "gender", qualifiedByName = "mapGender")
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "permissionBits", ignore = true)
+    @Mapping(
+        target = "gender",
+        source = "gender",
+        qualifiedByName = "mapGender"
+    )
+    @Mapping(
+        target = "id",
+        ignore = true
+    )
+    @Mapping(
+        target = "permissionBits",
+        ignore = true
+    )
     Client toEntity(AccountClientIdDto dto);
 
     ClientDto toDto(Client client);
 
-    @Mapping(target = "gender", source = "gender", qualifiedByName = "mapGender")
+    @Mapping(
+        target = "gender",
+        source = "gender",
+        qualifiedByName = "mapGender"
+    )
     CreateAuthorizedUserDto toAuthorizedUserDto(AccountClientIdDto dto);
 
-    @Mapping(target = "gender", source = "gender", qualifiedByName = "mapGender")
-    @Mapping(target = "phone", source = "phoneNumber")
+    @Mapping(
+        target = "gender",
+        source = "gender",
+        qualifiedByName = "mapGender"
+    )
+    @Mapping(
+        target = "phone",
+        source = "phoneNumber"
+    )
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void fromUpdate(@MappingTarget Client target, UpdateClientDto dto);
 
@@ -46,7 +73,10 @@ public interface ClientMapper {
         }
     }
 
-    @Mapping(target = "has2FA", source = "has2FA")
+    @Mapping(
+        target = "has2FA",
+        source = "has2FA"
+    )
     ClientDto toDto(Client client, Boolean has2FA);
 
 }

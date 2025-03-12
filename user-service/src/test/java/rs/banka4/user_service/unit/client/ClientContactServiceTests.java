@@ -1,5 +1,11 @@
 package rs.banka4.user_service.unit.client;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -13,21 +19,14 @@ import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.db.ClientContact;
 import rs.banka4.user_service.domain.user.client.dtos.ClientContactDto;
 import rs.banka4.user_service.domain.user.client.dtos.ClientContactRequest;
+import rs.banka4.user_service.exceptions.user.NotAuthenticated;
 import rs.banka4.user_service.exceptions.user.client.ClientContactNotFound;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
-import rs.banka4.user_service.exceptions.user.NotAuthenticated;
+import rs.banka4.user_service.generator.ClientObjectMother;
 import rs.banka4.user_service.repositories.ClientContactRepository;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.service.impl.ClientContactServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
-import rs.banka4.user_service.generator.ClientObjectMother;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 public class ClientContactServiceTests {
 
@@ -74,7 +73,10 @@ public class ClientContactServiceTests {
         when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(ClientNotFound.class, () -> clientContactService.createClientContact(token, request));
+        assertThrows(
+            ClientNotFound.class,
+            () -> clientContactService.createClientContact(token, request)
+        );
     }
 
     @Test
@@ -114,7 +116,10 @@ public class ClientContactServiceTests {
         when(clientContactRepository.findById(contactId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(ClientContactNotFound.class, () -> clientContactService.getSpecificClientContact(token, contactId));
+        assertThrows(
+            ClientContactNotFound.class,
+            () -> clientContactService.getSpecificClientContact(token, contactId)
+        );
     }
 
     @Test
@@ -132,7 +137,10 @@ public class ClientContactServiceTests {
         when(clientContactRepository.findById(contactId)).thenReturn(Optional.of(clientContact));
 
         // Act & Assert
-        assertThrows(NotAuthenticated.class, () -> clientContactService.getSpecificClientContact(token, contactId));
+        assertThrows(
+            NotAuthenticated.class,
+            () -> clientContactService.getSpecificClientContact(token, contactId)
+        );
     }
 
     @Test
@@ -156,8 +164,18 @@ public class ClientContactServiceTests {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        assertEquals(clientContact.getNickname(), result.getContent().get(0).nickname());
-        assertEquals(clientContact.getAccountNumber(), result.getContent().get(0).accountNumber());
+        assertEquals(
+            clientContact.getNickname(),
+            result.getContent()
+                .get(0)
+                .nickname()
+        );
+        assertEquals(
+            clientContact.getAccountNumber(),
+            result.getContent()
+                .get(0)
+                .accountNumber()
+        );
     }
 
     @Test
@@ -192,7 +210,10 @@ public class ClientContactServiceTests {
         when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(ClientNotFound.class, () -> clientContactService.getAllClientContacts(token, pageable));
+        assertThrows(
+            ClientNotFound.class,
+            () -> clientContactService.getAllClientContacts(token, pageable)
+        );
     }
 
     @Test
@@ -232,7 +253,10 @@ public class ClientContactServiceTests {
         when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(ClientNotFound.class, () -> clientContactService.updateClientContact(token, contactId, request));
+        assertThrows(
+            ClientNotFound.class,
+            () -> clientContactService.updateClientContact(token, contactId, request)
+        );
     }
 
     @Test
@@ -252,7 +276,10 @@ public class ClientContactServiceTests {
         when(clientContactRepository.findById(contactId)).thenReturn(Optional.of(clientContact));
 
         // Act & Assert
-        assertThrows(NotAuthenticated.class, () -> clientContactService.updateClientContact(token, contactId, request));
+        assertThrows(
+            NotAuthenticated.class,
+            () -> clientContactService.updateClientContact(token, contactId, request)
+        );
     }
 
     @Test
@@ -269,6 +296,9 @@ public class ClientContactServiceTests {
         when(clientContactRepository.findById(contactId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(ClientContactNotFound.class, () -> clientContactService.updateClientContact(token, contactId, request));
+        assertThrows(
+            ClientContactNotFound.class,
+            () -> clientContactService.updateClientContact(token, contactId, request)
+        );
     }
 }

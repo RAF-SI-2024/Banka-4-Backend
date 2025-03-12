@@ -1,13 +1,12 @@
 package rs.banka4.user_service.domain.authenticator.db;
 
 import jakarta.persistence.*;
+import java.util.Objects;
+import java.util.UUID;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
-
-import java.util.Objects;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -15,22 +14,31 @@ import java.util.UUID;
 @ToString
 @RequiredArgsConstructor
 @AllArgsConstructor
-@Table(name="user_to_totp_secrets")
+@Table(name = "user_to_totp_secrets")
 public class UserTotpSecret {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(
+        nullable = false,
+        unique = true
+    )
     private String secret;
 
     @OneToOne
-    @JoinColumn(name = "client_id", unique = true)
+    @JoinColumn(
+        name = "client_id",
+        unique = true
+    )
     private Client client;
 
     @OneToOne
-    @JoinColumn(name = "employee_id", unique = true)
+    @JoinColumn(
+        name = "employee_id",
+        unique = true
+    )
     private Employee employee;
 
     @Column(nullable = false)
@@ -40,8 +48,16 @@ public class UserTotpSecret {
     public final boolean equals(Object o) {
         if (this == o) return true;
         if (o == null) return false;
-        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
-        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        Class<?> oEffectiveClass =
+            o instanceof HibernateProxy
+                ? ((HibernateProxy) o).getHibernateLazyInitializer()
+                    .getPersistentClass()
+                : o.getClass();
+        Class<?> thisEffectiveClass =
+            this instanceof HibernateProxy
+                ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                    .getPersistentClass()
+                : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
         UserTotpSecret that = (UserTotpSecret) o;
         return getId() != null && Objects.equals(getId(), that.getId());
@@ -49,7 +65,10 @@ public class UserTotpSecret {
 
     @Override
     public final int hashCode() {
-        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+        return this instanceof HibernateProxy
+            ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                .getPersistentClass()
+                .hashCode()
+            : getClass().hashCode();
     }
-
 }

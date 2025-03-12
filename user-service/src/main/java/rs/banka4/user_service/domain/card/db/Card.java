@@ -2,14 +2,13 @@ package rs.banka4.user_service.domain.card.db;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
-import lombok.*;
-import org.hibernate.proxy.HibernateProxy;
-import rs.banka4.user_service.domain.account.db.Account;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
+import lombok.*;
+import org.hibernate.proxy.HibernateProxy;
+import rs.banka4.user_service.domain.account.db.Account;
 
 @Entity
 @AllArgsConstructor
@@ -24,7 +23,10 @@ public class Card {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(
+        nullable = false,
+        unique = true
+    )
     @Pattern(regexp = "\\d{16}")
     private String cardNumber;
 
@@ -58,14 +60,24 @@ public class Card {
     private LocalDate createdAt = LocalDate.now();
 
     @Builder.Default
-    private LocalDate expiresAt = LocalDate.now().plusYears(5);
+    private LocalDate expiresAt =
+        LocalDate.now()
+            .plusYears(5);
 
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
         if (o == null) return false;
-        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
-        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        Class<?> oEffectiveClass =
+            o instanceof HibernateProxy
+                ? ((HibernateProxy) o).getHibernateLazyInitializer()
+                    .getPersistentClass()
+                : o.getClass();
+        Class<?> thisEffectiveClass =
+            this instanceof HibernateProxy
+                ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                    .getPersistentClass()
+                : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
         Card card = (Card) o;
         return getId() != null && Objects.equals(getId(), card.getId());
@@ -73,14 +85,15 @@ public class Card {
 
     @Override
     public final int hashCode() {
-        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+        return this instanceof HibernateProxy
+            ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                .getPersistentClass()
+                .hashCode()
+            : getClass().hashCode();
     }
 
     @Override
     public String toString() {
-        return "Card{" +
-                "id=" + id +
-                ", cardNumber='" + cardNumber + '\'' +
-                '}';
+        return "Card{" + "id=" + id + ", cardNumber='" + cardNumber + '\'' + '}';
     }
 }

@@ -1,6 +1,13 @@
 package rs.banka4.user_service.routes;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -9,9 +16,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -26,16 +33,8 @@ import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
 import rs.banka4.user_service.generator.EmployeeObjectMother;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
 import rs.banka4.user_service.service.impl.CustomUserDetailsService;
-import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.util.MockMvcUtil;
-
-import java.util.Collections;
-import java.util.UUID;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import rs.banka4.user_service.utils.JwtUtil;
 
 @WebMvcTest(EmployeeController.class)
 @Import(EmployeeControllerTests.MockBeansConfig.class)
@@ -59,7 +58,8 @@ public class EmployeeControllerTests {
     @WithMockUser(username = "user")
     void testGetPrivileges() throws Exception {
         PrivilegesDto privilegesDto = new PrivilegesDto(Collections.singletonList("ADMIN"));
-        Mockito.when(employeeService.getPrivileges()).thenReturn(ResponseEntity.ok(privilegesDto));
+        Mockito.when(employeeService.getPrivileges())
+            .thenReturn(ResponseEntity.ok(privilegesDto));
         mockMvcUtil.performRequest(get("/employee/privileges"), privilegesDto);
     }
 
@@ -67,7 +67,8 @@ public class EmployeeControllerTests {
     @WithMockUser(username = "user")
     void testGetMe() throws Exception {
         EmployeeResponseDto responseDto = EmployeeObjectMother.generateBasicEmployeeResponseDto();
-        Mockito.when(employeeService.getMe(any(String.class))).thenReturn(responseDto);
+        Mockito.when(employeeService.getMe(any(String.class)))
+            .thenReturn(responseDto);
         mockMvcUtil.performRequest(get("/employee/me"), responseDto);
     }
 
@@ -76,7 +77,8 @@ public class EmployeeControllerTests {
     void testGetEmployeeById() throws Exception {
         UUID id = UUID.randomUUID();
         EmployeeResponseDto responseDto = EmployeeObjectMother.generateBasicEmployeeResponseDto();
-        Mockito.when(employeeService.getEmployeeById(eq(id))).thenReturn(responseDto);
+        Mockito.when(employeeService.getEmployeeById(eq(id)))
+            .thenReturn(responseDto);
         mockMvcUtil.performRequest(get("/employee/{id}", id), responseDto);
     }
 
@@ -84,7 +86,9 @@ public class EmployeeControllerTests {
     @WithMockUser(username = "user")
     void testCreateEmployee() throws Exception {
         CreateEmployeeDto createEmployeeDto = EmployeeObjectMother.generateBasicCreateEmployeeDto();
-        Mockito.doNothing().when(employeeService).createEmployee(any(CreateEmployeeDto.class));
+        Mockito.doNothing()
+            .when(employeeService)
+            .createEmployee(any(CreateEmployeeDto.class));
         mockMvcUtil.performPostRequest(post("/employee"), createEmployeeDto, 201);
     }
 
@@ -93,7 +97,8 @@ public class EmployeeControllerTests {
     void testGetEmployees() throws Exception {
         EmployeeDto employeeDto = EmployeeObjectMother.generateBasicEmployeeDto();
         Page<EmployeeDto> page = new PageImpl<>(Collections.singletonList(employeeDto));
-        Mockito.when(employeeService.getAll(any(), any(), any(), any(), any(PageRequest.class))).thenReturn(ResponseEntity.ok(page));
+        Mockito.when(employeeService.getAll(any(), any(), any(), any(), any(PageRequest.class)))
+            .thenReturn(ResponseEntity.ok(page));
         mockMvcUtil.performRequest(get("/employee/search"), page);
     }
 
@@ -102,13 +107,16 @@ public class EmployeeControllerTests {
     void testUpdateEmployee() throws Exception {
         UUID id = UUID.randomUUID();
         UpdateEmployeeDto updateEmployeeDto = EmployeeObjectMother.generateBasicUpdateEmployeeDto();
-        Mockito.doNothing().when(employeeService).updateEmployee(eq(id), any(UpdateEmployeeDto.class));
-        mockMvc.perform(put("/employee/{id}", id)
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer dummyToken")
-                        .content(objectMapper.writeValueAsString(updateEmployeeDto)))
-                .andExpect(status().isOk());
+        Mockito.doNothing()
+            .when(employeeService)
+            .updateEmployee(eq(id), any(UpdateEmployeeDto.class));
+        mockMvc.perform(
+            put("/employee/{id}", id).with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer dummyToken")
+                .content(objectMapper.writeValueAsString(updateEmployeeDto))
+        )
+            .andExpect(status().isOk());
     }
 
     @TestConfiguration

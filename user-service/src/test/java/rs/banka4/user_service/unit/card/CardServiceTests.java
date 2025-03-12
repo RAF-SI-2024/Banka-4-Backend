@@ -1,5 +1,13 @@
 package rs.banka4.user_service.unit.card;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,15 +28,6 @@ import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.CardRepository;
 import rs.banka4.user_service.service.impl.CardServiceImpl;
 import rs.banka4.user_service.service.impl.TotpService;
-
-import java.time.LocalDate;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class CardServiceTests {
@@ -72,43 +71,42 @@ public class CardServiceTests {
         personalAccount.setAccountType(AccountType.STANDARD);
 
         // Create valid DTO for a business account with an authorized user
-        validBusinessRequestWithAuthorizedUser = new CreateCardDto(
+        validBusinessRequestWithAuthorizedUser =
+            new CreateCardDto(
                 businessAccount.getAccountNumber(),
                 new CreateAuthorizedUserDto(
-                        "John",
-                        "Doe",
-                        LocalDate.of(1980, 1, 1),
-                        Gender.MALE,
-                        "john.doe@example.com",
-                        "123456789",
-                        "123 Business St"
+                    "John",
+                    "Doe",
+                    LocalDate.of(1980, 1, 1),
+                    Gender.MALE,
+                    "john.doe@example.com",
+                    "123456789",
+                    "123 Business St"
                 ),
                 "dummyTotp"
-        );
+            );
         // Create valid DTO for a business account without an authorized user
-        validBusinessRequestWithoutAuthorizedUser = new CreateCardDto(
-                businessAccount.getAccountNumber(),
-                null,
-                "dummyTotp"
-        );
+        validBusinessRequestWithoutAuthorizedUser =
+            new CreateCardDto(businessAccount.getAccountNumber(), null, "dummyTotp");
         // Create valid DTO for a personal account (authorizedUser must be null)
-        validPersonalRequest = new CreateCardDto(
-                personalAccount.getAccountNumber(),
-                null,
-                "dummyTotp"
-        );
+        validPersonalRequest =
+            new CreateCardDto(personalAccount.getAccountNumber(), null, "dummyTotp");
     }
 
     @Test
     public void testCreateAuthorizedCard_Success_BusinessAccount_WithAuthorizedUser() {
         // Business account with an authorized user; duplicate check must return false.
         when(totpService.validate("dummyTotp", validBusinessRequestWithAuthorizedUser.otpCode()))
-                .thenReturn(true);
+            .thenReturn(true);
         when(accountRepository.findAccountByAccountNumber(businessAccount.getAccountNumber()))
-                .thenReturn(Optional.of(businessAccount));
+            .thenReturn(Optional.of(businessAccount));
         when(cardRepository.countByAccount(businessAccount)).thenReturn(0);
-        when(cardRepository.existsByAccountAndAuthorizedUserEmail(businessAccount, "john.doe@example.com"))
-                .thenReturn(false);
+        when(
+            cardRepository.existsByAccountAndAuthorizedUserEmail(
+                businessAccount,
+                "john.doe@example.com"
+            )
+        ).thenReturn(false);
         when(cardRepository.existsByCardNumber(anyString())).thenReturn(false);
 
         cardService.createAuthorizedCard(authentication, validBusinessRequestWithAuthorizedUser);
@@ -120,9 +118,9 @@ public class CardServiceTests {
     public void testCreateAuthorizedCard_Success_BusinessAccount_WithoutAuthorizedUser() {
         // Business account without authorized user; allowed if no card exists.
         when(totpService.validate("dummyTotp", validBusinessRequestWithoutAuthorizedUser.otpCode()))
-                .thenReturn(true);
+            .thenReturn(true);
         when(accountRepository.findAccountByAccountNumber(businessAccount.getAccountNumber()))
-                .thenReturn(Optional.of(businessAccount));
+            .thenReturn(Optional.of(businessAccount));
         // For business accounts without an authorized user, max allowed cards is 1.
         when(cardRepository.countByAccount(businessAccount)).thenReturn(0);
         when(cardRepository.existsByCardNumber(anyString())).thenReturn(false);
@@ -136,26 +134,32 @@ public class CardServiceTests {
     public void testCreateAuthorizedCard_Failure_BusinessAccount_WithDuplicateAuthorizedUser() {
         // For business account with authorized user, if duplicate exists, throw exception.
         when(totpService.validate("dummyTotp", validBusinessRequestWithAuthorizedUser.otpCode()))
-                .thenReturn(true);
+            .thenReturn(true);
         when(accountRepository.findAccountByAccountNumber(businessAccount.getAccountNumber()))
-                .thenReturn(Optional.of(businessAccount));
+            .thenReturn(Optional.of(businessAccount));
         when(cardRepository.countByAccount(businessAccount)).thenReturn(0);
         // Simulate duplicate authorized user exists
-        when(cardRepository.existsByAccountAndAuthorizedUserEmail(businessAccount, "john.doe@example.com"))
-                .thenReturn(true);
+        when(
+            cardRepository.existsByAccountAndAuthorizedUserEmail(
+                businessAccount,
+                "john.doe@example.com"
+            )
+        ).thenReturn(true);
 
         assertThrows(DuplicateAuthorizationException.class, () -> {
-            cardService.createAuthorizedCard(authentication, validBusinessRequestWithAuthorizedUser);
+            cardService.createAuthorizedCard(
+                authentication,
+                validBusinessRequestWithAuthorizedUser
+            );
         });
     }
 
     @Test
     public void testCreateAuthorizedCard_Success_PersonalAccount() {
         // For personal account, authorizedUser must be null and card count must be less than 2.
-        when(totpService.validate("dummyTotp", validPersonalRequest.otpCode()))
-                .thenReturn(true);
+        when(totpService.validate("dummyTotp", validPersonalRequest.otpCode())).thenReturn(true);
         when(accountRepository.findAccountByAccountNumber(personalAccount.getAccountNumber()))
-                .thenReturn(Optional.of(personalAccount));
+            .thenReturn(Optional.of(personalAccount));
         // Personal account: currently 1 card exists, so a new card is allowed.
         when(cardRepository.countByAccount(personalAccount)).thenReturn(1);
         when(cardRepository.existsByCardNumber(anyString())).thenReturn(false);
@@ -168,23 +172,25 @@ public class CardServiceTests {
     @Test
     public void testCreateAuthorizedCard_Failure_PersonalAccount_WithAuthorizedUser() {
         // For personal account, providing an authorized user is not allowed.
-        CreateCardDto requestWithAuthorizedUser = new CreateCardDto(
+        CreateCardDto requestWithAuthorizedUser =
+            new CreateCardDto(
                 personalAccount.getAccountNumber(),
                 new CreateAuthorizedUserDto(
-                        "Jane",
-                        "Doe",
-                        LocalDate.of(1990, 1, 1),
-                        Gender.FEMALE,
-                        "jane.doe@example.com",
-                        "987654321",
-                        "123 Personal St"
+                    "Jane",
+                    "Doe",
+                    LocalDate.of(1990, 1, 1),
+                    Gender.FEMALE,
+                    "jane.doe@example.com",
+                    "987654321",
+                    "123 Personal St"
                 ),
                 "dummyTotp"
+            );
+        when(totpService.validate("dummyTotp", requestWithAuthorizedUser.otpCode())).thenReturn(
+            true
         );
-        when(totpService.validate("dummyTotp", requestWithAuthorizedUser.otpCode()))
-                .thenReturn(true);
         when(accountRepository.findAccountByAccountNumber(personalAccount.getAccountNumber()))
-                .thenReturn(Optional.of(personalAccount));
+            .thenReturn(Optional.of(personalAccount));
 
         assertThrows(AuthorizedUserNotAllowed.class, () -> {
             cardService.createAuthorizedCard(authentication, requestWithAuthorizedUser);
@@ -194,10 +200,9 @@ public class CardServiceTests {
     @Test
     public void testCreateAuthorizedCard_Failure_PersonalAccount_ExceedingLimit() {
         // For personal account, if the card count is already 2 or more, throw exception.
-        when(totpService.validate("dummyTotp", validPersonalRequest.otpCode()))
-                .thenReturn(true);
+        when(totpService.validate("dummyTotp", validPersonalRequest.otpCode())).thenReturn(true);
         when(accountRepository.findAccountByAccountNumber(personalAccount.getAccountNumber()))
-                .thenReturn(Optional.of(personalAccount));
+            .thenReturn(Optional.of(personalAccount));
         when(cardRepository.countByAccount(personalAccount)).thenReturn(2);
 
         assertThrows(CardLimitExceededException.class, () -> {
