@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.db.LoanStatus;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
