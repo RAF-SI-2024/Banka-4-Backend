@@ -47,8 +47,8 @@ public class CardController implements CardDocumentation {
 
     @Override
     @PutMapping("/unblock/{cardNumber}")
-    public ResponseEntity<Void> unblockCard(@PathVariable("cardNumber") String cardNumber, @RequestHeader("Authorization")String authHeader) {
-        String token = authHeader.substring(7);
+    public ResponseEntity<Void> unblockCard(Authentication authentication, @PathVariable("cardNumber") String cardNumber) {
+        String token = authentication.getCredentials().toString();
         Card card = cardService.unblockCard(cardNumber, token);
 
         if (card == null) {
@@ -63,8 +63,8 @@ public class CardController implements CardDocumentation {
 
     @Override
     @PutMapping("/deactivate/{cardNumber}")
-    public ResponseEntity<Void> deactivateCard(@PathVariable("cardNumber") String cardNumber, @RequestHeader("Authorization")String authHeader) {
-        String token = authHeader.substring(7);
+    public ResponseEntity<Void> deactivateCard(Authentication authentication, @PathVariable("cardNumber") String cardNumber) {
+        String token = authentication.getCredentials().toString();
         Card card = cardService.deactivateCard(cardNumber, token);
 
         if (card == null) {

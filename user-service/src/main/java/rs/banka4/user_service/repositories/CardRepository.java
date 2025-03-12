@@ -14,10 +14,6 @@ import java.util.UUID;
 @Repository
 public interface CardRepository extends JpaRepository<Card, UUID> {
     Optional<Card> findCardByCardNumber(String cardNumber);
-
-//    @Query("SELECT c FROM Card c WHERE LOWER(c.cardNumber) = LOWER(:cardNumber)")
-//    Optional<Card> findByCardNumber(@Param("cardNumber") String cardNumber);
-
     boolean existsByCardNumber(String cardNumber);
 
 }
