@@ -48,7 +48,7 @@ dependencies {
 	implementation("com.google.guava:guava:30.1-jre")
 	implementation("org.springframework.amqp:spring-amqp:3.2.3")
 	implementation("org.springframework.amqp:spring-rabbit:3.2.3")
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.5")
 	implementation("org.springdoc:springdoc-openapi-starter-common:2.8.5")
 	implementation("dev.samstevens.totp:totp-spring-boot-starter:1.7.1")
 
