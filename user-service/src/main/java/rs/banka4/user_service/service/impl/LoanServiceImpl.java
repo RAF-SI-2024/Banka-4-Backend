@@ -33,8 +33,6 @@ public class LoanServiceImpl implements LoanService {
     private final LoanRateUtil loanRateUtil;
     private final LoanRepository loanRepository;
     private final LoanInstallmentRepository loanInstallmentRepository;
-
-    private final LoanRepository loanRepository;
     private final JwtUtil jwtUtil;
 
     @Override
