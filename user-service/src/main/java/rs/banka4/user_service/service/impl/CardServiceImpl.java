@@ -1,6 +1,7 @@
 package rs.banka4.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -12,12 +13,15 @@ import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.repositories.CardRepository;
 import rs.banka4.user_service.service.abstraction.CardService;
+import rs.banka4.user_service.utils.JwtUtil;
 
 import java.util.Optional;
 @Service
 @RequiredArgsConstructor
+@Primary
 public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
+    private final JwtUtil jwtUtil;
 
     @Override
     public Card createAuthorizedCard(CreateCardDto createCardDto) {
@@ -56,9 +60,27 @@ public class CardServiceImpl implements CardService {
 
 
     @Override
-    public Card unblockCard(String cardNumber) {
-        return null;
+    public Card unblockCard(String cardNumber, String token) {
+        Optional<Card> optionalCard = cardRepository.findCardByCardNumber(cardNumber);
+        if (optionalCard.isEmpty()) {
+            return null;
+        }
+
+        Card card = optionalCard.get();
+        String role = jwtUtil.extractRole(token);
+
+        if (!"employee".equalsIgnoreCase(role)) {
+            return null;
+        }
+
+        if (card.getCardStatus() != CardStatus.BLOCKED) {
+            return card;
+        }
+
+        card.setCardStatus(CardStatus.ACTIVATED);
+        return cardRepository.save(card);
     }
+
 
     @Override
     public Card deactivateCard(String cardNumber, String token) {
