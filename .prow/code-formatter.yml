@@ -1,0 +1,44 @@
+# Run a spotless code-style check
+presubmits:
+  - name: pull-banka-4-backend-style-check
+    always_run: true # Not ideal.  Don't care.
+    decorate: true
+    spec:
+      containers:
+        - image: harbor.k8s.elab.rs/base-images/base:java-21-node-18-docker
+          name: java-code-style
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -eux
+              rm -f /tmp/STYLE_CHECK_WHEW
+
+              git worktree add --detach /tmp/STYLE_CHECK_SRC_1
+              cd /tmp/STYLE_CHECK_SRC_1
+              git rebase --exec "\
+                [[ -e .prow/code-formatter.yml ]] || exit 0; \
+                git --no-pager show --no-patch; \
+                ./gradlew spotlessCheck || touch /tmp/STYLE_CHECK_WHEW; \
+              " "${PULL_BASE_SHA}"
+              [[ ! -e /tmp/STYLE_CHECK_WHEW ]]
+        - # TODO(arsen): merge into above
+          image: python:latest
+          name: python-code-style
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -eux
+              pip install pre-commit
+              rm -f /tmp/STYLE_CHECK_WHEW
+
+              git worktree add --detach /tmp/STYLE_CHECK_SRC_2
+              cd /tmp/STYLE_CHECK_SRC_2
+              git rebase --exec "\
+                [[ -e .prow/code-formatter.yml ]] || exit 0; \
+                git --no-pager show --no-patch; \
+                SKIP=spotless-apply pre-commit run -a --show-diff-on-failure; \
+                git checkout .;\
+              " "${PULL_BASE_SHA}"
+              [[ ! -e /tmp/STYLE_CHECK_WHEW ]]

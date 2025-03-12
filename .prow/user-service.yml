@@ -1,0 +1,44 @@
+# Run tests and integration tests on the user-service
+presubmits:
+  - name: pull-banka-4-backend-user-service-test
+    run_if_changed: "(user-service/|\\.prow/)"
+    decorate: true
+    spec:
+      containers:
+        - image: harbor.k8s.elab.rs/base-images/base:java-21-node-18-docker
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -eux
+              start-docker.sh
+
+              fail=
+              ./gradlew clean || fail=yes
+              ./gradlew :user-service:generateAllTestReports || fail=yes
+
+              # Collect test reports.
+              (
+                cp -r user-service/build/reports /logs/artifacts/user-service-reports
+                cp -r build/reports /logs/artifacts/toplevel-reports
+                set +x
+                for reportDir in \
+                  reports/tests/{integrationTest,test} \
+                  reports/jacoco{,Integration}Test; do
+                    if [[ ! -d user-service/build/"${reportDir}" ]]; then
+                      echo >&2 "Report directory ${reportDir} doesn't exist, skipping..."
+                      continue
+                    fi
+                    echo "${GCSWEB_URL}/prow-logs/pr-logs/pull/${REPO_OWNER}_${REPO_NAME}/${PULL_NUMBER}/${JOB_NAME}/${BUILD_NUMBER}/artifacts/user-service/${reportDir}/index.html"
+                done
+                if [[ -f build/reports/problems/problems-report.html ]]; then
+                  echo "${GCSWEB_URL}/prow-logs/pr-logs/pull/${REPO_OWNER}_${REPO_NAME}/${PULL_NUMBER}/${JOB_NAME}/${BUILD_NUMBER}/artifacts/toplevel-reports/problems/problems-report.html"
+                fi
+              ) > /logs/artifacts/links.txt
+
+              if [[ ${fail} ]]; then
+                exit 1
+              fi
+          securityContext:
+            privileged: true
+          imagePullPolicy: Always
