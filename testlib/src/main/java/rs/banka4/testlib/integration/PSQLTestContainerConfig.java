@@ -1,4 +1,4 @@
-package rs.banka4.user_service.integration.utils;
+package rs.banka4.testlib.integration;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
