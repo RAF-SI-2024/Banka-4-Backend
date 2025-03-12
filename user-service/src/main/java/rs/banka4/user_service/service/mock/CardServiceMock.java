@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Primary
 public class CardServiceMock implements CardService {
 
     @Override
