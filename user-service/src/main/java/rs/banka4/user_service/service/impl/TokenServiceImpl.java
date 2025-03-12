@@ -1,13 +1,12 @@
 package rs.banka4.user_service.service.impl;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import rs.banka4.user_service.exceptions.jwt.RefreshTokenRevoked;
 import rs.banka4.user_service.domain.auth.db.Token;
+import rs.banka4.user_service.exceptions.jwt.RefreshTokenRevoked;
 import rs.banka4.user_service.repositories.TokenRepository;
 import rs.banka4.user_service.service.abstraction.TokenService;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +16,10 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public void invalidateToken(String token) {
-        Token invalidatedToken = Token.builder().token(token).build();
+        Token invalidatedToken =
+            Token.builder()
+                .token(token)
+                .build();
         Optional<Token> optionalToken = tokenRepository.findByToken(token);
 
         if (optionalToken.isPresent()) {
@@ -31,5 +33,4 @@ public class TokenServiceImpl implements TokenService {
     public Optional<Token> findByToken(String token) {
         return tokenRepository.findByToken(token);
     }
-
 }

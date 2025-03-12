@@ -8,5 +8,4 @@ public class NoJwtProvided extends BaseApiException {
     public NoJwtProvided() {
         super(HttpStatus.FORBIDDEN, null);
     }
-
 }

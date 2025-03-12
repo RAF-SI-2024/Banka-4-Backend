@@ -1,12 +1,11 @@
 package rs.banka4.user_service.domain.loan.db;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.util.UUID;
 import lombok.*;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.currency.db.Currency;
-
-import java.math.BigDecimal;
-import java.util.UUID;
 
 @Entity
 @Getter

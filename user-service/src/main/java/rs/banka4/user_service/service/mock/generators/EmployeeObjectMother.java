@@ -1,5 +1,9 @@
 package rs.banka4.user_service.service.mock.generators;
 
+import java.time.LocalDate;
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.UUID;
 import rs.banka4.user_service.domain.auth.dtos.LoginDto;
 import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.Privilege;
@@ -9,18 +13,23 @@ import rs.banka4.user_service.domain.user.employee.dtos.EmployeeDto;
 import rs.banka4.user_service.domain.user.employee.dtos.EmployeeResponseDto;
 import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
 
-import java.time.LocalDate;
-import java.util.EnumSet;
-import java.util.Set;
-import java.util.UUID;
-
 public class EmployeeObjectMother {
 
     public static CreateEmployeeDto generateBasicCreateEmployeeDto() {
         return new CreateEmployeeDto(
-                "John", "Doe", "johndoe", LocalDate.of(1990, 1, 1),
-                Gender.MALE, "john.doe@example.com", "+1234567890", "123 Main St",
-                Set.of(Privilege.SEARCH), "Developer", "IT", true);
+            "John",
+            "Doe",
+            "johndoe",
+            LocalDate.of(1990, 1, 1),
+            Gender.MALE,
+            "john.doe@example.com",
+            "+1234567890",
+            "123 Main St",
+            Set.of(Privilege.SEARCH),
+            "Developer",
+            "IT",
+            true
+        );
     }
 
     public static LoginDto generateBasicLoginDto() {
@@ -46,30 +55,70 @@ public class EmployeeObjectMother {
 
     public static UpdateEmployeeDto generateBasicUpdateEmployeeDto() {
         return new UpdateEmployeeDto(
-                "John", "Doe", LocalDate.of(1990, 1, 1), Gender.MALE,
-                "john.doe@example.com", "johndoe", "+1234567890", "123 Main St",
-                Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS), "Developer", "IT", true);
+            "John",
+            "Doe",
+            LocalDate.of(1990, 1, 1),
+            Gender.MALE,
+            "john.doe@example.com",
+            "johndoe",
+            "+1234567890",
+            "123 Main St",
+            Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS),
+            "Developer",
+            "IT",
+            true
+        );
     }
 
     public static UpdateEmployeeDto generateUpdateEmployeeDtoWithDuplicateEmail() {
         return new UpdateEmployeeDto(
-                "John", "Doe", LocalDate.of(1990, 1, 1), Gender.MALE,
-                "duplicate.email@example.com", "johndoe", "+1234567890", "123 Main St",
-                Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS), "Developer", "IT", true);
+            "John",
+            "Doe",
+            LocalDate.of(1990, 1, 1),
+            Gender.MALE,
+            "duplicate.email@example.com",
+            "johndoe",
+            "+1234567890",
+            "123 Main St",
+            Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS),
+            "Developer",
+            "IT",
+            true
+        );
     }
 
     public static UpdateEmployeeDto generateUpdateEmployeeDtoWithDuplicateUsername() {
         return new UpdateEmployeeDto(
-                "John", "Doe", LocalDate.of(1990, 1, 1), Gender.MALE,
-                "john.doe@example.com", "duplicateusername", "+1234567890", "123 Main St",
-                Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS), "Developer", "IT", true);
+            "John",
+            "Doe",
+            LocalDate.of(1990, 1, 1),
+            Gender.MALE,
+            "john.doe@example.com",
+            "duplicateusername",
+            "+1234567890",
+            "123 Main St",
+            Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS),
+            "Developer",
+            "IT",
+            true
+        );
     }
 
     public static UpdateEmployeeDto generateUpdateEmployeeDtoWithNonExistentUser() {
         return new UpdateEmployeeDto(
-                "John", "Doe", LocalDate.of(1990, 1, 1), Gender.MALE,
-                "nonexistent@example.com", "nonexistentuser", "+1234567890", "123 Main St",
-                Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS), "Developer", "IT", true);
+            "John",
+            "Doe",
+            LocalDate.of(1990, 1, 1),
+            Gender.MALE,
+            "nonexistent@example.com",
+            "nonexistentuser",
+            "+1234567890",
+            "123 Main St",
+            Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS),
+            "Developer",
+            "IT",
+            true
+        );
     }
 
     public static Employee generateBasicEmployee() {
@@ -92,16 +141,37 @@ public class EmployeeObjectMother {
 
     public static EmployeeDto generateBasicEmployeeDto() {
         return new EmployeeDto(
-                UUID.randomUUID(), "John", "Doe", LocalDate.of(1990, 1, 1),
-                Gender.MALE, "john.doe@example.com", "+1234567890", "123 Main St",
-                "johndoe", "Developer", "IT", true);
+            UUID.randomUUID(),
+            "John",
+            "Doe",
+            LocalDate.of(1990, 1, 1),
+            Gender.MALE,
+            "john.doe@example.com",
+            "+1234567890",
+            "123 Main St",
+            "johndoe",
+            "Developer",
+            "IT",
+            true
+        );
     }
 
     public static EmployeeResponseDto generateBasicEmployeeResponseDto() {
         return new EmployeeResponseDto(
-                UUID.randomUUID(), "John", "Doe", LocalDate.of(1990, 1, 1),
-                Gender.MALE, "john.doe@example.com", "+1234567890", "123 Main St",
-                "johndoe", "Developer", "IT", EnumSet.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS), true);
+            UUID.randomUUID(),
+            "John",
+            "Doe",
+            LocalDate.of(1990, 1, 1),
+            Gender.MALE,
+            "john.doe@example.com",
+            "+1234567890",
+            "123 Main St",
+            "johndoe",
+            "Developer",
+            "IT",
+            EnumSet.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS),
+            true
+        );
     }
 
 }

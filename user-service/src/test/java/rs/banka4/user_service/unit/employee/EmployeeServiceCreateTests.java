@@ -1,23 +1,23 @@
 package rs.banka4.user_service.unit.employee;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
 import rs.banka4.user_service.domain.user.employee.mapper.EmployeeMapper;
 import rs.banka4.user_service.exceptions.user.DuplicateEmail;
 import rs.banka4.user_service.exceptions.user.DuplicateUsername;
 import rs.banka4.user_service.generator.EmployeeObjectMother;
-import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.impl.EmployeeServiceImpl;
 import rs.banka4.user_service.service.impl.UserService;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 
 public class EmployeeServiceCreateTests {
 
@@ -51,10 +51,18 @@ public class EmployeeServiceCreateTests {
 
         // Assert
         verify(employeeRepository, times(1)).existsByUsername(dto.username());
-        verify(employeeRepository, times(1)).save(argThat(savedEmployee ->
-                savedEmployee.getEmail().equals(dto.email()) && savedEmployee.getUsername().equals(dto.username())
-        ));
-        verify(userService, times(1)).sendVerificationEmail(employee.getFirstName(), employee.getEmail());
+        verify(employeeRepository, times(1)).save(
+            argThat(
+                savedEmployee -> savedEmployee.getEmail()
+                    .equals(dto.email())
+                    && savedEmployee.getUsername()
+                        .equals(dto.username())
+            )
+        );
+        verify(userService, times(1)).sendVerificationEmail(
+            employee.getFirstName(),
+            employee.getEmail()
+        );
     }
 
     @Test
@@ -76,5 +84,4 @@ public class EmployeeServiceCreateTests {
         // Act & Assert
         assertThrows(DuplicateUsername.class, () -> employeeService.createEmployee(dto));
     }
-
 }

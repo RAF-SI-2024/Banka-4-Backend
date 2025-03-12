@@ -1,12 +1,11 @@
 package rs.banka4.user_service.domain.company.db;
 
 import jakarta.persistence.*;
+import java.util.Objects;
+import java.util.UUID;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 import rs.banka4.user_service.domain.user.client.db.Client;
-
-import java.util.Objects;
-import java.util.UUID;
 
 @Entity
 @AllArgsConstructor
@@ -21,13 +20,22 @@ public class Company {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(
+        nullable = false,
+        unique = true
+    )
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Column(
+        nullable = false,
+        unique = true
+    )
     private String tin; // PIB
 
-    @Column(nullable = false, unique = true)
+    @Column(
+        nullable = false,
+        unique = true
+    )
     private String crn; // Maticni Broj
 
     @Column(nullable = false)
@@ -43,8 +51,16 @@ public class Company {
     public final boolean equals(Object o) {
         if (this == o) return true;
         if (o == null) return false;
-        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
-        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        Class<?> oEffectiveClass =
+            o instanceof HibernateProxy
+                ? ((HibernateProxy) o).getHibernateLazyInitializer()
+                    .getPersistentClass()
+                : o.getClass();
+        Class<?> thisEffectiveClass =
+            this instanceof HibernateProxy
+                ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                    .getPersistentClass()
+                : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
         Company company = (Company) o;
         return getId() != null && Objects.equals(getId(), company.getId());
@@ -52,15 +68,15 @@ public class Company {
 
     @Override
     public final int hashCode() {
-        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+        return this instanceof HibernateProxy
+            ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                .getPersistentClass()
+                .hashCode()
+            : getClass().hashCode();
     }
 
     @Override
     public String toString() {
-        return "Company{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                '}';
+        return "Company{" + "id=" + id + ", name='" + name + '\'' + '}';
     }
-
 }

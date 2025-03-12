@@ -14,9 +14,10 @@ public interface ClientContactMapper {
     ClientContactMapper INSTANCE = Mappers.getMapper(ClientContactMapper.class);
 
     ClientContactDto toDto(ClientContact clientContact);
+
     ClientContact toEntity(ClientContactDto clientContactDto);
+
     ClientContact toEntity(ClientContactRequest clientContactDto);
 
     void fromUpdate(@MappingTarget ClientContact clientContact, ClientContactRequest request);
-
 }

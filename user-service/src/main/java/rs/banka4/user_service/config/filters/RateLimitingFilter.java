@@ -10,14 +10,13 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-import rs.banka4.user_service.exceptions.RateLimitExceeded;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+import rs.banka4.user_service.exceptions.RateLimitExceeded;
 
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
@@ -25,13 +24,19 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private final Cache<String, Bucket> cache;
 
     public RateLimitingFilter() {
-        this.cache = CacheBuilder.newBuilder()
+        this.cache =
+            CacheBuilder.newBuilder()
                 .expireAfterAccess(1, TimeUnit.HOURS)
                 .build();
     }
 
     @Override
-    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    public void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
+    ) throws ServletException,
+        IOException {
         String ip = getClientIP(request);
         Bucket bucket;
         try {
@@ -42,8 +47,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
         if (bucket.tryConsume(1)) {
             filterChain.doFilter(request, response);
-        }
-        else {
+        } else {
             throw new RateLimitExceeded();
         }
     }
@@ -58,7 +62,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private Bucket newBucket(String key) {
         return Bucket4j.builder()
-                .addLimit(Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(1))))
-                .build();
+            .addLimit(Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(1))))
+            .build();
     }
 }

@@ -1,5 +1,6 @@
 package rs.banka4.user_service.service.impl;
 
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,8 @@ import rs.banka4.user_service.domain.auth.dtos.LoginResponseDto;
 import rs.banka4.user_service.domain.authenticator.db.UserTotpSecret;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.*;
-import rs.banka4.user_service.exceptions.*;
 import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
+import rs.banka4.user_service.exceptions.*;
 import rs.banka4.user_service.exceptions.user.DuplicateEmail;
 import rs.banka4.user_service.exceptions.user.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.user.NotAuthenticated;
@@ -31,8 +32,6 @@ import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.specification.ClientSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
-import java.util.*;
-
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
@@ -46,8 +45,14 @@ public class ClientServiceImpl implements ClientService {
     private final UserTotpSecretRepository userTotpSecretRepository;
 
     @Override
-    public ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email, String phone,
-                                                      String sortBy, PageRequest pageRequest) {
+    public ResponseEntity<Page<ClientDto>> getClients(
+        String firstName,
+        String lastName,
+        String email,
+        String phone,
+        String sortBy,
+        PageRequest pageRequest
+    ) {
         if (pageRequest == null) {
             throw new NullPageRequest();
         }
@@ -68,8 +73,12 @@ public class ClientServiceImpl implements ClientService {
         }
 
         Sort sort;
-        if (sortBy == null || sortBy.isEmpty() || "default".equalsIgnoreCase(sortBy)
-                || "firstName".equalsIgnoreCase(sortBy)) {
+        if (
+            sortBy == null
+                || sortBy.isEmpty()
+                || "default".equalsIgnoreCase(sortBy)
+                || "firstName".equalsIgnoreCase(sortBy)
+        ) {
             sort = Sort.by("firstName");
         } else if ("lastName".equalsIgnoreCase(sortBy)) {
             sort = Sort.by("lastName");
@@ -79,9 +88,8 @@ public class ClientServiceImpl implements ClientService {
             throw new NonexistantSortByField(sortBy);
         }
 
-        PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(),
-                pageRequest.getPageSize(),
-                sort);
+        PageRequest pageRequestWithSort =
+            PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), sort);
 
         Page<Client> clients = clientRepository.findAll(combinator.build(), pageRequestWithSort);
         Page<ClientDto> dtos = clients.map(ClientMapper.INSTANCE::toDto);
@@ -90,21 +98,30 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public LoginResponseDto login(LoginDto loginDto) {
-        CustomUserDetailsService.role = "client"; // Consider refactoring this into a more robust role management system
+        CustomUserDetailsService.role = "client"; // Consider refactoring this into a more robust
+                                                  // role management system
 
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password()));
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password())
+            );
         } catch (BadCredentialsException e) {
             throw new IncorrectCredentials();
         }
 
-        Client client = clientRepository.findByEmail(loginDto.email()).orElseThrow(() -> new UsernameNotFoundException(loginDto.email()));
+        Client client =
+            clientRepository.findByEmail(loginDto.email())
+                .orElseThrow(() -> new UsernameNotFoundException(loginDto.email()));
         if (client.getPassword() == null) {
             throw new NotActivated();
         }
 
         String accessToken = jwtUtil.generateToken(client);
-        String refreshToken = jwtUtil.generateRefreshToken(userDetailsService.loadUserByUsername(loginDto.email()), "client");
+        String refreshToken =
+            jwtUtil.generateRefreshToken(
+                userDetailsService.loadUserByUsername(loginDto.email()),
+                "client"
+            );
 
         return new LoginResponseDto(accessToken, refreshToken);
     }
@@ -114,20 +131,28 @@ public class ClientServiceImpl implements ClientService {
         String token = authorization.replace("Bearer ", "");
         String clientEmail = jwtUtil.extractUsername(token);
 
-        if(jwtUtil.isTokenExpired(token)) throw new NotAuthenticated();
+        if (jwtUtil.isTokenExpired(token)) throw new NotAuthenticated();
 
-        Optional<UserTotpSecret> userTotpSecret = userTotpSecretRepository.findByClient_Email(clientEmail);
-        boolean has2FA = userTotpSecret.map(UserTotpSecret::getIsActive).orElse(false);
+        Optional<UserTotpSecret> userTotpSecret =
+            userTotpSecretRepository.findByClient_Email(clientEmail);
+        boolean has2FA =
+            userTotpSecret.map(UserTotpSecret::getIsActive)
+                .orElse(false);
 
-        Client client = clientRepository.findByEmail(clientEmail).orElseThrow(NotFound::new);
+        Client client =
+            clientRepository.findByEmail(clientEmail)
+                .orElseThrow(NotFound::new);
 
         return ClientMapper.INSTANCE.toDto(client, has2FA);
     }
 
     @Override
     public ClientDto getClientById(UUID id) {
-        Client client = clientRepository.findById(id).orElseThrow(NotFound::new);
-        boolean has2FA = userTotpSecretRepository.findByClient_Id(id)
+        Client client =
+            clientRepository.findById(id)
+                .orElseThrow(NotFound::new);
+        boolean has2FA =
+            userTotpSecretRepository.findByClient_Id(id)
                 .map(UserTotpSecret::getIsActive)
                 .orElse(false);
 
@@ -141,18 +166,18 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public void createClient(CreateClientDto createClientDto) {
-        if(userService.existsByEmail(createClientDto.email())){
+        if (userService.existsByEmail(createClientDto.email())) {
             throw new DuplicateEmail(createClientDto.email());
         }
         Client client = ClientMapper.INSTANCE.toEntity(createClientDto);
 
         clientRepository.save(client);
-        userService.sendVerificationEmail(createClientDto.firstName(),createClientDto.email());
+        userService.sendVerificationEmail(createClientDto.firstName(), createClientDto.email());
     }
 
     @Override
     public Client createClient(AccountClientIdDto request) {
-        if (userService.existsByEmail(request.email())){
+        if (userService.existsByEmail(request.email())) {
             throw new DuplicateEmail(request.email());
         }
 
@@ -168,14 +193,16 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public void updateClient(UUID id, UpdateClientDto updateClientDto) {
-        Client client = clientRepository.findById(id).orElseThrow(() -> new ClientNotFound(updateClientDto.email()));
+        Client client =
+            clientRepository.findById(id)
+                .orElseThrow(() -> new ClientNotFound(updateClientDto.email()));
 
         if (userService.existsByEmail(updateClientDto.email())) {
             throw new DuplicateEmail(updateClientDto.email());
         }
 
         ClientMapper.INSTANCE.fromUpdate(client, updateClientDto);
-        if(updateClientDto.privilege() != null) {
+        if (updateClientDto.privilege() != null) {
             client.setPrivileges(updateClientDto.privilege());
         }
 

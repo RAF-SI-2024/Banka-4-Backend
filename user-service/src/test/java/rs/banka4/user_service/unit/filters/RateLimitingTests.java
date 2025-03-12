@@ -1,7 +1,11 @@
 package rs.banka4.user_service.unit.filters;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
@@ -9,11 +13,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import rs.banka4.user_service.config.filters.RateLimitingFilter;
 import rs.banka4.user_service.exceptions.RateLimitExceeded;
-
-import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RateLimitingTests {
 
@@ -55,5 +54,4 @@ public class RateLimitingTests {
             rateLimitingFilter.doFilterInternal(request, blockedResponse, new MockFilterChain());
         });
     }
-
 }

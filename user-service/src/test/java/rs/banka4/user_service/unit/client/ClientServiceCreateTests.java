@@ -1,27 +1,26 @@
 package rs.banka4.user_service.unit.client;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import rs.banka4.user_service.domain.auth.dtos.NotificationTransferDto;
-import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
-import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.auth.db.VerificationCode;
+import rs.banka4.user_service.domain.auth.dtos.NotificationTransferDto;
+import rs.banka4.user_service.domain.user.client.db.Client;
+import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
 import rs.banka4.user_service.exceptions.user.DuplicateEmail;
+import rs.banka4.user_service.generator.ClientObjectMother;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.impl.ClientServiceImpl;
 import rs.banka4.user_service.service.impl.UserService;
 import rs.banka4.user_service.service.impl.VerificationCodeService;
-import rs.banka4.user_service.generator.ClientObjectMother;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 public class ClientServiceCreateTests {
 
@@ -40,13 +39,21 @@ public class ClientServiceCreateTests {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);}
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     void testCreateClientSuccess() {
         // Arrange
-        userService = new UserService(employeeRepository, clientRepository, verificationCodeService, rabbitTemplate);
-        clientService = new ClientServiceImpl(userService, clientRepository, null, null, null, null, null);
+        userService =
+            new UserService(
+                employeeRepository,
+                clientRepository,
+                verificationCodeService,
+                rabbitTemplate
+            );
+        clientService =
+            new ClientServiceImpl(userService, clientRepository, null, null, null, null, null);
 
         CreateClientDto createClientDto = ClientObjectMother.generateBasicCreateClientDto();
         VerificationCode verificationCode = new VerificationCode();
@@ -54,14 +61,20 @@ public class ClientServiceCreateTests {
 
         when(userService.existsByEmail(createClientDto.email())).thenReturn(false);
         when(clientRepository.findByEmail(createClientDto.email())).thenReturn(Optional.empty());
-        when(verificationCodeService.createVerificationCode(createClientDto.email())).thenReturn(verificationCode);
+        when(verificationCodeService.createVerificationCode(createClientDto.email())).thenReturn(
+            verificationCode
+        );
 
         // Act
         clientService.createClient(createClientDto);
 
         // Assert
         verify(clientRepository, times(1)).save(any(Client.class));
-        verify(rabbitTemplate, times(1)).convertAndSend(anyString(), anyString(), any(NotificationTransferDto.class));
+        verify(rabbitTemplate, times(1)).convertAndSend(
+            anyString(),
+            anyString(),
+            any(NotificationTransferDto.class)
+        );
     }
 
     @Test
