@@ -18,7 +18,6 @@ import rs.banka4.user_service.utils.JwtUtil;
 import java.util.Optional;
 @Service
 @RequiredArgsConstructor
-@Primary
 public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
     private final JwtUtil jwtUtil;
