@@ -24,9 +24,21 @@ WORKDIR /service
 
 ADD --chmod=755 docker/run-service.sh /run-service.sh
 
+RUN mkdir /code && chown service: /code
+
+ADD --chown=service:service gradle /code/gradle
+ADD --chown=service:service testlib /code/testlib
+ADD --chown=service:service buildSrc /code/buildSrc
+
+ADD --chown=service:service gradle.properties /code/
+ADD --chown=service:service gradlew /code/
+ADD --chown=service:service settings.gradle.kts /code/
+ADD --chown=service:service build.gradle.kts /code/
+
 ARG SERVICE
-ADD --chown=service:service ${SERVICE} /code
+ADD --chown=service:service ${SERVICE} /code/${SERVICE}
 
 USER service
+ENV SERVICE=${SERVICE}
 ENTRYPOINT ["/run-service.sh"]
 CMD []
