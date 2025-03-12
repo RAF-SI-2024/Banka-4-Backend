@@ -1,6 +1,8 @@
 package rs.banka4.user_service.exceptions;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -37,5 +39,14 @@ public class ErrorResponseHandler {
         }
         response.put("extra", errors);
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleJsonParseError(HttpMessageNotReadableException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("failed", true);
+        response.put("code", "InvalidJsonInput");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }

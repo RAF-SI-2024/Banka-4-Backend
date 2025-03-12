@@ -19,7 +19,7 @@ public class EmployeeObjectMother {
     public static CreateEmployeeDto generateBasicCreateEmployeeDto() {
         return new CreateEmployeeDto(
                 "John", "Doe", "johndoe", LocalDate.of(1990, 1, 1),
-                "Male", "john.doe@example.com", "+1234567890", "123 Main St",
+                Gender.MALE, "john.doe@example.com", "+1234567890", "123 Main St",
                 Set.of(Privilege.SEARCH), "Developer", "IT", true);
     }
 
@@ -46,28 +46,28 @@ public class EmployeeObjectMother {
 
     public static UpdateEmployeeDto generateBasicUpdateEmployeeDto() {
         return new UpdateEmployeeDto(
-                "John", "Doe", LocalDate.of(1990, 1, 1), "Male",
+                "John", "Doe", LocalDate.of(1990, 1, 1), Gender.MALE,
                 "john.doe@example.com", "johndoe", "+1234567890", "123 Main St",
                 Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS), "Developer", "IT", true);
     }
 
     public static UpdateEmployeeDto generateUpdateEmployeeDtoWithDuplicateEmail() {
         return new UpdateEmployeeDto(
-                "John", "Doe", LocalDate.of(1990, 1, 1), "Male",
+                "John", "Doe", LocalDate.of(1990, 1, 1), Gender.MALE,
                 "duplicate.email@example.com", "johndoe", "+1234567890", "123 Main St",
                 Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS), "Developer", "IT", true);
     }
 
     public static UpdateEmployeeDto generateUpdateEmployeeDtoWithDuplicateUsername() {
         return new UpdateEmployeeDto(
-                "John", "Doe", LocalDate.of(1990, 1, 1), "Male",
+                "John", "Doe", LocalDate.of(1990, 1, 1), Gender.MALE,
                 "john.doe@example.com", "duplicateusername", "+1234567890", "123 Main St",
                 Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS), "Developer", "IT", true);
     }
 
     public static UpdateEmployeeDto generateUpdateEmployeeDtoWithNonExistentUser() {
         return new UpdateEmployeeDto(
-                "John", "Doe", LocalDate.of(1990, 1, 1), "Male",
+                "John", "Doe", LocalDate.of(1990, 1, 1), Gender.MALE,
                 "nonexistent@example.com", "nonexistentuser", "+1234567890", "123 Main St",
                 Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS), "Developer", "IT", true);
     }
