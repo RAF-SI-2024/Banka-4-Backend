@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
@@ -20,7 +21,7 @@ import java.util.UUID;
 public class CardServiceMock implements CardService {
 
     @Override
-    public Card createAuthorizedCard(CreateCardDto createCardDto) {
+    public Card createAuthorizedCard(Authentication auth, CreateCardDto createCardDto) {
         Card card = new Card();
         card.setId(UUID.randomUUID());
         return card;

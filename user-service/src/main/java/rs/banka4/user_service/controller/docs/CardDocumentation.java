@@ -2,11 +2,13 @@ package rs.banka4.user_service.controller.docs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
@@ -16,22 +18,34 @@ import java.util.UUID;
 @Tag(name = "CardDocumentation", description = "Endpoints for card functionalities")
 public interface CardDocumentation {
     @Operation(
-            summary = "Card Creation with 2FA",
-            description = "Creates a new debit card for a user’s account while enforcing account-specific card limits. " +
-                    "For personal accounts, a maximum of 2 cards is allowed, and for business accounts, only 1 card per person. " +
-                    "This endpoint initiates a 2-factor authentication process by sending a confirmation code via email. " +
-                    "Once the client verifies the code, a new card (with a 16-digit card number and 3-digit CVV) " +
-                    "is created and linked to the provided account number. The request payload should include the " +
-                    "account number and optionally an authorized user’s details. If no authorized user is provided, " +
-                    "the field will be stored as null.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Card successfully created",
-                            content = @Content(schema = @Schema(implementation = CreateCardDto.class))),
-                    @ApiResponse(responseCode = "400", description = "Invalid data or card limit exceeded"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized or invalid 2FA code"),
+                    @ApiResponse(responseCode = "200", description = "Card created successfully",
+                            content = @Content(schema = @Schema(implementation = UUID.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid request format",
+                            content = @Content(examples = {
+                                    @ExampleObject(name = "Missing fields", value = """
+                                            {"message":"Validation failed","errors":["accountNumber is mandatory"]}""")
+                            })),
+                    @ApiResponse(responseCode = "401", description = "Authentication failure",
+                            content = @Content(examples = {
+                                    @ExampleObject(name = "Invalid 2FA", value = """
+                                            {"message":"Invalid TOTP code","code":"AUTH_002"}""")
+                            })),
+                    @ApiResponse(responseCode = "403", description = "Business rule violation",
+                            content = @Content(examples = {
+                                    @ExampleObject(name = "Card limit", value = """
+                                            {"message":"Personal account limit: 2 cards","code":"CARD_001"}"""),
+                                    @ExampleObject(name = "Duplicate auth", value = """
+                                            {"message":"User already has card","code":"CARD_002"}""")
+                            })),
+                    @ApiResponse(responseCode = "404", description = "Account not found",
+                            content = @Content(examples = @ExampleObject(
+                                    value = """
+                                            {"message":"Account not found","code":"ACC_001"}
+                                            """)))
             }
     )
-    ResponseEntity<UUID> createAuthorizedCard(CreateCardDto createCardDto);
+    ResponseEntity<UUID> createAuthorizedCard(Authentication auth, CreateCardDto createCardDto);
 
     @Operation(
             summary = "This endpoint is used to block existing card",
