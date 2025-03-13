@@ -28,6 +28,7 @@ import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.db.ClientContact;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.repositories.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -52,7 +53,7 @@ public class TestDataRunner implements CommandLineRunner {
     private final ClientContactRepository clientContactRepository;
     private final TransactionRepository transactionRepository;
     private final LoanRepository loanRepository;
-    private final BankMarginRepositroy bankMarginRepository;
+    private final BankMarginRepository bankMarginRepository;
     private final InterestRateRepository interestRateRepository;
     private final CardRepository cardRepository;
 
@@ -783,7 +784,7 @@ public class TestDataRunner implements CommandLineRunner {
                         .lastName("Doe")
                         .dateOfBirth(LocalDate.of(1995, 5, 15))
                         .gender(Gender.MALE)
-                        .email("johndoe95@example.com")
+                        .email("lazar.vuksanovic17@gmail.com")
                         .phone("3810612345678")
                         .address("123 Main St")
                         .password(passwordEncoder.encode("password"))
@@ -1015,49 +1016,53 @@ public class TestDataRunner implements CommandLineRunner {
     }
 
     private void seedBankMargins() {
-        BankMargin cashMargin = BankMargin.builder()
-                .type(LoanType.CASH)
-                .margin(new BigDecimal("1.75"))
-                .build();
+        if (bankMarginRepository.findAll().isEmpty()){
+            BankMargin cashMargin = BankMargin.builder()
+                    .type(LoanType.CASH)
+                    .margin(new BigDecimal("1.75"))
+                    .build();
 
-        BankMargin mortgageMargin = BankMargin.builder()
-                .type(LoanType.MORTGAGE)
-                .margin(new BigDecimal("1.50"))
-                .build();
+            BankMargin mortgageMargin = BankMargin.builder()
+                    .type(LoanType.MORTGAGE)
+                    .margin(new BigDecimal("1.50"))
+                    .build();
 
-        BankMargin autoLoanMargin = BankMargin.builder()
-                .type(LoanType.AUTO_LOAN)
-                .margin(new BigDecimal("1.25"))
-                .build();
+            BankMargin autoLoanMargin = BankMargin.builder()
+                    .type(LoanType.AUTO_LOAN)
+                    .margin(new BigDecimal("1.25"))
+                    .build();
 
-        BankMargin refinancingMargin = BankMargin.builder()
-                .type(LoanType.REFINANCING)
-                .margin(new BigDecimal("1.00"))
-                .build();
+            BankMargin refinancingMargin = BankMargin.builder()
+                    .type(LoanType.REFINANCING)
+                    .margin(new BigDecimal("1.00"))
+                    .build();
 
-        BankMargin studentLoanMargin = BankMargin.builder()
-                .type(LoanType.STUDENT_LOAN)
-                .margin(new BigDecimal("0.75"))
-                .build();
+            BankMargin studentLoanMargin = BankMargin.builder()
+                    .type(LoanType.STUDENT_LOAN)
+                    .margin(new BigDecimal("0.75"))
+                    .build();
 
-        // Save all the bank margins to the database
-        bankMarginRepository.saveAll(
-                List.of(cashMargin, mortgageMargin, autoLoanMargin, refinancingMargin, studentLoanMargin)
-        );
+            // Save all the bank margins to the database
+            bankMarginRepository.saveAll(
+                    List.of(cashMargin, mortgageMargin, autoLoanMargin, refinancingMargin, studentLoanMargin)
+            );
+        }
     }
 
     private void interestRateSeeder(){
-        List<InterestRate> interestRates = List.of(
-                createInterestRate(0, 500000L, 6.25),
-                createInterestRate(500001, 1000000L, 6.00),
-                createInterestRate(1000001, 2000000L, 5.75),
-                createInterestRate(2000001, 5000000L, 5.50),
-                createInterestRate(5000001, 10000000L, 5.25),
-                createInterestRate(10000001, 20000000L, 5.00),
-                createInterestRate(20000001,2000000100L , 4.75)  // No upper limit
-        );
+        if(interestRateRepository.findAll().isEmpty()){
+            List<InterestRate> interestRates = List.of(
+                    createInterestRate(0, 500000L, 6.25),
+                    createInterestRate(500001, 1000000L, 6.00),
+                    createInterestRate(1000001, 2000000L, 5.75),
+                    createInterestRate(2000001, 5000000L, 5.50),
+                    createInterestRate(5000001, 10000000L, 5.25),
+                    createInterestRate(10000001, 20000000L, 5.00),
+                    createInterestRate(20000001,2000000100L , 4.75)  // No upper limit
+            );
 
-        interestRateRepository.saveAll(interestRates);
+            interestRateRepository.saveAll(interestRates);
+        }
     }
 
 
