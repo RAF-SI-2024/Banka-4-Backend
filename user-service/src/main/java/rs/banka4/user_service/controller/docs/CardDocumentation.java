@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -17,34 +18,14 @@ import java.util.UUID;
 
 @Tag(name = "CardDocumentation", description = "Endpoints for card functionalities")
 public interface CardDocumentation {
-    @Operation(
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Card created successfully",
-                            content = @Content(schema = @Schema(implementation = UUID.class))),
-                    @ApiResponse(responseCode = "400", description = "Invalid request format",
-                            content = @Content(examples = {
-                                    @ExampleObject(name = "Missing fields", value = """
-                                            {"message":"Validation failed","errors":["accountNumber is mandatory"]}""")
-                            })),
-                    @ApiResponse(responseCode = "401", description = "Authentication failure",
-                            content = @Content(examples = {
-                                    @ExampleObject(name = "Invalid 2FA", value = """
-                                            {"message":"Invalid TOTP code","code":"AUTH_002"}""")
-                            })),
-                    @ApiResponse(responseCode = "403", description = "Business rule violation",
-                            content = @Content(examples = {
-                                    @ExampleObject(name = "Card limit", value = """
-                                            {"message":"Personal account limit: 2 cards","code":"CARD_001"}"""),
-                                    @ExampleObject(name = "Duplicate auth", value = """
-                                            {"message":"User already has card","code":"CARD_002"}""")
-                            })),
-                    @ApiResponse(responseCode = "404", description = "Account not found",
-                            content = @Content(examples = @ExampleObject(
-                                    value = """
-                                            {"message":"Account not found","code":"ACC_001"}
-                                            """)))
-            }
-    )
+    @Operation(summary = "Create a new card", description = "Creates a new debit card for the specified account with optional authorized user. Requires 2FA OTP.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Card created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid OTP or request data"),
+            @ApiResponse(responseCode = "403", description = "Unauthorized access"),
+            @ApiResponse(responseCode = "404", description = "Account not found"),
+            @ApiResponse(responseCode = "409", description = "Card limit exceeded or duplicate authorized user")
+    })
     ResponseEntity<Void> createAuthorizedCard(Authentication auth, CreateCardDto createCardDto);
 
     @Operation(
