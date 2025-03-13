@@ -118,7 +118,7 @@ public class LoanInstallmentScheduler {
             loanRepository.save(installment.getLoan());
 
             // Message for successful payment
-            NotificationTransferDto message = MessageHelper.createLoanInstallmentPayedMessage(
+            NotificationTransferDto message = MessageHelper.createLoanInstallmentPaidMessage(
                     account.getClient().email,
                     account.getClient().firstName,
                     installment.getLoan().getLoanNumber(),

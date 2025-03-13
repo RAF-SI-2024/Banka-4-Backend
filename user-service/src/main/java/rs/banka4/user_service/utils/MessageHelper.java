@@ -24,11 +24,11 @@ public class MessageHelper {
         return new NotificationTransferDto("account-activation", emailReceiver, params);
     }
 
-    public static NotificationTransferDto createLoanInstallmentPayedMessage(String emailReceiver,
-                                                                            String firstName,
-                                                                            Long loanNumber,
-                                                                            BigDecimal installmentAmount,
-                                                                            LocalDate datePayed) {
+    public static NotificationTransferDto createLoanInstallmentPaidMessage(String emailReceiver,
+                                                                           String firstName,
+                                                                           Long loanNumber,
+                                                                           BigDecimal installmentAmount,
+                                                                           LocalDate datePayed) {
         Map<String, Object> params = new HashMap<>();
         params.put("firstName", firstName);
         params.put("loanNumber", loanNumber);
