@@ -784,7 +784,7 @@ public class TestDataRunner implements CommandLineRunner {
                         .lastName("Doe")
                         .dateOfBirth(LocalDate.of(1995, 5, 15))
                         .gender(Gender.MALE)
-                        .email("lazar.vuksanovic17@gmail.com")
+                        .email("johndoe95@example.com")
                         .phone("3810612345678")
                         .address("123 Main St")
                         .password(passwordEncoder.encode("password"))
