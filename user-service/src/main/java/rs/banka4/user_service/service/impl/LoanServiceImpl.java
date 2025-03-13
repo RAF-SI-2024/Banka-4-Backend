@@ -20,6 +20,7 @@ import rs.banka4.user_service.domain.loan.specification.LoanSpecification;
 import rs.banka4.user_service.repositories.LoanRepository;
 import rs.banka4.user_service.service.abstraction.LoanService;
 import rs.banka4.user_service.utils.JwtUtil;
+import rs.banka4.user_service.utils.loans.LoanRateUtil;
 
 import java.time.LocalDate;
 import java.util.Optional;
