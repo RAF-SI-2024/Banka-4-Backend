@@ -17,7 +17,8 @@ import rs.banka4.user_service.domain.card.mapper.CardMapper;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.exceptions.NullPageRequest;
 import rs.banka4.user_service.exceptions.account.NotAccountOwner;
-import rs.banka4.user_service.exceptions.user.IncorrectCredentials;
+import rs.banka4.user_service.exceptions.card.NotValidCardStatus;
+import rs.banka4.user_service.exceptions.user.NotAuthenticated;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.CardRepository;
@@ -149,7 +150,7 @@ public class CardServiceImpl implements CardService {
     @Override
     public ResponseEntity<Page<CardDto>> employeeSearchCards(String token, String cardNumber, String firstName, String lastName, String email, String cardStatus, Pageable pageable) {
 
-        if(!jwtUtil.extractRole(token).equals("employee")) throw new IncorrectCredentials();
+        if(!jwtUtil.extractRole(token).equals("employee")) throw new NotAuthenticated();
 
         if (pageable == null) {
             throw new NullPageRequest();
@@ -170,11 +171,16 @@ public class CardServiceImpl implements CardService {
             combinator.and(CardSpecification.hasEmail(email));
         }
         if (cardStatus != null && !cardStatus.isEmpty()) {
-            combinator.and(CardSpecification.hasCardStatus(cardStatus));
+            try {
+                CardStatus statusEnum = CardStatus.valueOf(cardStatus.toUpperCase());
+                combinator.and(CardSpecification.hasCardStatus(statusEnum.name()));
+            } catch (IllegalArgumentException e) {
+                throw new NotValidCardStatus();
+            }
         }
 
         Page<Card> cards = cardRepository.findAll(combinator.build(), pageable);
-        Page<CardDto> dtos = cards.map(CardMapper.INSTANCE::toDto);
+        Page<CardDto> dtos = cards.map(CardMapper.INSTANCE::toDtoWithDetails);
 
         return ResponseEntity.ok(dtos);
     }
