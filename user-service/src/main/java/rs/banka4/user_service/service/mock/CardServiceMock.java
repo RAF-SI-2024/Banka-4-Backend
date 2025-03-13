@@ -1,6 +1,5 @@
 package rs.banka4.user_service.service.mock;
 
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -17,15 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Primary
 @Service
 public class CardServiceMock implements CardService {
 
     @Override
-    public Card createAuthorizedCard(Authentication auth, CreateCardDto createCardDto) {
+    public void createAuthorizedCard(Authentication auth, CreateCardDto createCardDto) {
         Card card = new Card();
         card.setId(UUID.randomUUID());
-        return card;
     }
 
     @Override

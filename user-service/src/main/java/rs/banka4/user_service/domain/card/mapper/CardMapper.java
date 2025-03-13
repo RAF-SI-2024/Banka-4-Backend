@@ -18,10 +18,10 @@ import java.util.UUID;
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CardMapper {
 
-    @Mapping(target = "cardName", source = "account", qualifiedByName = "mapCardName")
-    @Mapping(target = "authorizedUser", source = "cardDto.createAuthorizedUserDto")
-    @Mapping(target = "cardType", constant = "DEBIT")
-    Card fromCreate(CreateCardDto cardDto, Account account);
+    CardMapper INSTANCE = Mappers.getMapper(CardMapper.class);
+
+    @Mapping(target = "authorizedUser", source = "authorizedUser", qualifiedByName = "mapAuthorizedUser")
+    Card fromCreate(CreateCardDto cardDto);
 
     @Named("mapCardName")
     default CardName mapCardName(Account account) {
@@ -36,6 +36,7 @@ public interface CardMapper {
 
     @Named("mapAuthorizedUser")
     default AuthorizedUser map(CreateAuthorizedUserDto dto) {
+        System.out.println("DTO: " + dto);
         if (dto == null) return null;
         return new AuthorizedUser(
                 UUID.randomUUID(),

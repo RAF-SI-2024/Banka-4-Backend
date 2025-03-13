@@ -45,7 +45,7 @@ public interface CardDocumentation {
                                             """)))
             }
     )
-    ResponseEntity<UUID> createAuthorizedCard(Authentication auth, CreateCardDto createCardDto);
+    ResponseEntity<Void> createAuthorizedCard(Authentication auth, CreateCardDto createCardDto);
 
     @Operation(
             summary = "This endpoint is used to block existing card",
