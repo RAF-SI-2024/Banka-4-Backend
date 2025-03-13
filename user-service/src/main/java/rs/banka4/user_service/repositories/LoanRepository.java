@@ -14,5 +14,4 @@ import java.util.UUID;
 public interface LoanRepository extends JpaRepository<Loan, UUID>, JpaSpecificationExecutor<Loan> {
     Optional<Loan> findByLoanNumber(Long loanNum);
     List<Loan> findByInterestTypeAndStatus(Loan.InterestType interestType, LoanStatus status);
-
 }

@@ -52,9 +52,9 @@ public class TestDataRunner implements CommandLineRunner {
     private final ClientContactRepository clientContactRepository;
     private final TransactionRepository transactionRepository;
     private final LoanRepository loanRepository;
-    private final CardRepository cardRepository;
     private final BankMarginRepositroy bankMarginRepository;
     private final InterestRateRepository interestRateRepository;
+    private final CardRepository cardRepository;
 
 
     @Override
@@ -69,9 +69,8 @@ public class TestDataRunner implements CommandLineRunner {
         interestRateSeeder();
         loanSeeder();
         transactionSeeder();
-        cardSeeder();
         seedBankMargins();
-
+        cardSeeder();
     }
 
     private void cardSeeder() {
@@ -1041,6 +1040,7 @@ public class TestDataRunner implements CommandLineRunner {
                 .margin(new BigDecimal("0.75"))
                 .build();
 
+        // Save all the bank margins to the database
         bankMarginRepository.saveAll(
                 List.of(cashMargin, mortgageMargin, autoLoanMargin, refinancingMargin, studentLoanMargin)
         );
@@ -1059,6 +1059,10 @@ public class TestDataRunner implements CommandLineRunner {
 
         interestRateRepository.saveAll(interestRates);
     }
+
+
+
+
 
     private InterestRate createInterestRate(long minAmount, Long maxAmount, double fixedRate) {
         return InterestRate.builder()

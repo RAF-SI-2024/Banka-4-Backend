@@ -12,6 +12,9 @@ import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.dtos.LoanApplicationDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanFilterDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanInformationDto;
+import rs.banka4.user_service.repositories.LoanInstallmentRepository;
+import rs.banka4.user_service.repositories.LoanRepository;
+import rs.banka4.user_service.utils.loans.LoanRateUtil;
 import rs.banka4.user_service.exceptions.jwt.Unauthorized;
 import rs.banka4.user_service.exceptions.loan.InvalidLoanStatus;
 import rs.banka4.user_service.exceptions.loan.LoanNotFound;
@@ -22,6 +25,7 @@ import rs.banka4.user_service.service.abstraction.LoanService;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.loans.LoanRateUtil;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -30,7 +34,6 @@ import java.util.Optional;
 public class LoanServiceImpl implements LoanService {
     private final LoanRateUtil loanRateUtil;
     private final LoanRepository loanRepository;
-
     private final JwtUtil jwtUtil;
 
     @Override
