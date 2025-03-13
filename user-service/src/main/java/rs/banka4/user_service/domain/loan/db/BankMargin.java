@@ -19,6 +19,7 @@ public class BankMargin {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, unique = true)
     private LoanType type;
 
     private BigDecimal margin;
