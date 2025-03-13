@@ -52,10 +52,6 @@ public class AccountControllerTests {
     private ObjectMapper objectMapper;
     @Autowired
     private AccountService accountService;
-    @Autowired
-    private CardService cardService;
-    @Autowired
-    private CardRepository cardRepository;
 
     private MockMvcUtil mockMvcUtil;
 
