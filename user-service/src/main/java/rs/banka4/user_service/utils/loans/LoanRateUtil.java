@@ -18,8 +18,8 @@ public class LoanRateUtil {
     private final BankMarginRepositroy bankMarginRepositroy;
 
     /**
-     * Ovo se koristi kada se racuna nova kamatna stopa za varijabilne kredite
-     * @return
+     * This is used for calculating new interest rates for variable rate loans
+     *
      */
     public BigDecimal calculateInterestRate(BigDecimal referenceValue, LoanType loanType) {
         BankMargin bankMargin = bankMarginRepositroy.findBankMarginByType(loanType).orElseThrow(LoanTypeNotFound::new);
@@ -28,10 +28,9 @@ public class LoanRateUtil {
 
 
     /**
-     * Ovo racuna kolicinu para koja se mora platiti na mjesecnom nivou
-     * Za fiksan kredit ta suma uvjiek bude ista, za varijabilni ta suma se mijenja na mjesecnom nivou (valjda)
-     * tada bi se na kraju svakog mjeseca pozvala metoda caculateInterestRate koja racuna novu kamatnu stopu za taj varijabilni kredit
-     * za taj mjesec i racuna ratu za placanje za taj mjesec
+     *This calculates the amount that needs to be paid per month
+     * For fixed rate loans it stays the same barring any penalties for delayed payments, but for variable rate loans
+     * it should be called in conjunction with calculateInterestRate monthly in order to calculate for the installment
      */
     public BigDecimal calculateMonthly(BigInteger loanAmount, BigDecimal monthlyInterestRate, BigInteger numberOfInstallments) {
         if (monthlyInterestRate.compareTo(BigDecimal.ZERO) == 0) {

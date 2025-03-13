@@ -13,4 +13,5 @@ import java.util.UUID;
 public interface LoanInstallmentRepository extends JpaRepository<rs.banka4.user_service.domain.loan.db.LoanInstallment, UUID> {
     List<LoanInstallment> findByExpectedDueDateAndPaymentStatus(LocalDate date, PaymentStatus status);
     List<LoanInstallment> findByPaymentStatusAndExpectedDueDate(PaymentStatus status, LocalDate date);
+    List<LoanInstallment> findByPaymentStatusAndExpectedDueDateIsLessThan(PaymentStatus status, LocalDate date);
 }
