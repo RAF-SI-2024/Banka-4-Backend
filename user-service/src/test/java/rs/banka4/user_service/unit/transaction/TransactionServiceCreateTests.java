@@ -18,6 +18,7 @@ import rs.banka4.user_service.generator.AccountObjectMother;
 import rs.banka4.user_service.generator.ClientObjectMother;
 import rs.banka4.user_service.generator.TransactionObjectMother;
 import rs.banka4.user_service.repositories.AccountRepository;
+import rs.banka4.user_service.repositories.ClientContactRepository;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.TransactionRepository;
 import rs.banka4.user_service.service.impl.TotpService;
@@ -50,6 +51,8 @@ public class TransactionServiceCreateTests {
     private TotpService totpService;
     @InjectMocks
     private TransactionServiceImpl transactionService;
+    @Mock
+    private ClientContactRepository clientContactRepository;
 
     @BeforeEach
     void setUp() {

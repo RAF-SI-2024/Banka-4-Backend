@@ -14,6 +14,7 @@ import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.transaction.db.MonetaryAmount;
 import rs.banka4.user_service.domain.transaction.db.Transaction;
+import rs.banka4.user_service.domain.user.client.db.ClientContact;
 import rs.banka4.user_service.exceptions.account.AccountNotActive;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
 import rs.banka4.user_service.exceptions.account.NotAccountOwner;
@@ -22,6 +23,7 @@ import rs.banka4.user_service.exceptions.transaction.InsufficientFunds;
 import rs.banka4.user_service.exceptions.transaction.TransactionNotFound;
 import rs.banka4.user_service.exceptions.user.UserNotFound;
 import rs.banka4.user_service.repositories.AccountRepository;
+import rs.banka4.user_service.repositories.ClientContactRepository;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.TransactionRepository;
 import rs.banka4.user_service.service.abstraction.TransactionService;
@@ -41,6 +43,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final AccountRepository accountRepository;
     private final ClientRepository clientRepository;
     private final TransactionRepository transactionRepository;
+    private final ClientContactRepository clientContactRepository;
     private final TotpService totpService;
     private final JwtUtil jwtUtil;
 
@@ -63,6 +66,17 @@ public class TransactionServiceImpl implements TransactionService {
         processTransaction(fromAccount, toAccount, createPaymentDto.fromAmount(), BigDecimal.ONE);
 
         Transaction transaction = buildTransaction(fromAccount, toAccount, createPaymentDto, BigDecimal.ONE, TransactionStatus.IN_PROGRESS);
+
+        if (createPaymentDto.saveRecipient()) {
+            ClientContact clientContact = ClientContact.builder()
+                    .client(client)
+                    .accountNumber(toAccount.getAccountNumber())
+                    .nickname(createPaymentDto.recipient())
+                    .build();
+
+            clientContactRepository.save(clientContact);
+        }
+
         transactionRepository.save(transaction);
 
         return TransactionMapper.INSTANCE.toDto(transaction);
@@ -87,6 +101,17 @@ public class TransactionServiceImpl implements TransactionService {
         processTransaction(fromAccount, toAccount, createPaymentDto.fromAmount(), BigDecimal.ZERO);
 
         Transaction transaction = buildTransaction(fromAccount, toAccount, createPaymentDto, BigDecimal.ZERO, TransactionStatus.REALIZED);
+
+        if (createPaymentDto.saveRecipient()) {
+            ClientContact clientContact = ClientContact.builder()
+                    .client(client)
+                    .accountNumber(toAccount.getAccountNumber())
+                    .nickname(createPaymentDto.recipient())
+                    .build();
+
+            clientContactRepository.save(clientContact);
+        }
+
         transactionRepository.save(transaction);
 
         return TransactionMapper.INSTANCE.toDto(transaction);
