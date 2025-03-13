@@ -3,8 +3,8 @@ Dear {{firstName}},
 Your payment for loan installment is successfully booked.
 
 Loan number: {{loanNumber}}
-Amount paid: {{installmentAmount}}
-On date: {{datePayed}}
+Amount paid: {{installmentAmount}} {{currency_code}}
+On date: {{date}}
 
 Best regards,
 RAFeisen Team

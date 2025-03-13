@@ -2,8 +2,8 @@ Dear {{firstName}},
 
 Your payment for loan installment is delayed, you don't have enough founds on your account.
 Loan number: {{loanNumber}}
-Amount to be paid: {{installmentAmount}}
-Denied on date: {{datePayed}}
+Amount to be paid: {{installmentAmount}} {{currency_code}}
+Denied on date: {{date}}
 
 Best regards,
 RAFeisen Team
