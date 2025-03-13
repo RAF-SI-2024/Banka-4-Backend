@@ -1,12 +1,16 @@
 package rs.banka4.user_service.utils.loans;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import rs.banka4.user_service.config.RabbitMqConfig;
 import rs.banka4.user_service.domain.auth.dtos.NotificationTransferDto;
+import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.db.LoanInstallment;
 import rs.banka4.user_service.domain.loan.db.LoanStatus;
 import rs.banka4.user_service.domain.loan.db.PaymentStatus;
@@ -14,20 +18,22 @@ import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.LoanInstallmentRepository;
 import rs.banka4.user_service.repositories.LoanRepository;
+import rs.banka4.user_service.runners.TestDataRunner;
 import rs.banka4.user_service.utils.MessageHelper;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class LoanInstallmentScheduler {
-
     private final LoanInstallmentRepository loanInstallmentRepository;
     private final LoanRepository loanRepository;
     private final AccountRepository accountRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final LoanRateUtil loanRateUtil;
 
     private static final BigDecimal LATE_PAYMENT_PENALTY = new BigDecimal("0.05");
     private static final BigDecimal LEGAL_THRESHOLD = new BigDecimal("1000");
@@ -36,7 +42,6 @@ public class LoanInstallmentScheduler {
      * Daily job at 1 AM: Process due installments.
      */
     @Scheduled(cron = "0 0 1 * * ?")
-    @Transactional
     public void processDueInstallments() {
         List<LoanInstallment> dueInstallments = loanInstallmentRepository.findByExpectedDueDateAndPaymentStatus(LocalDate.now(), PaymentStatus.UNPAID);
 
@@ -49,10 +54,10 @@ public class LoanInstallmentScheduler {
      * Retries `DELAYED` installments every 6 hours for up to 72 hours.
      */
     @Scheduled(cron = "0 0 */6 * * ?")
-    @Transactional
     public void retryDelayedInstallments() {
-        LocalDate overdueThreshold = LocalDate.now().minusDays(3);
-        List<LoanInstallment> delayedInstallments = loanInstallmentRepository.findByPaymentStatusAndExpectedDueDate(PaymentStatus.DELAYED, overdueThreshold);
+        LocalDate overdueThreshold = LocalDate.now().minusDays(3); // Threshold for penalty
+        List<LoanInstallment> delayedInstallments =
+                loanInstallmentRepository.findRecentDelayedInstallments(PaymentStatus.DELAYED, overdueThreshold);
 
         for (LoanInstallment installment : delayedInstallments) {
             payInstallmentIfPossible(installment);
@@ -63,66 +68,111 @@ public class LoanInstallmentScheduler {
      * Daily at midnight: Apply penalties for `DELAYED` installments after 72 hours.
      */
     @Scheduled(cron = "0 0 0 * * ?")
-    @Transactional
     public void applyLatePaymentPenalties() {
-        LocalDate overdueThreshold = LocalDate.now().minusDays(3);
-        List<LoanInstallment> delayedInstallments = loanInstallmentRepository.findByPaymentStatusAndExpectedDueDate(PaymentStatus.DELAYED, overdueThreshold);
+        LocalDate threshold = LocalDate.now().minusDays(3);
+        List<LoanInstallment> delayedInstallments = loanInstallmentRepository.findByPaymentStatusAndExpectedDueDate(PaymentStatus.DELAYED, threshold);
 
         for (LoanInstallment installment : delayedInstallments) {
-            // Apply penalty
-            BigDecimal newInterestRate = installment.getLoan().getInterestRate().getFixedRate().add(LATE_PAYMENT_PENALTY);
-            installment.setInterestRateAmount(newInterestRate);
-            installment.getLoan().getInterestRate().setFixedRate(newInterestRate);
-            loanInstallmentRepository.save(installment);
-
-            //Message for applied penalty
-            NotificationTransferDto message = MessageHelper.createLoanInstallmentPenaltyMessage(
-                    installment.getLoan().getAccount().getClient().email,
-                    installment.getLoan().getAccount().getClient().firstName,
-                    installment.getLoan().getLoanNumber(),
-                    LATE_PAYMENT_PENALTY,
-                    LocalDate.now()
-            );
-            rabbitTemplate.convertAndSend(
-                    RabbitMqConfig.EXCHANGE_NAME,
-                    RabbitMqConfig.ROUTING_KEY,
-                    message
-            );
-
-            // Check if total overdue exceeds legal threshold
-            if (installment.getLoan().getRemainingDebt().compareTo(LEGAL_THRESHOLD) > 0) {
-                //TODO: logic for handling exceeding legal threshold
-            }
+            applyPenaltyToInstallment(installment);
         }
     }
 
-    private void payInstallmentIfPossible(LoanInstallment installment){
-        Account account = installment.getLoan().getAccount();
-        BigDecimal installmentAmount = installment.getInstallmentAmount();
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void applyPenaltyToInstallment(LoanInstallment installment) {
+        Loan loan = installment.getLoan();
+        // Apply penalty
+        installment.setInterestRateAmount(installment.getInterestRateAmount().add(LATE_PAYMENT_PENALTY));
+        loan.setBaseInterestRate(loan.getBaseInterestRate().add(LATE_PAYMENT_PENALTY));
 
-        if (account.getBalance().compareTo(installmentAmount) >= 0) {
+        loanRepository.save(loan);
+        loanInstallmentRepository.save(installment);
+
+        // Send notification for applied penalty
+        NotificationTransferDto message = MessageHelper.createLoanInstallmentPenaltyMessage(
+                loan.getAccount().getClient().email,
+                loan.getAccount().getClient().firstName,
+                loan.getLoanNumber(),
+                LATE_PAYMENT_PENALTY,
+                LocalDate.now()
+        );
+
+        rabbitTemplate.convertAndSend(
+                RabbitMqConfig.EXCHANGE_NAME,
+                RabbitMqConfig.ROUTING_KEY,
+                message
+        );
+
+        // Check if total overdue exceeds legal threshold
+        if (loan.getRemainingDebt().compareTo(LEGAL_THRESHOLD) > 0) {
+            // TODO: Implement logic for handling legal threshold breach
+        }
+    }
+
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void payInstallmentIfPossible(LoanInstallment installment){
+        Loan loan = installment.getLoan();
+        Account account = loan.getAccount();
+
+        BigDecimal installmentAmount = installment.getInstallmentAmount();
+        if (account.getAvailableBalance().compareTo(installmentAmount) >= 0) {
+
             // Subtract from user account and paying installment
             account.setBalance(account.getBalance().subtract(installmentAmount));
-            installment.getLoan().setRemainingDebt(installment.getLoan().getRemainingDebt().subtract(installmentAmount));
+            account.setAvailableBalance(account.getAvailableBalance().subtract(installmentAmount));
+            accountRepository.save(account);
+            loan.setRemainingDebt(loan.getRemainingDebt().subtract(installmentAmount));
 
             // In case loan is paid off.
-            if (installment.getLoan().getRemainingDebt().compareTo(BigDecimal.ZERO) == 0){
-                installment.getLoan().setStatus(LoanStatus.PAID_OFF);
-                installment.getLoan().setNextInstallmentDate(null);
+            if (loan.getRemainingDebt().compareTo(BigDecimal.ZERO) == 0){
+                loan.setStatus(LoanStatus.PAID_OFF);
+                loan.setNextInstallmentDate(null);
+            }
+            else{
+                // Creating next installment
+                LoanInstallment newInstallment = new LoanInstallment();
+                newInstallment.setLoan(loan);
+                newInstallment.setCurrency(installment.getCurrency());
+                newInstallment.setExpectedDueDate(installment.getExpectedDueDate().plusMonths(1));
+                newInstallment.setActualDueDate(null);
+                newInstallment.setPaymentStatus(PaymentStatus.UNPAID);
+
+                // Loan interest type is fixed
+                if(loan.getInterestType() == Loan.InterestType.FIXED){
+                    newInstallment.setInstallmentAmount(loan.getMonthlyInstallment());
+                    newInstallment.setInterestRateAmount(loan.getBaseInterestRate());
+                }
+                else { // Loan interest type is variable, calculating in interest rate using base interest rate of loan and adding variance.
+                    BigDecimal interestRate = loanRateUtil.calculateInterestRate(
+                            loan.getBaseInterestRate().add(LoanRateScheduler.getInterestRateVariant()),
+                            loan.getType()
+                    );
+
+                    newInstallment.setInterestRateAmount(interestRate);
+                    newInstallment.setInstallmentAmount(
+                            loanRateUtil.calculateMonthly(
+                                    loan.getAmount(),
+                                interestRate,
+                                BigInteger.valueOf(loan.getRepaymentPeriod())
+                            )
+                    );
+
+                    loan.setNextInstallmentDate(newInstallment.getExpectedDueDate());
+                }
             }
 
             installment.setPaymentStatus(PaymentStatus.PAID);
             installment.setActualDueDate(LocalDate.now());
             loanInstallmentRepository.save(installment);
-            accountRepository.save(account);
-            loanRepository.save(installment.getLoan());
+            loanRepository.save(loan);
 
             // Message for successful payment
             NotificationTransferDto message = MessageHelper.createLoanInstallmentPaidMessage(
                     account.getClient().email,
                     account.getClient().firstName,
-                    installment.getLoan().getLoanNumber(),
+                    loan.getLoanNumber(),
                     installment.getInstallmentAmount(),
+                    account.getCurrency().getCode(),
                     LocalDate.now()
             );
             rabbitTemplate.convertAndSend(
@@ -139,8 +189,9 @@ public class LoanInstallmentScheduler {
             NotificationTransferDto message = MessageHelper.createLoanInstallmentPaymentDeniedMessage(
                     account.getClient().email,
                     account.getClient().firstName,
-                    installment.getLoan().getLoanNumber(),
+                    loan.getLoanNumber(),
                     installment.getInstallmentAmount(),
+                    account.getCurrency().getCode(),
                     LocalDate.now()
             );
             rabbitTemplate.convertAndSend(

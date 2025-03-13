@@ -9,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import rs.banka4.user_service.domain.loan.db.BankMargin;
 import rs.banka4.user_service.domain.loan.db.LoanType;
 import rs.banka4.user_service.exceptions.loan.LoanTypeNotFound;
-import rs.banka4.user_service.repositories.BankMarginRepositroy;
+import rs.banka4.user_service.repositories.BankMarginRepository;
 import rs.banka4.user_service.utils.loans.LoanRateUtil;
 
 import java.math.BigDecimal;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 class LoanRateUtilTest {
 
     @Mock
-    private BankMarginRepositroy bankMarginRepositroy;
+    private BankMarginRepository bankMarginRepository;
 
     @InjectMocks
     private LoanRateUtil loanRateUtil;
@@ -41,7 +41,7 @@ class LoanRateUtilTest {
         BigDecimal referenceValue = new BigDecimal("5.0");
         LoanType loanType = LoanType.AUTO_LOAN;
 
-        when(bankMarginRepositroy.findBankMarginByType(loanType)).thenReturn(Optional.of(fixedLoanMargin));
+        when(bankMarginRepository.findBankMarginByType(loanType)).thenReturn(Optional.of(fixedLoanMargin));
 
         BigDecimal result = loanRateUtil.calculateInterestRate(referenceValue, loanType);
         assertNotNull(result);
@@ -51,14 +51,14 @@ class LoanRateUtilTest {
     @Test
     void testCalculateInterestRate_ThrowsException_WhenLoanTypeNotFound() {
         LoanType loanType = LoanType.CASH;
-        when(bankMarginRepositroy.findBankMarginByType(loanType)).thenReturn(Optional.empty());
+        when(bankMarginRepository.findBankMarginByType(loanType)).thenReturn(Optional.empty());
 
         assertThrows(LoanTypeNotFound.class, () -> loanRateUtil.calculateInterestRate(BigDecimal.TEN, loanType));
     }
 
     @Test
     void testCalculateMonthly_FixedLoan() {
-        BigInteger loanAmount = BigInteger.valueOf(100000);
+        BigDecimal loanAmount = BigDecimal.valueOf(100000);
         BigDecimal monthlyInterestRate = new BigDecimal("0.005");
         BigInteger numberOfInstallments = BigInteger.valueOf(12);
 
@@ -70,7 +70,7 @@ class LoanRateUtilTest {
 
     @Test
     void testCalculateMonthly_ZeroInterest() {
-        BigInteger loanAmount = BigInteger.valueOf(120000);
+        BigDecimal loanAmount = BigDecimal.valueOf(120000);
         BigDecimal monthlyInterestRate = BigDecimal.ZERO;
         BigInteger numberOfInstallments = BigInteger.valueOf(12);
 

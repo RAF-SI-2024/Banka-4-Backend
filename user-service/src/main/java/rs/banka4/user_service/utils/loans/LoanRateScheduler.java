@@ -1,5 +1,6 @@
 package rs.banka4.user_service.utils.loans;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -15,8 +16,9 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class LoanRateScheduler {
-    private final LoanRepository loanRepository;
+    @Getter
     private static BigDecimal interestRateVariant = generateRandomPercentage();
+    private final LoanRepository loanRepository;
 
     @Scheduled(cron = "0 5 0 1 * *")  // Cron expression for the first day of every month at midnight
     public void applyVariableRateToAllVariableLoans(){
