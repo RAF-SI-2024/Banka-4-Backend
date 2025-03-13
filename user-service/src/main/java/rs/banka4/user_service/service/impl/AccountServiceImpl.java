@@ -2,6 +2,8 @@ package rs.banka4.user_service.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,6 +44,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
+    private static final Logger LOGGER
+            = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     private final ClientService clientService;
     private final CompanyService companyService;
@@ -205,11 +209,12 @@ public class AccountServiceImpl implements AccountService {
                     accountNumber += "20";
                 }
                 account.setAccountNumber(accountNumber);
+                account.setActive(true);
                 accountRepository.save(account);
 
                 break;
             } catch (DataIntegrityViolationException ex) {
-                System.out.println("Account with this account number already exists!" + accountNumber);
+                LOGGER.warn("Account with this account number already exists: {}", accountNumber);
             }
         }
     }

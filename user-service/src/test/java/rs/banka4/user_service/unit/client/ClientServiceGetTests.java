@@ -22,6 +22,7 @@ import rs.banka4.user_service.exceptions.user.NotAuthenticated;
 import rs.banka4.user_service.exceptions.user.NotFound;
 import rs.banka4.user_service.generator.ClientObjectMother;
 import rs.banka4.user_service.repositories.ClientRepository;
+import rs.banka4.user_service.repositories.UserTotpSecretRepository;
 import rs.banka4.user_service.service.impl.ClientServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
 
@@ -43,6 +44,8 @@ public class ClientServiceGetTests {
     private ClientMapper clientMapper;
     @InjectMocks
     private ClientServiceImpl clientService;
+    @Mock
+    private UserTotpSecretRepository userTotpSecretRepository;
 
     @BeforeEach
     void setUp() {
@@ -101,6 +104,7 @@ public class ClientServiceGetTests {
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(clientMapper.toDto(client)).thenReturn(clientDto);
+        clientRepository.save(client);
 
         // Act
         ClientDto result = clientService.getClientById(clientId);

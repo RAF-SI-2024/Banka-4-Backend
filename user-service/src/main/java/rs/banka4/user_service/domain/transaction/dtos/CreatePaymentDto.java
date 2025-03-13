@@ -1,6 +1,8 @@
 package rs.banka4.user_service.domain.transaction.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
@@ -19,5 +21,8 @@ public record CreatePaymentDto(
         @Schema(description = "Reference number", example = "1176926")
         String referenceNumber,
         @Schema(description = "Payment purpose (optional)", example = "za privatni čas")
-        String paymentPurpose
+        String paymentPurpose,
+        @NotBlank(message = "TOTP code content is required")
+        @NotNull(message = "TOTP code cannot be null")
+        String otpCode
 ) { }

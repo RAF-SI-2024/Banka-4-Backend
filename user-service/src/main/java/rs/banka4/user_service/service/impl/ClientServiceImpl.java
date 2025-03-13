@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
 import rs.banka4.user_service.domain.auth.dtos.LoginDto;
 import rs.banka4.user_service.domain.auth.dtos.LoginResponseDto;
+import rs.banka4.user_service.domain.authenticator.db.UserTotpSecret;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.*;
 import rs.banka4.user_service.exceptions.*;
@@ -24,6 +25,7 @@ import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.exceptions.user.client.NonexistantSortByField;
 import rs.banka4.user_service.exceptions.user.client.NotActivated;
 import rs.banka4.user_service.repositories.ClientRepository;
+import rs.banka4.user_service.repositories.UserTotpSecretRepository;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.specification.ClientSpecification;
@@ -41,6 +43,7 @@ public class ClientServiceImpl implements ClientService {
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final UserTotpSecretRepository userTotpSecretRepository;
 
     @Override
     public ResponseEntity<Page<ClientDto>> getClients(String firstName, String lastName, String email, String phone,
@@ -109,16 +112,26 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientDto getMe(String authorization) {
         String token = authorization.replace("Bearer ", "");
-        String clientUsername = jwtUtil.extractUsername(token);
+        String clientEmail = jwtUtil.extractUsername(token);
 
         if(jwtUtil.isTokenExpired(token)) throw new NotAuthenticated();
 
-        return ClientMapper.INSTANCE.toDto(clientRepository.findByEmail(clientUsername).orElseThrow(NotFound::new));
+        Optional<UserTotpSecret> userTotpSecret = userTotpSecretRepository.findByClient_Email(clientEmail);
+        boolean has2FA = userTotpSecret.map(UserTotpSecret::getIsActive).orElse(false);
+
+        Client client = clientRepository.findByEmail(clientEmail).orElseThrow(NotFound::new);
+
+        return ClientMapper.INSTANCE.toDto(client, has2FA);
     }
 
     @Override
     public ClientDto getClientById(UUID id) {
-        return ClientMapper.INSTANCE.toDto(clientRepository.findById(id).orElseThrow(NotFound::new));
+        Client client = clientRepository.findById(id).orElseThrow(NotFound::new);
+        boolean has2FA = userTotpSecretRepository.findByClient_Id(id)
+                .map(UserTotpSecret::getIsActive)
+                .orElse(false);
+
+        return ClientMapper.INSTANCE.toDto(client, has2FA);
     }
 
     @Override
