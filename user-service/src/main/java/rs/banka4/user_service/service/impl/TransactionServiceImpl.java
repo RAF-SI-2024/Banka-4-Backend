@@ -6,14 +6,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
-import rs.banka4.user_service.domain.transaction.db.TransactionStatus;
-import rs.banka4.user_service.domain.transaction.dtos.CreatePaymentDto;
-import rs.banka4.user_service.domain.transaction.mapper.TransactionMapper;
 import rs.banka4.user_service.domain.account.db.Account;
-import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.transaction.db.MonetaryAmount;
 import rs.banka4.user_service.domain.transaction.db.Transaction;
+import rs.banka4.user_service.domain.transaction.db.TransactionStatus;
+import rs.banka4.user_service.domain.transaction.dtos.CreatePaymentDto;
+import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
+import rs.banka4.user_service.domain.transaction.mapper.TransactionMapper;
+import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.db.ClientContact;
 import rs.banka4.user_service.exceptions.account.AccountNotActive;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
@@ -129,8 +129,8 @@ public class TransactionServiceImpl implements TransactionService {
             Account fromAccount = accountRepository.findAccountByAccountNumber(accountNumber)
                     .orElseThrow(AccountNotFound::new);
 
-            combinator.and(PaymentSpecification.hasFromAccount(fromAccount)); // todo we should U (UNIJA)
-            combinator.and(PaymentSpecification.hasToAccount(fromAccount));
+            combinator.or(PaymentSpecification.hasFromAccount(fromAccount));
+            combinator.or(PaymentSpecification.hasToAccount(fromAccount));
         }
 
         Page<Transaction> transactions = transactionRepository.findAll(combinator.build(), pageRequest);
