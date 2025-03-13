@@ -37,6 +37,7 @@ public class TransactionObjectMother {
                 "444394438340523",
                 BigDecimal.valueOf(1.00),
                 "Milutin Joncic",
+                true,
                 "289",
                 "1176926",
                 "Temu payment",

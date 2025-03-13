@@ -16,6 +16,8 @@ public record CreatePaymentDto(
         BigDecimal fromAmount,
         @Schema(description = "Recipient name", example = "Pera Perić")
         String recipient,
+        @Schema(description = "Save recipient in contact list", example = "true")
+        boolean saveRecipient,
         @Schema(description = "Payment code (3-digit, e.g., 2xx)", example = "289")
         String paymentCode,
         @Schema(description = "Reference number", example = "1176926")

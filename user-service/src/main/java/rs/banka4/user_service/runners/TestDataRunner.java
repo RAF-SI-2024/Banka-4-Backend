@@ -179,20 +179,21 @@ public class TestDataRunner implements CommandLineRunner {
     }
 
     private void clientContactsSeeder() {
-        Random random = new Random();
         List<Client> clients = clientRepository.findAll();
 
-        List<ClientContact> clientContacts = IntStream.range(0, 20)
-                .mapToObj(i -> ClientContact.builder()
-                        .client(clients.get(random.nextInt(clients.size())))
-                        .accountNumber(generateRandomAccountNumber())
-                        .nickname(generateRandomNickname())
-                        .build())
+        List<ClientContact> clientContacts = clients.stream()
+                .filter(client -> !clientContactRepository.existsByClient(client))
+                .flatMap(client -> IntStream.range(0, 1)
+                        .mapToObj(i -> ClientContact.builder()
+                                .client(client)
+                                .accountNumber(generateRandomAccountNumber())
+                                .nickname(generateRandomNickname())
+                                .build()))
                 .toList();
 
         List<ClientContact> newClientContacts = clientContacts.stream()
                 .filter(clientContact -> !clientContactRepository.existsByAccountNumber(clientContact.getAccountNumber()))
-                .collect(Collectors.toList());
+                .toList();
 
         clientContactRepository.saveAll(newClientContacts);
     }
