@@ -65,7 +65,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         processTransaction(fromAccount, toAccount, createPaymentDto.fromAmount(), BigDecimal.ONE);
 
-        Transaction transaction = buildTransaction(fromAccount, toAccount, createPaymentDto, BigDecimal.ONE, TransactionStatus.IN_PROGRESS);
+        Transaction transaction = buildTransaction(fromAccount, toAccount, createPaymentDto, BigDecimal.ONE, TransactionStatus.REALIZED);
 
         if (createPaymentDto.saveRecipient()) {
             ClientContact clientContact = ClientContact.builder()
