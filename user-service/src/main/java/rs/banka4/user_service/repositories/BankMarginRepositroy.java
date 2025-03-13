@@ -6,8 +6,9 @@ import rs.banka4.user_service.domain.loan.db.BankMargin;
 import rs.banka4.user_service.domain.loan.db.LoanType;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface BankMarginRepositroy extends JpaRepository<BankMargin, Long> {
+public interface BankMarginRepositroy extends JpaRepository<BankMargin, UUID> {
     Optional<BankMargin> findBankMarginByType(LoanType type);
 }
