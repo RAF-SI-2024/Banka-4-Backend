@@ -17,5 +17,5 @@ create table bank_margins (
 );
 
 ALTER TABLE loans RENAME COLUMN interest_rate TO base_interest_rate;
-ALTER TABLE loans ADD interest_rate_id UUID NOT NULL;
+ALTER TABLE loans ADD interest_rate_id UUID;
 ALTER TABLE loans ADD CONSTRAINT fk_loans_interest_rate FOREIGN KEY(interest_rate_id) REFERENCES interest_rates (id);
