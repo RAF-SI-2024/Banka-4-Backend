@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.ApplicationContext;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.auth.dtos.NotificationTransferDto;
 import rs.banka4.user_service.domain.currency.db.Currency;
@@ -16,6 +17,7 @@ import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.LoanInstallmentRepository;
 import rs.banka4.user_service.repositories.LoanRepository;
+import rs.banka4.user_service.utils.loans.LoanInstallmentScheduler;
 import rs.banka4.user_service.utils.loans.LoanRateUtil;
 
 import java.math.BigDecimal;
@@ -42,7 +44,13 @@ class LoanInstallmentSchedulerTest {
     private RabbitTemplate rabbitTemplate;
 
     @Mock
+    private LoanInstallmentScheduler loanInstallmentSchedulerService;
+
+    @Mock
     private LoanRateUtil loanRateUtil;
+
+    @Mock
+    private ApplicationContext applicationContext;
 
     @InjectMocks
     private rs.banka4.user_service.utils.loans.LoanInstallmentScheduler loanInstallmentScheduler;
@@ -86,6 +94,7 @@ class LoanInstallmentSchedulerTest {
         installment.setPaymentStatus(PaymentStatus.DELAYED);
         installment.setExpectedDueDate(LocalDate.now().minusDays(3));
         installment.setInterestRateAmount(loan.getBaseInterestRate());
+        when(applicationContext.getBean(LoanInstallmentScheduler.class)).thenReturn(loanInstallmentScheduler);
     }
 
 

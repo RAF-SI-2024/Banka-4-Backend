@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -34,6 +35,7 @@ public class LoanInstallmentScheduler {
     private final AccountRepository accountRepository;
     private final RabbitTemplate rabbitTemplate;
     private final LoanRateUtil loanRateUtil;
+    private final ApplicationContext applicationContext;
 
     private static final BigDecimal LATE_PAYMENT_PENALTY = new BigDecimal("0.05");
     private static final BigDecimal LEGAL_THRESHOLD = new BigDecimal("1000");
@@ -43,10 +45,11 @@ public class LoanInstallmentScheduler {
      */
     @Scheduled(cron = "0 0 1 * * ?")
     public void processDueInstallments() {
+        LoanInstallmentScheduler self = applicationContext.getBean(LoanInstallmentScheduler.class);
         List<LoanInstallment> dueInstallments = loanInstallmentRepository.findByExpectedDueDateAndPaymentStatus(LocalDate.now(), PaymentStatus.UNPAID);
 
         for (LoanInstallment installment : dueInstallments) {
-            payInstallmentIfPossible(installment);
+            self.payInstallmentIfPossible(installment); // **Calls proxied method**
         }
     }
 
@@ -55,12 +58,12 @@ public class LoanInstallmentScheduler {
      */
     @Scheduled(cron = "0 0 */6 * * ?")
     public void retryDelayedInstallments() {
-        LocalDate overdueThreshold = LocalDate.now().minusDays(3); // Threshold for penalty
-        List<LoanInstallment> delayedInstallments =
-                loanInstallmentRepository.findRecentDelayedInstallments(PaymentStatus.DELAYED, overdueThreshold);
+        LoanInstallmentScheduler self = applicationContext.getBean(LoanInstallmentScheduler.class);
+        LocalDate overdueThreshold = LocalDate.now().minusDays(3);
+        List<LoanInstallment> delayedInstallments = loanInstallmentRepository.findRecentDelayedInstallments(PaymentStatus.DELAYED, overdueThreshold);
 
         for (LoanInstallment installment : delayedInstallments) {
-            payInstallmentIfPossible(installment);
+            self.payInstallmentIfPossible(installment); // **Calls proxied method**
         }
     }
 
@@ -69,16 +72,17 @@ public class LoanInstallmentScheduler {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void applyLatePaymentPenalties() {
+        LoanInstallmentScheduler self = applicationContext.getBean(LoanInstallmentScheduler.class);
         LocalDate threshold = LocalDate.now().minusDays(3);
         List<LoanInstallment> delayedInstallments = loanInstallmentRepository.findByPaymentStatusAndExpectedDueDate(PaymentStatus.DELAYED, threshold);
 
         for (LoanInstallment installment : delayedInstallments) {
-            applyPenaltyToInstallment(installment);
+            self.applyPenaltyToInstallment(installment); // **Calls proxied method**
         }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void applyPenaltyToInstallment(LoanInstallment installment) {
+    protected void applyPenaltyToInstallment(LoanInstallment installment) {
         Loan loan = installment.getLoan();
         // Apply penalty
         installment.setInterestRateAmount(installment.getInterestRateAmount().add(LATE_PAYMENT_PENALTY));
@@ -110,7 +114,7 @@ public class LoanInstallmentScheduler {
 
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void payInstallmentIfPossible(LoanInstallment installment){
+    protected void payInstallmentIfPossible(LoanInstallment installment){
         Loan loan = installment.getLoan();
         Account account = loan.getAccount();
 
@@ -124,11 +128,11 @@ public class LoanInstallmentScheduler {
             loan.setRemainingDebt(loan.getRemainingDebt().subtract(installmentAmount));
 
             // In case loan is paid off.
-            if (loan.getRemainingDebt().compareTo(BigDecimal.ZERO) == 0){
+            if (loan.getRemainingDebt().compareTo(BigDecimal.ZERO) <= 0){
                 loan.setStatus(LoanStatus.PAID_OFF);
                 loan.setNextInstallmentDate(null);
             }
-            else{
+            else {
                 // Creating next installment
                 LoanInstallment newInstallment = new LoanInstallment();
                 newInstallment.setLoan(loan);
@@ -138,7 +142,7 @@ public class LoanInstallmentScheduler {
                 newInstallment.setPaymentStatus(PaymentStatus.UNPAID);
 
                 // Loan interest type is fixed
-                if(loan.getInterestType() == Loan.InterestType.FIXED){
+                if (loan.getInterestType() == Loan.InterestType.FIXED) {
                     newInstallment.setInstallmentAmount(loan.getMonthlyInstallment());
                     newInstallment.setInterestRateAmount(loan.getBaseInterestRate());
                 }
@@ -152,13 +156,15 @@ public class LoanInstallmentScheduler {
                     newInstallment.setInstallmentAmount(
                             loanRateUtil.calculateMonthly(
                                     loan.getAmount(),
-                                interestRate,
-                                BigInteger.valueOf(loan.getRepaymentPeriod())
+                                    interestRate,
+                                    BigInteger.valueOf(loan.getRepaymentPeriod())
                             )
                     );
 
                     loan.setNextInstallmentDate(newInstallment.getExpectedDueDate());
                 }
+
+                loanInstallmentRepository.save(newInstallment);
             }
 
             installment.setPaymentStatus(PaymentStatus.PAID);
