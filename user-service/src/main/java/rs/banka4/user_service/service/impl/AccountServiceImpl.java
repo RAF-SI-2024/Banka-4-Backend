@@ -227,6 +227,7 @@ public class AccountServiceImpl implements AccountService {
                     accountNumber += "20";
                 }
                 account.setAccountNumber(accountNumber);
+                account.setActive(true);
                 accountRepository.save(account);
 
                 break;
