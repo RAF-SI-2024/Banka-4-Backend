@@ -25,7 +25,7 @@ public record LoanInformationDto(
         Integer repaymentPeriod,
 
         @Schema(description = "Interest rate at the time of credit creation", example = "4.5")
-        BigDecimal interestRate,
+        BigDecimal baseInterestRate,
 
         @Schema(description = "Current effective interest rate", example = "5.0")
         BigDecimal effectiveInterestRate,
