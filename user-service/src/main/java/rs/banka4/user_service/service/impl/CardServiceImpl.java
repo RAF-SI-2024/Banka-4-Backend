@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.domain.account.db.Account;
-import rs.banka4.user_service.domain.account.db.AccountType;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.db.CardStatus;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
@@ -21,7 +20,6 @@ import rs.banka4.user_service.exceptions.authenticator.NotValidTotpException;
 import rs.banka4.user_service.exceptions.card.AuthorizedUserNotAllowed;
 import rs.banka4.user_service.exceptions.card.CardLimitExceededException;
 import rs.banka4.user_service.exceptions.card.DuplicateAuthorizationException;
-import rs.banka4.user_service.exceptions.user.NotAuthenticated;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.CardRepository;
 import rs.banka4.user_service.service.abstraction.CardService;
@@ -57,6 +55,8 @@ public class CardServiceImpl implements CardService {
         card.setCvv(generateRandomCVV());
         card.setAccount(account);
         card.setCardName(CardMapper.INSTANCE.mapCardName(account));
+
+        cardRepository.save(card);
     }
 
     @Override
@@ -151,12 +151,16 @@ public class CardServiceImpl implements CardService {
     // ---- Private methods ----
 
     @Transactional
-    public Card createEmployeeCard(CreateCardDto dto, Account account) {
+    public void createEmployeeCard(CreateCardDto dto, Account account) {
+        validateCardLimits(account, null);
+
         Card card = CardMapper.INSTANCE.fromCreate(dto);
         card.setCardNumber(generateUniqueCardNumber());
         card.setCvv(generateRandomCVV());
         card.setAccount(account);
-        return cardRepository.save(card);
+        card.setCardName(CardMapper.INSTANCE.mapCardName(account));
+
+        cardRepository.save(card);
     }
 
     private void validateCardLimits(Account account, @Nullable CreateAuthorizedUserDto authorizedUser) {

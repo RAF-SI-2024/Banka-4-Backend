@@ -108,31 +108,18 @@ public class AccountServiceImpl implements AccountService {
         account.setBalance(createAccountDto.availableBalance());
         makeAnAccountNumber(createAccountDto.currency(), account);
 
-        if (createAccountDto.createCard()) {
-            CreateAuthorizedUserDto authorizedUser = null;
-            if (account.getAccountType() == AccountType.DOO) {
-                authorizedUser = clientMapper.toAuthorizedUserDto(createAccountDto.client());
-                authorizedUser = new CreateAuthorizedUserDto(
-                        authorizedUser.firstName(),
-                        authorizedUser.lastName(),
-                        authorizedUser.dateOfBirth(),
-                        authorizedUser.gender(),
-                        authorizedUser.email(),
-                        createAccountDto.client().phone(),
-                        authorizedUser.address()
-                );
-            }
+        account = accountRepository.save(account);
 
+        if (createAccountDto.createCard()) {
             cardService.createEmployeeCard(
                     new CreateCardDto(
                             account.getAccountNumber(),
-                            authorizedUser,
+                            null,
                             null
                     ),
                     account
             );
         }
-
     }
 
     @Override

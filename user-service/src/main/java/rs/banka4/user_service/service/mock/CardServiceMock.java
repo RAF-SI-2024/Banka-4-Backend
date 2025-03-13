@@ -61,7 +61,6 @@ public class CardServiceMock implements CardService {
     }
 
     @Override
-    public Card createEmployeeCard(CreateCardDto dto, Account account) {
-        return null;
+    public void createEmployeeCard(CreateCardDto dto, Account account) {
     }
 }
