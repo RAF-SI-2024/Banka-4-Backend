@@ -3,6 +3,7 @@ package rs.banka4.user_service.generator;
 import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.Privilege;
 import rs.banka4.user_service.domain.user.client.db.Client;
+import rs.banka4.user_service.domain.user.client.db.ClientContact;
 import rs.banka4.user_service.domain.user.client.dtos.*;
 
 import java.time.LocalDate;
@@ -92,6 +93,13 @@ public class ClientObjectMother {
                 "Wasketov racun od firme",
                 "444394438340549"
         );
+    }
+
+    public static ClientContact generateBasicClientContact() {
+        ClientContact clientContact = new ClientContact();
+        clientContact.setNickname("Wasketov racun od firme");
+        clientContact.setAccountNumber("444394438340549");
+        return clientContact;
     }
 
 }
