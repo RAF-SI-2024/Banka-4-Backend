@@ -2,6 +2,7 @@ package rs.banka4.user_service.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.context.annotation.Primary;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanApplicationDto;
+import rs.banka4.user_service.domain.loan.dtos.LoanApplicationResponseDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanFilterDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanInformationDto;
 import rs.banka4.user_service.domain.loan.mapper.LoanMapper;
@@ -53,7 +55,6 @@ import java.util.stream.Stream;
 @Service
 @Primary
 public class LoanServiceImpl implements LoanService {
-    private final LoanRateUtil loanRateUtil;
 
     private final ClientService clientService;
 
@@ -106,16 +107,20 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public ResponseEntity<Page<LoanInformationDto>> getAllLoans(PageRequest pageRequest, LoanFilterDto filterDto) {
-        Sort sort = Optional.ofNullable(filterDto.status())
-                .filter(status -> status.equals(LoanStatus.PROCESSING))
-                .map(status -> Sort.by("agreementDate").descending())
-                .orElse(Sort.by("account.accountNumber"));
-
-        Page<Loan> loanPage = loanRepository.findAll(LoanSpecification.searchLoans(filterDto), pageRequest.withSort(sort));
+        Page<Loan> loanPage = loanRepository.findAll(LoanSpecification.searchLoans(filterDto),
+                pageRequest.withSort(Sort.by("account.accountNumber")));
 
         return ResponseEntity.ok(loanPage.map(loan ->
             LoanMapper.INSTANCE.toDto(loan,CurrencyMapper.INSTANCE)
         ));
+    }
+    @Override
+    public ResponseEntity<Page<LoanApplicationResponseDto>> getAllLoansProcessing(PageRequest pageRequest, LoanFilterDto filterDto) {
+        Page<LoanRequest> loanPage = loanRequestRepository.findAllWithLoans(LoanSpecification.searchLoanRequests(filterDto),
+                pageRequest.withSort(Sort.by("account.accountNumber").descending()));
+
+        return ResponseEntity.ok(loanPage.map(loan ->
+                LoanMapper.INSTANCE.toDtoApplicationResponse(loan, CurrencyMapper.INSTANCE)));
     }
 
     @Override

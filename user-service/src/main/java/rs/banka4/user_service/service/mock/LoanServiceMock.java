@@ -13,6 +13,7 @@ import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.db.LoanStatus;
 import rs.banka4.user_service.domain.loan.db.LoanType;
 import rs.banka4.user_service.domain.loan.dtos.LoanApplicationDto;
+import rs.banka4.user_service.domain.loan.dtos.LoanApplicationResponseDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanFilterDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanInformationDto;
 import rs.banka4.user_service.service.abstraction.LoanService;
@@ -83,5 +84,10 @@ public class LoanServiceMock implements LoanService {
     @Override
     public void rejectLoan(Long loanNumber, String auth) {
 
+    }
+
+    @Override
+    public ResponseEntity<Page<LoanApplicationResponseDto>> getAllLoansProcessing(PageRequest of, LoanFilterDto filter) {
+        return null;
     }
 }

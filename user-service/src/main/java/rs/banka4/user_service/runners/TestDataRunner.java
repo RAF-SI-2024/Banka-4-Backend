@@ -53,6 +53,7 @@ public class TestDataRunner implements CommandLineRunner {
     private final ClientContactRepository clientContactRepository;
     private final TransactionRepository transactionRepository;
     private final LoanRepository loanRepository;
+    private final LoanRequestRepository loanRequestRepository;
     private final BankMarginRepository bankMarginRepository;
     private final InterestRateRepository interestRateRepository;
     private final CardRepository cardRepository;
@@ -69,6 +70,7 @@ public class TestDataRunner implements CommandLineRunner {
         accountSeeder();
         interestRateSeeder();
         loanSeeder();
+        loanRequestSeeder();
         transactionSeeder();
         seedBankMargins();
         cardSeeder();
@@ -120,6 +122,37 @@ public class TestDataRunner implements CommandLineRunner {
     }
 
 
+    private void loanRequestSeeder() {
+        long loanCount = loanRequestRepository.count();
+
+        if (loanCount > 10) {
+            LOGGER.debug("Seeder skipped. There are already more than 10 loans in the database.");
+            return;
+        }
+
+        Random random = new Random();
+        List<Account> accounts = accountRepository.findAll();
+        var currencies = currencyRepository.findAll();
+        var loans = loanRepository.findAll();
+        List<LoanRequest> loanRequests = random.ints(10, 0, 10000)
+                .mapToObj(i -> LoanRequest.builder()
+                        .amount(generateRandomAmount())
+                        .repaymentPeriod(random.nextInt(60) + 12)
+                        .account(accounts.get(random.nextInt(accounts.size())))
+                        .type(randomEnumValue(LoanType.class))
+                        .interestType(randomEnumValue(Loan.InterestType.class))
+                        .purposeOfLoan("asdsdasd")
+                        .contactPhone("12321321")
+                        .employmentStatus("asdda")
+                        .employmentPeriod(21)
+                        .monthlyIncome(BigDecimal.valueOf(32213))
+                        .loan(loans.get(random.nextInt(loans.size())))
+                        .currency(currencies.get(random.nextInt(currencies.size())))
+                        .build())
+                .toList();
+
+        loanRequestRepository.saveAll(loanRequests);
+    }
     private void loanSeeder() {
         long loanCount = loanRepository.count();
 
@@ -154,7 +187,6 @@ public class TestDataRunner implements CommandLineRunner {
 
         loanRepository.saveAll(loans);
     }
-
     private Long generateRandomLoanNumber() {
         Random random = new Random();
         return (long) (random.nextInt(100000) + 100000);

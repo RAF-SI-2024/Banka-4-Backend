@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import rs.banka4.user_service.domain.loan.db.LoanStatus;
 import rs.banka4.user_service.domain.loan.db.LoanType;
 import rs.banka4.user_service.domain.loan.dtos.LoanApplicationDto;
+import rs.banka4.user_service.domain.loan.dtos.LoanApplicationResponseDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanInformationDto;
 import rs.banka4.user_service.exceptions.loan.LoanNotFound;
 
@@ -39,8 +40,7 @@ public interface LoanDocumentation {
                     "Use the 'page' and 'size' parameters to control pagination. " +
                     "The 'type' and 'status' parameters are optional and should match the values defined in the corresponding enums for LoanType and LoanStatus. " +
                     "If an invalid loan type or status is provided, a 404 Not Found error is returned. " +
-                    "By default, if the loan status is PROCESSING, the results are sorted by agreement date in descending order; " +
-                    "otherwise, the results are sorted by account number in ascending order. " +
+                    "The results are sorted by account number in ascending order. " +
                     "The 'accountNumber' parameter allows filtering of loans associated with a specific account.",
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
@@ -53,6 +53,26 @@ public interface LoanDocumentation {
             }
     )
     ResponseEntity<Page<LoanInformationDto>> getAllLoans(int page, int size, String type, String status, String accountNumber);
+    @Operation(
+            summary = "Search All Loans",
+            description = "Allows an employee to search and retrieve all applications for loans in the system. " +
+                    "This endpoint supports pagination and filtering by loan type and account number. " +
+                    "Use the 'page' and 'size' parameters to control pagination. " +
+                    "The 'type' parameters are optional and should match the values defined in the corresponding enum for LoanType " +
+                    "If an invalid loan type or status is provided, a 404 Not Found error is returned. " +
+                    "The results are sorted by account number in ascending order. " +
+                    "The 'accountNumber' parameter allows filtering of loans associated with a specific account.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Loans retrieved successfully",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoanInformationDto.class))
+                    ),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized: Employee authentication failed", content = @Content),
+                    @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "Not Found: Incorrect loan type or status provided", content = @Content)
+            }
+    )
+    ResponseEntity<Page<LoanApplicationResponseDto>> getAllLoansProcessing(int page, int size, String type, String accountNumber);
 
     @Operation(
             summary = "Search Client's Loans",
