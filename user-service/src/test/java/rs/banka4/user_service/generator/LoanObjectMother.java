@@ -25,7 +25,8 @@ public class LoanObjectMother {
                 5,
                 36,
                 "+38162000000",
-                "444394438340549"
+                "444394438340549",
+                Loan.InterestType.FIXED
         );
     }
 

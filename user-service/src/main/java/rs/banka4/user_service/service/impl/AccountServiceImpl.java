@@ -149,7 +149,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Account getAccountByAccountNumber(String accountNumber) {
-        return accountRepository.findAccountByAccountNumber(accountNumber).orElseThrow(NotFound::new);
+        return accountRepository.findAccountByAccountNumber(accountNumber).orElseThrow(AccountNotFound::new);
     }
 
     private void connectCompanyToAccount(Account account, CreateAccountDto createAccountDto) {

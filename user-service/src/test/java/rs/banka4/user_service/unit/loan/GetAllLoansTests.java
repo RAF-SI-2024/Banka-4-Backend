@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.currency.dtos.CurrencyDto;
+import rs.banka4.user_service.domain.currency.mapper.CurrencyMapper;
 import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.db.LoanStatus;
 import rs.banka4.user_service.domain.loan.db.LoanType;
@@ -103,8 +104,8 @@ public class GetAllLoansTests {
 
         LoanInformationDto dto1 = mockLoans.get(0);
         LoanInformationDto dto2 = mockLoans.get(1);
-        when(loanMapper.toDto(loan1)).thenReturn(dto1);
-        when(loanMapper.toDto(loan2)).thenReturn(dto2);
+        when(loanMapper.toDto(loan1, CurrencyMapper.INSTANCE)).thenReturn(dto1);
+        when(loanMapper.toDto(loan2,CurrencyMapper.INSTANCE)).thenReturn(dto2);
 
         ResponseEntity<Page<LoanInformationDto>> response = loanService.getAllLoans(basePageRequest, filterDto);
 
@@ -146,8 +147,8 @@ public class GetAllLoansTests {
 
         LoanInformationDto dto1 = mockLoans.get(0);
         LoanInformationDto dto2 = mockLoans.get(1);
-        when(loanMapper.toDto(loan1)).thenReturn(dto1);
-        when(loanMapper.toDto(loan2)).thenReturn(dto2);
+        when(loanMapper.toDto(loan1,CurrencyMapper.INSTANCE)).thenReturn(dto1);
+        when(loanMapper.toDto(loan2,CurrencyMapper.INSTANCE)).thenReturn(dto2);
 
         ResponseEntity<Page<LoanInformationDto>> response = loanService.getAllLoans(basePageRequest, filterDto);
 

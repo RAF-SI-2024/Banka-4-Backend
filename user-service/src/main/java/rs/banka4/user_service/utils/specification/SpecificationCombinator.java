@@ -16,7 +16,9 @@ public class SpecificationCombinator<T> {
     }
 
     public SpecificationCombinator<T> or(Specification<T> other) {
-        if (other != null) this.specification = this.specification.or(other);
+        if (other != null) {
+            this.specification = this.specification.or(other);
+        }
         return this;
     }
 

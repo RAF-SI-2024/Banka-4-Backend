@@ -30,7 +30,7 @@ public interface LoanDocumentation {
                     @ApiResponse(responseCode = "401", description = "Unauthorized: Client authentication failed"),
             }
     )
-    ResponseEntity<Void> createLoanApplication(LoanApplicationDto loanApplicationDto);
+    ResponseEntity<Void> createLoanApplication(LoanApplicationDto loanApplicationDto, Authentication authentication);
 
     @Operation(
             summary = "Search All Loans",

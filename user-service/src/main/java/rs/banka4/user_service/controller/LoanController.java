@@ -24,8 +24,11 @@ public class LoanController implements LoanDocumentation {
 
     @Override
     @PostMapping
-    public ResponseEntity<Void> createLoanApplication(@RequestBody @Valid LoanApplicationDto loanApplicationDto) {
-        loanService.createLoanApplication(loanApplicationDto);
+    public ResponseEntity<Void> createLoanApplication(@RequestBody @Valid LoanApplicationDto loanApplicationDto,
+                                                      Authentication auth) {
+
+        loanService.createLoanApplication(loanApplicationDto, (String) auth.getCredentials());
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

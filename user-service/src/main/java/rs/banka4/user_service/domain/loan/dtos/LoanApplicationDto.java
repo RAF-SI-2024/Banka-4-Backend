@@ -2,6 +2,7 @@ package rs.banka4.user_service.domain.loan.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import rs.banka4.user_service.domain.currency.db.Currency;
+import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.db.LoanType;
 
 import java.math.BigDecimal;
@@ -37,6 +38,9 @@ public record LoanApplicationDto(
         String contactPhone,
 
         @Schema(description = "Applicant's bank account number", example = "35123456789012345678")
-        String accountNumber
+        String accountNumber,
+
+        @Schema(description= "Chosen interest rate", example = "FIXED")
+        Loan.InterestType interestType
 ) {
 }
