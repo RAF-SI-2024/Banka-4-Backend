@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.domain.transaction.dtos.CreatePaymentDto;
+import rs.banka4.user_service.domain.transaction.dtos.CreateTransferDto;
 import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
 import rs.banka4.user_service.domain.transaction.mapper.TransactionMapper;
 import rs.banka4.user_service.domain.account.db.Account;
@@ -169,7 +170,7 @@ public class TransactionServiceCreateTests {
     @Test
     void testCreateTransferSuccess() {
         // Arrange
-        CreatePaymentDto createPaymentDto = TransactionObjectMother.generateBasicCreatePaymentDto();
+        CreateTransferDto createTransferDto = TransactionObjectMother.generateBasicCreateTransferDto();
         Client client = ClientObjectMother.generateClient(UUID.fromString("9df5e618-f21d-48a7-a7a4-ac55ea8bec97"), "markezaa@example.com");
         Account fromAccount = AccountObjectMother.generateBasicFromAccount();
         Account toAccount = AccountObjectMother.generateBasicToAccount();
@@ -179,22 +180,18 @@ public class TransactionServiceCreateTests {
 
         when(jwtUtil.extractUsername(anyString())).thenReturn("markezaa@example.com");
         when(clientRepository.findByEmail(anyString())).thenReturn(Optional.of(client));
-        when(accountRepository.findAccountByAccountNumber(createPaymentDto.fromAccount())).thenReturn(Optional.of(fromAccount));
-        when(accountRepository.findAccountByAccountNumber(createPaymentDto.toAccount())).thenReturn(Optional.of(toAccount));
+        when(accountRepository.findAccountByAccountNumber(createTransferDto.fromAccount())).thenReturn(Optional.of(fromAccount));
+        when(accountRepository.findAccountByAccountNumber(createTransferDto.toAccount())).thenReturn(Optional.of(toAccount));
         when(transactionMapper.toDto(any())).thenReturn(transactionDto);
 
         // Act
-        TransactionDto result = transactionService.createTransfer(authentication, createPaymentDto);
+        TransactionDto result = transactionService.createTransfer(authentication, createTransferDto);
 
         // Assert
         assertNotNull(result);
-        assertEquals(createPaymentDto.fromAccount(), result.fromAccount());
-        assertEquals(createPaymentDto.toAccount(), result.toAccount());
-        assertEquals(createPaymentDto.fromAmount(), result.fromAmount());
-        assertEquals(createPaymentDto.recipient(), result.recipient());
-        assertEquals(createPaymentDto.paymentCode(), result.paymentCode());
-        assertEquals(createPaymentDto.referenceNumber(), result.referenceNumber());
-        assertEquals(createPaymentDto.paymentPurpose(), result.paymentPurpose());
+        assertEquals(createTransferDto.fromAccount(), result.fromAccount());
+        assertEquals(createTransferDto.toAccount(), result.toAccount());
+        assertEquals(createTransferDto.fromAmount(), result.fromAmount());
         verify(transactionRepository, times(1)).save(any());
     }
 
