@@ -1,4 +1,4 @@
-package rs.banka4.user_service.integration.utils;
+package rs.banka4.testlib.integration;
 
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.extension.BeforeEachCallback;

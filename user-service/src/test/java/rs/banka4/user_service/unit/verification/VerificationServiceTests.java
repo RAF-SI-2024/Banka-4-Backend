@@ -1,20 +1,20 @@
 package rs.banka4.user_service.unit.verification;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import rs.banka4.user_service.exceptions.user.VerificationCodeExpiredOrInvalid;
 import rs.banka4.user_service.domain.auth.db.VerificationCode;
+import rs.banka4.user_service.exceptions.user.VerificationCodeExpiredOrInvalid;
 import rs.banka4.user_service.generator.VerificationCodeObjectMother;
 import rs.banka4.user_service.repositories.VerificationCodeRepository;
 import rs.banka4.user_service.service.impl.VerificationCodeService;
-
-import java.util.Optional;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 public class VerificationServiceTests {
 
@@ -33,7 +33,8 @@ public class VerificationServiceTests {
     void testCreateVerificationCode() {
         // Arrange
         String email = "user@example.com";
-        VerificationCode motherCode = VerificationCodeObjectMother.createValidVerificationCode(email);
+        VerificationCode motherCode =
+            VerificationCodeObjectMother.createValidVerificationCode(email);
         when(verificationCodeRepository.save(any(VerificationCode.class))).thenReturn(motherCode);
 
         // Act
@@ -49,7 +50,8 @@ public class VerificationServiceTests {
     void testValidateVerificationCodeSuccess() {
         // Arrange
         String email = "user@example.com";
-        VerificationCode validCode = VerificationCodeObjectMother.createValidVerificationCode(email);
+        VerificationCode validCode =
+            VerificationCodeObjectMother.createValidVerificationCode(email);
         String code = validCode.getCode();
         when(verificationCodeRepository.findByCode(code)).thenReturn(Optional.of(validCode));
 
@@ -58,20 +60,27 @@ public class VerificationServiceTests {
 
         // Assert
         assertTrue(result.isPresent());
-        assertEquals(code, result.get().getCode());
+        assertEquals(
+            code,
+            result.get()
+                .getCode()
+        );
     }
 
     @Test
     void testValidateVerificationCodeExpired() {
         // Arrange
         String email = "user@example.com";
-        VerificationCode expiredCode = VerificationCodeObjectMother.createExpiredVerificationCode(email);
+        VerificationCode expiredCode =
+            VerificationCodeObjectMother.createExpiredVerificationCode(email);
         String code = expiredCode.getCode();
         when(verificationCodeRepository.findByCode(code)).thenReturn(Optional.of(expiredCode));
 
         // Act & Assert
-        assertThrows(VerificationCodeExpiredOrInvalid.class,
-                () -> verificationCodeService.validateVerificationCode(code));
+        assertThrows(
+            VerificationCodeExpiredOrInvalid.class,
+            () -> verificationCodeService.validateVerificationCode(code)
+        );
     }
 
     @Test
@@ -83,15 +92,18 @@ public class VerificationServiceTests {
         when(verificationCodeRepository.findByCode(code)).thenReturn(Optional.of(usedCode));
 
         // Act & Assert
-        assertThrows(VerificationCodeExpiredOrInvalid.class,
-                () -> verificationCodeService.validateVerificationCode(code));
+        assertThrows(
+            VerificationCodeExpiredOrInvalid.class,
+            () -> verificationCodeService.validateVerificationCode(code)
+        );
     }
 
     @Test
     void testMarkCodeAsUsed() {
         // Arrange
         String email = "user@example.com";
-        VerificationCode validCode = VerificationCodeObjectMother.createValidVerificationCode(email);
+        VerificationCode validCode =
+            VerificationCodeObjectMother.createValidVerificationCode(email);
 
         // Act
         verificationCodeService.markCodeAsUsed(validCode);
@@ -105,7 +117,8 @@ public class VerificationServiceTests {
     void testFindByEmail() {
         // Arrange
         String email = "user@example.com";
-        VerificationCode validCode = VerificationCodeObjectMother.createValidVerificationCode(email);
+        VerificationCode validCode =
+            VerificationCodeObjectMother.createValidVerificationCode(email);
         when(verificationCodeRepository.findByEmail(email)).thenReturn(Optional.of(validCode));
 
         // Act
@@ -113,14 +126,19 @@ public class VerificationServiceTests {
 
         // Assert
         assertTrue(result.isPresent());
-        assertEquals(email, result.get().getEmail());
+        assertEquals(
+            email,
+            result.get()
+                .getEmail()
+        );
     }
 
     @Test
     void testFindByCode() {
         // Arrange
         String email = "user@example.com";
-        VerificationCode validCode = VerificationCodeObjectMother.createValidVerificationCode(email);
+        VerificationCode validCode =
+            VerificationCodeObjectMother.createValidVerificationCode(email);
         String code = validCode.getCode();
         when(verificationCodeRepository.findByCode(code)).thenReturn(Optional.of(validCode));
 
@@ -129,6 +147,10 @@ public class VerificationServiceTests {
 
         // Assert
         assertTrue(result.isPresent());
-        assertEquals(code, result.get().getCode());
+        assertEquals(
+            code,
+            result.get()
+                .getCode()
+        );
     }
 }

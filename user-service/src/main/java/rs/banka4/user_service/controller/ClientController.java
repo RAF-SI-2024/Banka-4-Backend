@@ -1,6 +1,7 @@
 package rs.banka4.user_service.controller;
 
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,8 +15,6 @@ import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;
 import rs.banka4.user_service.domain.user.client.dtos.UpdateClientDto;
 import rs.banka4.user_service.service.abstraction.ClientService;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/client")
 @RequiredArgsConstructor
@@ -26,7 +25,12 @@ public class ClientController implements ClientApiDocumentation {
     @Override
     @GetMapping("/me")
     public ResponseEntity<ClientDto> me(Authentication auth) {
-        return ResponseEntity.ok(clientService.getMe(auth.getCredentials().toString()));
+        return ResponseEntity.ok(
+            clientService.getMe(
+                auth.getCredentials()
+                    .toString()
+            )
+        );
     }
 
     @Override
@@ -39,26 +43,39 @@ public class ClientController implements ClientApiDocumentation {
     @PostMapping
     public ResponseEntity<Void> createClient(@RequestBody @Valid CreateClientDto createClientDto) {
         clientService.createClient(createClientDto);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .build();
     }
 
     @Override
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateClient(@PathVariable UUID id, @RequestBody @Valid UpdateClientDto updateClientDto) {
+    public ResponseEntity<Void> updateClient(
+        @PathVariable UUID id,
+        @RequestBody @Valid UpdateClientDto updateClientDto
+    ) {
         clientService.updateClient(id, updateClientDto);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent()
+            .build();
     }
 
     @Override
     @GetMapping("/search")
     public ResponseEntity<Page<ClientDto>> getClients(
-            @RequestParam(required = false) String firstName,
-            @RequestParam(required = false) String lastName,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String phone,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return clientService.getClients(firstName, lastName, email, phone, sortBy, PageRequest.of(page, size));
+        @RequestParam(required = false) String firstName,
+        @RequestParam(required = false) String lastName,
+        @RequestParam(required = false) String email,
+        @RequestParam(required = false) String phone,
+        @RequestParam(required = false) String sortBy,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        return clientService.getClients(
+            firstName,
+            lastName,
+            email,
+            phone,
+            sortBy,
+            PageRequest.of(page, size)
+        );
     }
 }

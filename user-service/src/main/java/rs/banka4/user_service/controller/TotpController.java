@@ -1,10 +1,5 @@
 package rs.banka4.user_service.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,29 +19,35 @@ public class TotpController implements TotpControllerDocumentation {
 
     @Override
     @GetMapping("/regenerate-authenticator")
-    public ResponseEntity<RegenerateAuthenticatorResponseDto> regenerateAuthenticator(Authentication auth) {
+    public ResponseEntity<RegenerateAuthenticatorResponseDto> regenerateAuthenticator(
+        Authentication auth
+    ) {
         return ResponseEntity.ok(totpService.regenerateSecret(auth));
     }
 
     @Override
     @PostMapping("/verify-new-authenticator")
     public ResponseEntity<Void> verifyNewAuthenticator(
-            Authentication auth,
-            @RequestBody @Valid SentCode sentCode) {
+        Authentication auth,
+        @RequestBody @Valid SentCode sentCode
+    ) {
         totpService.verifyNewAuthenticator(auth, sentCode.content());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok()
+            .build();
     }
 
     @Override
     @PostMapping("/validate")
     public ResponseEntity<?> verifyCode(
-            @RequestBody @Valid SentCode sentCode,
-            Authentication auth) {
+        @RequestBody @Valid SentCode sentCode,
+        Authentication auth
+    ) {
         boolean result = totpService.validate((String) auth.getCredentials(), sentCode.content());
         if (result) {
             return ResponseEntity.ok("Code verified");
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.notFound()
+                .build();
         }
     }
 }

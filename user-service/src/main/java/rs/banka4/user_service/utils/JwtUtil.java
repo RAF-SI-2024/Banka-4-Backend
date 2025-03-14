@@ -3,22 +3,21 @@ package rs.banka4.user_service.utils;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.*;
+import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import rs.banka4.user_service.domain.auth.db.SecuredUser;
+import rs.banka4.user_service.domain.user.client.db.Client;
+import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.exceptions.jwt.ExpiredJwt;
 import rs.banka4.user_service.exceptions.jwt.IllegalArgumentJwt;
 import rs.banka4.user_service.exceptions.jwt.MalformedJwt;
 import rs.banka4.user_service.exceptions.jwt.UnsupportedJwt;
-import rs.banka4.user_service.domain.user.client.db.Client;
-import rs.banka4.user_service.domain.user.employee.db.Employee;
-import rs.banka4.user_service.domain.auth.db.SecuredUser;
 import rs.banka4.user_service.service.abstraction.TokenService;
-
-import java.security.Key;
-import java.util.*;
-import java.util.function.Function;
 
 @Service
 @Transactional
@@ -26,8 +25,10 @@ public class JwtUtil {
 
     @Value("${jwt.secret.key}")
     private String secretKey;
+
     @Value("${jwt.expiration}")
     private long jwtExpiration;
+
     @Value("${jwt.refresh.token.expiration}")
     private long refreshExpiration;
 
@@ -58,10 +59,10 @@ public class JwtUtil {
     public Claims extractAllClaims(String token) {
         try {
             return Jwts.parserBuilder()
-                    .setSigningKey(getSignInKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                .setSigningKey(getSignInKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
         } catch (ExpiredJwtException e) {
             throw new ExpiredJwt();
         } catch (MalformedJwtException e) {
@@ -95,18 +96,17 @@ public class JwtUtil {
     }
 
     public String generateToken(
-            Map<String, Object> extraClaims,
-            UserDetails userDetails,
-            long expiration
+        Map<String, Object> extraClaims,
+        UserDetails userDetails,
+        long expiration
     ) {
-        return Jwts
-                .builder()
-                .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-                .compact();
+        return Jwts.builder()
+            .setClaims(extraClaims)
+            .setSubject(userDetails.getUsername())
+            .setIssuedAt(new Date(System.currentTimeMillis()))
+            .setExpiration(new Date(System.currentTimeMillis() + expiration))
+            .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+            .compact();
     }
 
     public boolean validateToken(String token, String username) {
@@ -122,7 +122,8 @@ public class JwtUtil {
     }
 
     public boolean isTokenInvalidated(String token) {
-        return tokenService.findByToken(token).isPresent();
+        return tokenService.findByToken(token)
+            .isPresent();
     }
 
     private Key getSignInKey() {

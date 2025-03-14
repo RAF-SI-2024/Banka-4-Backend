@@ -18,21 +18,11 @@ public enum AccountType {
     FOUNDATION;
 
     // List of personal account types
-    public static final List<AccountType> PERSONAL_ACCOUNTS = Arrays.asList(
-            STANDARD,
-            SAVINGS,
-            RETIREMENT,
-            YOUTH,
-            STUDENT,
-            UNEMPLOYED
-    );
+    public static final List<AccountType> PERSONAL_ACCOUNTS =
+        Arrays.asList(STANDARD, SAVINGS, RETIREMENT, YOUTH, STUDENT, UNEMPLOYED);
 
     // List of business account types
-    public static final List<AccountType> BUSINESS_ACCOUNTS = Arrays.asList(
-            DOO,
-            AD,
-            FOUNDATION
-    );
+    public static final List<AccountType> BUSINESS_ACCOUNTS = Arrays.asList(DOO, AD, FOUNDATION);
 
     // Check if account type is personal
     public boolean isPersonal() {

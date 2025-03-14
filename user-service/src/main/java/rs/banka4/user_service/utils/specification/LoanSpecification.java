@@ -16,8 +16,8 @@ public class LoanSpecification {
         return (root, query, criteriaBuilder) -> {
             Join<Loan, Account> accountJoin = root.join("account", JoinType.INNER);
             return criteriaBuilder.equal(
-                    criteriaBuilder.lower(accountJoin.get("accountNumber")),
-                    accountNumber
+                criteriaBuilder.lower(accountJoin.get("accountNumber")),
+                accountNumber
             );
         };
     }

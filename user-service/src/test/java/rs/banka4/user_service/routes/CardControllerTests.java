@@ -1,5 +1,8 @@
 package rs.banka4.user_service.routes;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -11,9 +14,6 @@ import rs.banka4.user_service.controller.CardController;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.db.CardStatus;
 import rs.banka4.user_service.service.abstraction.CardService;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class CardControllerTests {
 
@@ -45,7 +45,11 @@ class CardControllerTests {
 
         ResponseEntity<Void> response = cardController.blockCard(authentication, TEST_CARD_NUMBER);
 
-        assertEquals(200, response.getStatusCode().value());
+        assertEquals(
+            200,
+            response.getStatusCode()
+                .value()
+        );
         verify(cardService, times(1)).blockCard(eq(TEST_CARD_NUMBER), eq(CLIENT_TOKEN));
     }
 
@@ -56,7 +60,11 @@ class CardControllerTests {
 
         ResponseEntity<Void> response = cardController.blockCard(authentication, TEST_CARD_NUMBER);
 
-        assertEquals(404, response.getStatusCode().value());
+        assertEquals(
+            404,
+            response.getStatusCode()
+                .value()
+        );
     }
 
     @Test
@@ -67,9 +75,14 @@ class CardControllerTests {
         when(authentication.getCredentials()).thenReturn(EMPLOYEE_TOKEN);
         when(cardService.unblockCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN))).thenReturn(card);
 
-        ResponseEntity<Void> response = cardController.unblockCard(authentication, TEST_CARD_NUMBER);
+        ResponseEntity<Void> response =
+            cardController.unblockCard(authentication, TEST_CARD_NUMBER);
 
-        assertEquals(200, response.getStatusCode().value());
+        assertEquals(
+            200,
+            response.getStatusCode()
+                .value()
+        );
         verify(cardService, times(1)).unblockCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN));
     }
 
@@ -78,9 +91,14 @@ class CardControllerTests {
         when(authentication.getCredentials()).thenReturn(CLIENT_TOKEN);
         when(cardService.unblockCard(eq(TEST_CARD_NUMBER), eq(CLIENT_TOKEN))).thenReturn(null);
 
-        ResponseEntity<Void> response = cardController.unblockCard(authentication, TEST_CARD_NUMBER);
+        ResponseEntity<Void> response =
+            cardController.unblockCard(authentication, TEST_CARD_NUMBER);
 
-        assertEquals(400, response.getStatusCode().value());
+        assertEquals(
+            400,
+            response.getStatusCode()
+                .value()
+        );
     }
 
     @Test
@@ -91,9 +109,14 @@ class CardControllerTests {
         when(authentication.getCredentials()).thenReturn(EMPLOYEE_TOKEN);
         when(cardService.unblockCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN))).thenReturn(card);
 
-        ResponseEntity<Void> response = cardController.unblockCard(authentication, TEST_CARD_NUMBER);
+        ResponseEntity<Void> response =
+            cardController.unblockCard(authentication, TEST_CARD_NUMBER);
 
-        assertEquals(400, response.getStatusCode().value());
+        assertEquals(
+            400,
+            response.getStatusCode()
+                .value()
+        );
     }
 
     @Test
@@ -104,9 +127,14 @@ class CardControllerTests {
         when(authentication.getCredentials()).thenReturn(EMPLOYEE_TOKEN);
         when(cardService.deactivateCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN))).thenReturn(card);
 
-        ResponseEntity<Void> response = cardController.deactivateCard(authentication, TEST_CARD_NUMBER);
+        ResponseEntity<Void> response =
+            cardController.deactivateCard(authentication, TEST_CARD_NUMBER);
 
-        assertEquals(200, response.getStatusCode().value());
+        assertEquals(
+            200,
+            response.getStatusCode()
+                .value()
+        );
         verify(cardService, times(1)).deactivateCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN));
     }
 
@@ -115,9 +143,14 @@ class CardControllerTests {
         when(authentication.getCredentials()).thenReturn(EMPLOYEE_TOKEN);
         when(cardService.deactivateCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN))).thenReturn(null);
 
-        ResponseEntity<Void> response = cardController.deactivateCard(authentication, TEST_CARD_NUMBER);
+        ResponseEntity<Void> response =
+            cardController.deactivateCard(authentication, TEST_CARD_NUMBER);
 
-        assertEquals(400, response.getStatusCode().value());
+        assertEquals(
+            400,
+            response.getStatusCode()
+                .value()
+        );
     }
 
     @Test
@@ -125,8 +158,13 @@ class CardControllerTests {
         when(authentication.getCredentials()).thenReturn(CLIENT_TOKEN);
         when(cardService.deactivateCard(eq(TEST_CARD_NUMBER), eq(CLIENT_TOKEN))).thenReturn(null);
 
-        ResponseEntity<Void> response = cardController.deactivateCard(authentication, TEST_CARD_NUMBER);
+        ResponseEntity<Void> response =
+            cardController.deactivateCard(authentication, TEST_CARD_NUMBER);
 
-        assertEquals(400, response.getStatusCode().value());
+        assertEquals(
+            400,
+            response.getStatusCode()
+                .value()
+        );
     }
 }

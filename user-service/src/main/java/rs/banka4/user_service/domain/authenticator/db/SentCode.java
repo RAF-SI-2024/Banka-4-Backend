@@ -5,8 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record SentCode(
-        @Schema(description = "TOTP code", example = "123 456")
-        @NotBlank(message = "code content is required")
-        @NotNull
-        String content) {
+    @Schema(
+        description = "TOTP code",
+        example = "123 456"
+    ) @NotBlank(message = "code content is required") @NotNull String content
+) {
 }

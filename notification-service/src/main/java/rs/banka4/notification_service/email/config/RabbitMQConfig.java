@@ -33,8 +33,8 @@ public class RabbitMQConfig {
     @Bean
     public Binding emailBinding() {
         return BindingBuilder.bind(emailQueue())
-                .to(emailExchange())
-                .with(emailRoutingKey);
+            .to(emailExchange())
+            .with(emailRoutingKey);
     }
 
     @Bean

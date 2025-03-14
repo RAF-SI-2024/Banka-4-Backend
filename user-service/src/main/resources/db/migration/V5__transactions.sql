@@ -32,4 +32,3 @@ ALTER TABLE transactions
 
 ALTER TABLE transactions
     ADD CONSTRAINT fk_fee_currency FOREIGN KEY (fee_currency_id) REFERENCES currencies(id);
-

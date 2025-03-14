@@ -13,5 +13,6 @@ public interface CardMapper {
     CardMapper INSTANCE = Mappers.getMapper(CardMapper.class);
 
     CardDto toDto(Card card);
+
     Card fromCreate(CreateCardDto cardDto);
 }
