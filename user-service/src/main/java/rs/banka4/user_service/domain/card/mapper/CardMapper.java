@@ -16,6 +16,8 @@ public interface CardMapper {
     @Mapping(target = "accountNumber", source = "account.accountNumber")
     @Mapping(target = "client", source = "account.client")
     @Mapping(target = "authorizedUserDto", source = "authorizedUser")
+    @Mapping(target = "creationDate", source = "createdAt")
+    @Mapping(target = "expirationDate", source = "expiresAt")
     CardDto toDtoWithDetails(Card card);
 
     CardDto toDto(Card card);
