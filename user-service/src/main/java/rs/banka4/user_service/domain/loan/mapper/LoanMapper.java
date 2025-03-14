@@ -48,12 +48,12 @@ public interface LoanMapper {
 //            loanInformationDto.currency() = CurrencyMapper.INSTANCE.toDto(loan.getAccount().getCurrency());
 //        }
 //    }
-
-    @Mapping(source = "loanType",target = "type")
-    Loan toEntity(LoanApplicationDto loanApplicationDto);
-
-    @Mapping(target = "currency",ignore = true)
-    @Mapping(target = "type", source = "loanType")
-    LoanRequest toLoanRequest(LoanApplicationDto loanApplicationDto);
+//
+//    @Mapping(source = "loanType",target = "type")
+//    Loan toEntity(LoanApplicationDto loanApplicationDto);
+//
+//    @Mapping(target = "currency",ignore = true)
+//    @Mapping(target = "type", source = "loanType")
+//    LoanRequest toLoanRequest(LoanApplicationDto loanApplicationDto);
 
 }
