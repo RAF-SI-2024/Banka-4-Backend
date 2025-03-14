@@ -17,4 +17,6 @@ public interface ClientContactRepository extends JpaRepository<ClientContact, UU
     Page<ClientContact> findAllActive(Pageable pageable, @Param("client") Client client);
 
     boolean existsByAccountNumber(String accountNumber);
+
+    boolean existsByClient(Client client);
 }

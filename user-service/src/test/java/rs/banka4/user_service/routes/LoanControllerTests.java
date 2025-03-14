@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import rs.banka4.user_service.controller.LoanController;
@@ -28,6 +29,7 @@ import rs.banka4.user_service.utils.JwtUtil;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -53,7 +55,7 @@ public class LoanControllerTests {
     @WithMockUser(username = "user")
     void testCreateLoanApplication() throws Exception {
         LoanApplicationDto loanApplicationDto = LoanObjectMother.generateLoanApplicationDto();
-        Mockito.doNothing().when(loanService).createLoanApplication(any(LoanApplicationDto.class));
+        Mockito.doNothing().when(loanService).createLoanApplication(any(LoanApplicationDto.class), anyString());
         mockMvcUtil.performPostRequest(post("/loans"), loanApplicationDto);
     }
 

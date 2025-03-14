@@ -6,7 +6,6 @@ import org.hibernate.proxy.HibernateProxy;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Currency;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -28,7 +27,6 @@ public class LoanInstallment {
 
     private BigDecimal installmentAmount;
     private BigDecimal interestRateAmount;
-    private Currency currency;
     private LocalDate expectedDueDate;
     private LocalDate actualDueDate;
 

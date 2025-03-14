@@ -31,6 +31,7 @@ public class JwtUtil {
     @Value("${jwt.refresh.token.expiration}")
     private long refreshExpiration;
 
+
     private final TokenService tokenService;
 
     public JwtUtil(TokenService tokenService) {

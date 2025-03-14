@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.currency.dtos.CurrencyDto;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Primary
 public class LoanServiceMock implements LoanService {
 
     List<LoanInformationDto> mockLoans = List.of(
@@ -59,7 +59,7 @@ public class LoanServiceMock implements LoanService {
     );
 
     @Override
-    public void createLoanApplication(LoanApplicationDto loanApplicationDto) {
+    public void createLoanApplication(LoanApplicationDto loanApplicationDto, String auth) {
 
     }
 

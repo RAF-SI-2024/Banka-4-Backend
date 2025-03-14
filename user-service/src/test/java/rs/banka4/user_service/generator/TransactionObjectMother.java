@@ -1,6 +1,7 @@
 package rs.banka4.user_service.generator;
 
 import rs.banka4.user_service.domain.transaction.dtos.CreatePaymentDto;
+import rs.banka4.user_service.domain.transaction.dtos.CreateTransferDto;
 import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
 import rs.banka4.user_service.domain.transaction.db.TransactionStatus;
 
@@ -37,10 +38,20 @@ public class TransactionObjectMother {
                 "444394438340523",
                 BigDecimal.valueOf(1.00),
                 "Milutin Joncic",
+                true,
                 "289",
                 "1176926",
                 "Temu payment",
                 "123123"
         );
+    }
+
+    public static CreateTransferDto generateBasicCreateTransferDto() {
+        return new CreateTransferDto(
+    "444394438340549",
+                "444394438340523",
+                BigDecimal.valueOf(1.0),
+                "123123"
+        )  ;
     }
 }

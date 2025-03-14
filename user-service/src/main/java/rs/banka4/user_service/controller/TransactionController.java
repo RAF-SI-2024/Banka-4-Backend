@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.TransactionApiDocumentation;
 import rs.banka4.user_service.domain.transaction.dtos.CreatePaymentDto;
 import rs.banka4.user_service.domain.transaction.db.TransactionStatus;
+import rs.banka4.user_service.domain.transaction.dtos.CreateTransferDto;
 import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
 import rs.banka4.user_service.service.abstraction.TransactionService;
 
@@ -34,8 +35,8 @@ public class TransactionController implements TransactionApiDocumentation {
 
     @Override
     @PostMapping("/transfer")
-    public ResponseEntity<TransactionDto> createTransfer(Authentication authentication, @RequestBody @Valid CreatePaymentDto createPaymentDto) {
-        TransactionDto transactionDto = transactionService.createTransfer(authentication, createPaymentDto);
+    public ResponseEntity<TransactionDto> createTransfer(Authentication authentication, @RequestBody @Valid CreateTransferDto createTransferDto) {
+        TransactionDto transactionDto = transactionService.createTransfer(authentication, createTransferDto);
         return ResponseEntity.ok(transactionDto);
     }
 

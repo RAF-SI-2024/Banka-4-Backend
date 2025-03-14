@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.domain.transaction.dtos.CreatePaymentDto;
 import rs.banka4.user_service.domain.transaction.db.TransactionStatus;
+import rs.banka4.user_service.domain.transaction.dtos.CreateTransferDto;
 import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
@@ -61,7 +62,7 @@ public interface TransactionApiDocumentation {
     )
     ResponseEntity<TransactionDto> createTransfer(
             Authentication authentication,
-            @Valid CreatePaymentDto createPaymentDto);
+            @Valid CreateTransferDto createTransferDto);
 
     @Operation(
             summary = "Get Client Payments",

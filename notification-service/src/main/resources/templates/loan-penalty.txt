@@ -1,0 +1,9 @@
+Dear {{firstName}},
+
+You are 3 days late for loan installment payment
+Loan number: {{loanNumber}}
+Penalty: {{penalty}}% interest rate up
+On date: {{date}}
+
+Best regards,
+RAFeisen Team
