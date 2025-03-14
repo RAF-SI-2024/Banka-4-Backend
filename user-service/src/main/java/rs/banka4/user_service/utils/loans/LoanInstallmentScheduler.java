@@ -136,7 +136,6 @@ public class LoanInstallmentScheduler {
                 // Creating next installment
                 LoanInstallment newInstallment = new LoanInstallment();
                 newInstallment.setLoan(loan);
-                newInstallment.setCurrency(installment.getCurrency());
                 newInstallment.setExpectedDueDate(installment.getExpectedDueDate().plusMonths(1));
                 newInstallment.setActualDueDate(null);
                 newInstallment.setPaymentStatus(PaymentStatus.UNPAID);

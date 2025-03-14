@@ -10,6 +10,7 @@ import rs.banka4.user_service.domain.loan.db.LoanStatus;
 import rs.banka4.user_service.exceptions.jwt.Unauthorized;
 import rs.banka4.user_service.exceptions.loan.InvalidLoanStatus;
 import rs.banka4.user_service.exceptions.loan.LoanNotFound;
+import rs.banka4.user_service.repositories.LoanInstallmentRepository;
 import rs.banka4.user_service.repositories.LoanRepository;
 import rs.banka4.user_service.service.impl.LoanServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
@@ -30,6 +31,8 @@ public class ManageLoansTests {
     private LoanRepository loanRepository;
     @Mock
     private JwtUtil jwtUtil;
+    @Mock
+    private LoanInstallmentRepository loanInstallmentRepository;
     @InjectMocks
     private LoanServiceImpl loanService;
 
