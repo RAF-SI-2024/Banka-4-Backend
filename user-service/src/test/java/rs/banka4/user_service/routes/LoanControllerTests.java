@@ -56,7 +56,7 @@ public class LoanControllerTests {
     void testCreateLoanApplication() throws Exception {
         LoanApplicationDto loanApplicationDto = LoanObjectMother.generateLoanApplicationDto();
         Mockito.doNothing().when(loanService).createLoanApplication(any(LoanApplicationDto.class), anyString());
-        mockMvcUtil.performPostRequest(post("/loans"), loanApplicationDto);
+        mockMvcUtil.performPostRequest(post("/loans"), loanApplicationDto, 201);
     }
 
     @Test

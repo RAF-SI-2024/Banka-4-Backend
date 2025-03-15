@@ -28,12 +28,12 @@ public class MockMvcUtil {
                 .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
     }
 
-    public <T> void performPostRequest(MockHttpServletRequestBuilder request, T content) throws Exception {
+    public <T> void performPostRequest(MockHttpServletRequestBuilder request, T content, int expectedStatus) throws Exception {
         mockMvc.perform(request
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer dummyToken")
                         .content(objectMapper.writeValueAsString(content)))
-                .andExpect(status().isCreated());
+                .andExpect(status().is(expectedStatus));
     }
 }

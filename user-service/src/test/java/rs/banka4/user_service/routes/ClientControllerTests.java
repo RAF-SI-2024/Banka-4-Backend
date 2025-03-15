@@ -75,7 +75,7 @@ public class ClientControllerTests {
     void testCreateClient() throws Exception {
         CreateClientDto createClientDto = ClientObjectMother.generateBasicCreateClientDto();
         Mockito.doNothing().when(clientService).createClient(any(CreateClientDto.class));
-        mockMvcUtil.performPostRequest(post("/client"), createClientDto);
+        mockMvcUtil.performPostRequest(post("/client"), createClientDto, 201);
     }
 
     @Test

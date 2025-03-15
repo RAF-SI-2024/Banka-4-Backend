@@ -72,7 +72,7 @@ public class TransactionControllerTests {
         CreatePaymentDto createPaymentDto = TransactionObjectMother.generateBasicCreatePaymentDto();
         TransactionDto transactionDto = TransactionObjectMother.generateBasicTransactionDto();
         Mockito.when(transactionService.createTransaction(any(), any(CreatePaymentDto.class))).thenReturn(transactionDto);
-        mockMvcUtil.performPostRequest(post("/transaction/payment"), createPaymentDto);
+        mockMvcUtil.performPostRequest(post("/transaction/payment"), createPaymentDto, 201);
     }
 
     @TestConfiguration

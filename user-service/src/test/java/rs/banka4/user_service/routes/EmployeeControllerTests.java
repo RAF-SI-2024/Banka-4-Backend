@@ -85,7 +85,7 @@ public class EmployeeControllerTests {
     void testCreateEmployee() throws Exception {
         CreateEmployeeDto createEmployeeDto = EmployeeObjectMother.generateBasicCreateEmployeeDto();
         Mockito.doNothing().when(employeeService).createEmployee(any(CreateEmployeeDto.class));
-        mockMvcUtil.performPostRequest(post("/employee"), createEmployeeDto);
+        mockMvcUtil.performPostRequest(post("/employee"), createEmployeeDto, 201);
     }
 
     @Test

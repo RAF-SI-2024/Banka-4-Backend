@@ -73,7 +73,7 @@ public class ClientContactControllerTests {
     void testCreateClientContact() throws Exception {
         ClientContactRequest clientContactRequest = ClientObjectMother.generateBasicClientContactRequest();
         Mockito.doNothing().when(clientContactService).createClientContact(any(), any(ClientContactRequest.class));
-        mockMvcUtil.performPostRequest(post("/client-contact"), clientContactRequest);
+        mockMvcUtil.performPostRequest(post("/client-contact"), clientContactRequest, 201);
     }
 
     @Test

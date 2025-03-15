@@ -81,7 +81,7 @@ public class AccountControllerTests {
     void testCreateAccount() throws Exception {
         CreateAccountDto createAccountDto = AccountObjectMother.generateBasicCreateAccountDto();
         Mockito.doNothing().when(accountService).createAccount(any(CreateAccountDto.class), any(String.class));
-        mockMvcUtil.performPostRequest(post("/account"), createAccountDto);
+        mockMvcUtil.performPostRequest(post("/account"), createAccountDto, 201);
     }
 
     @TestConfiguration
