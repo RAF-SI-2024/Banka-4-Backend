@@ -29,13 +29,13 @@ public class LoanController implements LoanDocumentation {
                                                       Authentication auth) {
 
         loanService.createLoanApplication(loanApplicationDto, (String) auth.getCredentials());
-
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Override
     @GetMapping("/search")
     public ResponseEntity<Page<LoanInformationDto>> getAllLoans(
+            Authentication auth,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String loanType,
@@ -47,11 +47,12 @@ public class LoanController implements LoanDocumentation {
                 accountNumber
         );
 
-        return loanService.getAllLoans(PageRequest.of(page, size), filter);
+        return loanService.getAllLoans((String) auth.getCredentials(), PageRequest.of(page, size), filter);
     }
     @Override
     @GetMapping("/search-requested")
     public ResponseEntity<Page<LoanApplicationResponseDto>> getAllLoansProcessing(
+            Authentication auth,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String loanType,
@@ -62,7 +63,7 @@ public class LoanController implements LoanDocumentation {
                 accountNumber
         );
 
-        return loanService.getAllLoansProcessing(PageRequest.of(page, size), filter);
+        return loanService.getAllLoansProcessing((String) auth.getCredentials(), PageRequest.of(page, size), filter);
     }
 
     @Override

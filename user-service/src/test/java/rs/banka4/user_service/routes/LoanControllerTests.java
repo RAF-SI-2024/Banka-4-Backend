@@ -64,7 +64,7 @@ public class LoanControllerTests {
     void testGetAllLoans() throws Exception {
         LoanInformationDto loanInformationDto = LoanObjectMother.generateLoanInformationDto();
         Page<LoanInformationDto> page = new PageImpl<>(Collections.singletonList(loanInformationDto));
-        Mockito.when(loanService.getAllLoans(any(PageRequest.class),any(LoanFilterDto.class))).thenReturn(ResponseEntity.ok(page));
+        Mockito.when(loanService.getAllLoans(any(), any(PageRequest.class),any(LoanFilterDto.class))).thenReturn(ResponseEntity.ok(page));
 
         mockMvcUtil.performRequest(get("/loans/search"), page);
     }

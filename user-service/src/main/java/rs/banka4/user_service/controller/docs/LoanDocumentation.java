@@ -52,7 +52,7 @@ public interface LoanDocumentation {
                     @ApiResponse(responseCode = "404", description = "Not Found: Incorrect loan type or status provided", content = @Content)
             }
     )
-    ResponseEntity<Page<LoanInformationDto>> getAllLoans(int page, int size, String type, String status, String accountNumber);
+    ResponseEntity<Page<LoanInformationDto>> getAllLoans(Authentication auth, int page, int size, String type, String status, String accountNumber);
     @Operation(
             summary = "Search All Loans",
             description = "Allows an employee to search and retrieve all applications for loans in the system. " +
@@ -72,7 +72,7 @@ public interface LoanDocumentation {
                     @ApiResponse(responseCode = "404", description = "Not Found: Incorrect loan type or status provided", content = @Content)
             }
     )
-    ResponseEntity<Page<LoanApplicationResponseDto>> getAllLoansProcessing(int page, int size, String type, String accountNumber);
+    ResponseEntity<Page<LoanApplicationResponseDto>> getAllLoansProcessing(Authentication auth, int page, int size, String type, String accountNumber);
 
     @Operation(
             summary = "Search Client's Loans",

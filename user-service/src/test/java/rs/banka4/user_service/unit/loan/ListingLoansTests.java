@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
+import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.dtos.LoanApplicationDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanInformationDto;
@@ -75,11 +76,19 @@ public class ListingLoansTests {
 
         UUID accountId = UUID.randomUUID();
 
+        rs.banka4.user_service.domain.currency.db.Currency currency = new Currency();
+        currency.setId(UUID.randomUUID());
+        currency.setName("EUR");
+        currency.setActive(true);
+        currency.setSymbol("E");
+        currency.setVersion(0L);
+
         account = new Account();
         account.setId(accountId);
         account.setClient(client);
         account.setAccountNumber("444394438340549");
         account.setActive(true);
+        account.setCurrency(currency);
 
         accountDto = AccountObjectMother.generateBasicAccountDto();
     }
