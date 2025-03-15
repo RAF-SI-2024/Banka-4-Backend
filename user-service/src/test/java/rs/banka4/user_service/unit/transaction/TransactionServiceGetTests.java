@@ -104,7 +104,7 @@ public class TransactionServiceGetTests {
         assertEquals(transactionDto.status(), result.getContent().getFirst().status());
     }
 
-    // Used ifs in tests are bad practice, but must be used in this case
+    // Using if statements in tests are bad practice, but must be used in this case
     @ParameterizedTest
     @MethodSource("provideAdvancedFilters")
     void testGetAllTransactionsForClient(TransactionStatus status, BigDecimal amount, LocalDate date, String accountNumber, int expectedSize) {
