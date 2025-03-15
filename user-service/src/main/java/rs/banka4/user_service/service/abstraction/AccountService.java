@@ -16,4 +16,5 @@ public interface AccountService {
     Account getAccountByAccountNumber(String accountNumber);
     void createAccount(CreateAccountDto createAccountDto, String auth);
     ResponseEntity<Page<AccountDto>> getAll(Authentication authentication, String firstName, String lastName, String accountNumber, PageRequest pageRequest);
+
 }

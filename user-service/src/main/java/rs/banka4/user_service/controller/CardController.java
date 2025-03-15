@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -25,9 +26,9 @@ public class CardController implements CardDocumentation {
 
     @Override
     @PostMapping("/create")
-    public ResponseEntity<UUID> createAuthorizedCard(@RequestBody @Valid CreateCardDto createCardDto) {
-        Card card = cardService.createAuthorizedCard(createCardDto);
-        return ResponseEntity.ok(card.getId()); // TODO: In near future there will be Map instead of this
+    public ResponseEntity<Void> createAuthorizedCard(Authentication auth, @RequestBody @Valid CreateCardDto createCardDto) {
+        cardService.createAuthorizedCard(auth, createCardDto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Override

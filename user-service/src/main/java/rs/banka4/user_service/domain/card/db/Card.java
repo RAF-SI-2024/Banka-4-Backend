@@ -37,7 +37,8 @@ public class Card {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CardType cardType;
+    @Builder.Default
+    private CardType cardType = CardType.DEBIT;
 
     @Column(name = "card_limit")
     @Builder.Default

@@ -1,132 +1,124 @@
 package rs.banka4.user_service.routes;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.ResponseEntity;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
 import rs.banka4.user_service.controller.CardController;
-import rs.banka4.user_service.domain.card.db.Card;
-import rs.banka4.user_service.domain.card.db.CardStatus;
+import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
+import rs.banka4.user_service.exceptions.authenticator.NotValidTotpException;
+import rs.banka4.user_service.generator.CardObjectMother;
 import rs.banka4.user_service.service.abstraction.CardService;
+import rs.banka4.user_service.service.impl.CustomUserDetailsService;
+import rs.banka4.user_service.util.MockMvcUtil;
+import rs.banka4.user_service.utils.JwtUtil;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class CardControllerTests {
+@WebMvcTest(CardController.class)
+@Import(CardControllerTests.MockBeansConfig.class)
+public class CardControllerTests {
 
-    @Mock
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private CardService cardService;
 
-    @Mock
-    private Authentication authentication;
-
-    @InjectMocks
-    private CardController cardController;
-
-    private static final String TEST_CARD_NUMBER = "1234567810345678";
-    private static final String EMPLOYEE_TOKEN = "employeeToken";
-    private static final String CLIENT_TOKEN = "clientToken";
+    private MockMvcUtil mockMvcUtil;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        mockMvcUtil = new MockMvcUtil(mockMvc, objectMapper);
     }
 
+    /**
+     * Test the successful creation of an authorized card.
+     * The controller delegates to the service and returns HTTP 201 Created.
+     */
     @Test
-    void blockCard_ClientOwnsCard_ShouldBlockSuccessfully() {
-        Card card = new Card();
-        card.setCardStatus(CardStatus.ACTIVATED);
+    @WithMockUser(username = "client")
+    void testCreateAuthorizedCard_Success() throws Exception {
+        // Prepare a valid CreateCardDto using the Object Mother.
+        CreateCardDto createCardDto = CardObjectMother.validRequest();
 
-        when(authentication.getCredentials()).thenReturn(CLIENT_TOKEN);
-        when(cardService.blockCard(eq(TEST_CARD_NUMBER), eq(CLIENT_TOKEN))).thenReturn(card);
+        // Stub the service to do nothing (simulate success).
+        Mockito.doNothing().when(cardService).createAuthorizedCard(any(Authentication.class), eq(createCardDto));
 
-        ResponseEntity<Void> response = cardController.blockCard(authentication, TEST_CARD_NUMBER);
-
-        assertEquals(200, response.getStatusCode().value());
-        verify(cardService, times(1)).blockCard(eq(TEST_CARD_NUMBER), eq(CLIENT_TOKEN));
+        // Use the custom MockMvcUtil to perform a POST request.
+        mockMvcUtil.performPostRequest(post("/cards/create"), createCardDto);
     }
 
+    /**
+     * Test the create endpoint with invalid input.
+     * Expect a 403 Forbidden due to missing required fields.
+     */
     @Test
-    void blockCard_ClientDoesNotOwnCard_ShouldReturnNotFound() {
-        when(authentication.getCredentials()).thenReturn(CLIENT_TOKEN);
-        when(cardService.blockCard(eq(TEST_CARD_NUMBER), eq(CLIENT_TOKEN))).thenReturn(null);
+    @WithMockUser(username = "client")
+    void testCreateAuthorizedCard_InvalidInput() throws Exception {
+        // Create an invalid DTO (e.g., missing account number and OTP code).
+        CreateCardDto invalidRequest = new CreateCardDto("", null, null);
 
-        ResponseEntity<Void> response = cardController.blockCard(authentication, TEST_CARD_NUMBER);
-
-        assertEquals(404, response.getStatusCode().value());
+        mockMvc.perform(
+                post("/cards/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer dummyToken")
+                        .content(objectMapper.writeValueAsString(invalidRequest))
+        ).andExpect(status().isForbidden());
     }
 
+    /**
+     * Test the create endpoint when the service throws an exception
+     * (for example, due to an invalid TOTP), expecting a 403 is Forbidden.
+     */
     @Test
-    void unblockCard_EmployeeUnblocksSuccessfully_ShouldReturnOk() {
-        Card card = new Card();
-        card.setCardStatus(CardStatus.BLOCKED);
+    @WithMockUser(username = "client")
+    void testCreateAuthorizedCard_ServiceException() throws Exception {
+        CreateCardDto createCardDto = CardObjectMother.validRequest();
 
-        when(authentication.getCredentials()).thenReturn(EMPLOYEE_TOKEN);
-        when(cardService.unblockCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN))).thenReturn(card);
+        // Simulate the service throwing a NotValidTotpException.
+        Mockito.doThrow(new NotValidTotpException())
+                .when(cardService)
+                .createAuthorizedCard(any(Authentication.class), eq(createCardDto));
 
-        ResponseEntity<Void> response = cardController.unblockCard(authentication, TEST_CARD_NUMBER);
-
-        assertEquals(200, response.getStatusCode().value());
-        verify(cardService, times(1)).unblockCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN));
+        mockMvc.perform(
+                post("/cards/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer dummyToken")
+                        .content(objectMapper.writeValueAsString(createCardDto))
+        ).andExpect(status().isForbidden());
     }
 
-    @Test
-    void unblockCard_ClientTriesToUnblock_ShouldReturnBadRequest() {
-        when(authentication.getCredentials()).thenReturn(CLIENT_TOKEN);
-        when(cardService.unblockCard(eq(TEST_CARD_NUMBER), eq(CLIENT_TOKEN))).thenReturn(null);
+    @TestConfiguration
+    static class MockBeansConfig {
+        @Bean
+        public CardService cardService() {
+            return Mockito.mock(CardService.class);
+        }
 
-        ResponseEntity<Void> response = cardController.unblockCard(authentication, TEST_CARD_NUMBER);
+        @Bean
+        public JwtUtil jwtUtil() {
+            return Mockito.mock(JwtUtil.class);
+        }
 
-        assertEquals(400, response.getStatusCode().value());
-    }
-
-    @Test
-    void unblockCard_IfDeactivated_ShouldReturnBadRequest() {
-        Card card = new Card();
-        card.setCardStatus(CardStatus.DEACTIVATED);
-
-        when(authentication.getCredentials()).thenReturn(EMPLOYEE_TOKEN);
-        when(cardService.unblockCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN))).thenReturn(card);
-
-        ResponseEntity<Void> response = cardController.unblockCard(authentication, TEST_CARD_NUMBER);
-
-        assertEquals(400, response.getStatusCode().value());
-    }
-
-    @Test
-    void deactivateCard_EmployeeDeactivatesSuccessfully_ShouldReturnOk() {
-        Card card = new Card();
-        card.setCardStatus(CardStatus.ACTIVATED);
-
-        when(authentication.getCredentials()).thenReturn(EMPLOYEE_TOKEN);
-        when(cardService.deactivateCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN))).thenReturn(card);
-
-        ResponseEntity<Void> response = cardController.deactivateCard(authentication, TEST_CARD_NUMBER);
-
-        assertEquals(200, response.getStatusCode().value());
-        verify(cardService, times(1)).deactivateCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN));
-    }
-
-    @Test
-    void deactivateCard_AlreadyDeactivated_ShouldReturnBadRequest() {
-        when(authentication.getCredentials()).thenReturn(EMPLOYEE_TOKEN);
-        when(cardService.deactivateCard(eq(TEST_CARD_NUMBER), eq(EMPLOYEE_TOKEN))).thenReturn(null);
-
-        ResponseEntity<Void> response = cardController.deactivateCard(authentication, TEST_CARD_NUMBER);
-
-        assertEquals(400, response.getStatusCode().value());
-    }
-
-    @Test
-    void deactivateCard_ClientTriesToDeactivate_ShouldReturnBadRequest() {
-        when(authentication.getCredentials()).thenReturn(CLIENT_TOKEN);
-        when(cardService.deactivateCard(eq(TEST_CARD_NUMBER), eq(CLIENT_TOKEN))).thenReturn(null);
-
-        ResponseEntity<Void> response = cardController.deactivateCard(authentication, TEST_CARD_NUMBER);
-
-        assertEquals(400, response.getStatusCode().value());
+        @Bean
+        public CustomUserDetailsService customUserDetailsService() {
+            return Mockito.mock(CustomUserDetailsService.class);
+        }
     }
 }

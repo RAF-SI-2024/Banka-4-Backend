@@ -13,7 +13,7 @@ public record CreateCardDto(
 
         @Nullable
         @Schema(description = "Authorized user for business card")
-        CreateAuthorizedUserDto createAuthorizedUserDto,
+        CreateAuthorizedUserDto authorizedUser,
 
         @NotBlank(message = "TOTP code content is required")
         @NotNull(message = "TOTP code cannot be null")

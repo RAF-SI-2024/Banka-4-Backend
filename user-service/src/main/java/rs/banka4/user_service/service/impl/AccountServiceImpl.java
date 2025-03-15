@@ -12,9 +12,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
+import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
+import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
+import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.domain.company.db.Company;
+import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.client.db.Client;
+import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
 import rs.banka4.user_service.domain.company.dtos.CreateCompanyDto;
@@ -29,10 +34,7 @@ import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.exceptions.company.CompanyNotFound;
 import rs.banka4.user_service.exceptions.user.employee.EmployeeNotFound;
 import rs.banka4.user_service.repositories.*;
-import rs.banka4.user_service.service.abstraction.AccountService;
-import rs.banka4.user_service.service.abstraction.ClientService;
-import rs.banka4.user_service.service.abstraction.CompanyService;
-import rs.banka4.user_service.service.abstraction.EmployeeService;
+import rs.banka4.user_service.service.abstraction.*;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.specification.AccountSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
@@ -48,6 +50,7 @@ public class AccountServiceImpl implements AccountService {
             = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     private final ClientService clientService;
+    private final ClientMapper clientMapper;
     private final CompanyService companyService;
     private final CurrencyRepository currencyRepository;
     private final CompanyMapper companyMapper;
@@ -55,6 +58,8 @@ public class AccountServiceImpl implements AccountService {
     private final ClientRepository clientRepository;
     private final JwtUtil jwtUtil;
     private final EmployeeService employeeService;
+    private final CardService cardService;
+
 
     @Override
     public Set<AccountDto> getAccountsForClient(String token) {
@@ -102,6 +107,19 @@ public class AccountServiceImpl implements AccountService {
         account.setAvailableBalance(createAccountDto.availableBalance());
         account.setBalance(createAccountDto.availableBalance());
         makeAnAccountNumber(createAccountDto.currency(), account);
+
+        account = accountRepository.save(account);
+
+        if (createAccountDto.createCard()) {
+            cardService.createEmployeeCard(
+                    new CreateCardDto(
+                            account.getAccountNumber(),
+                            null,
+                            null
+                    ),
+                    account
+            );
+        }
     }
 
     @Override
@@ -218,4 +236,17 @@ public class AccountServiceImpl implements AccountService {
             }
         }
     }
+
+    private CreateAuthorizedUserDto mapClientToAuthorizedUser(AccountClientIdDto client) {
+        return new CreateAuthorizedUserDto(
+                client.firstName(),
+                client.lastName(),
+                client.dateOfBirth(),
+                Gender.valueOf(client.gender().toUpperCase()),
+                client.email(),
+                client.phone(),
+                client.address()
+        );
+    }
+
 }

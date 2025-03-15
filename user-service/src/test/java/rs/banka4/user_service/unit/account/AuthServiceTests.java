@@ -1,4 +1,4 @@
-package rs.banka4.user_service.unit;
+package rs.banka4.user_service.unit.account;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -5,6 +5,8 @@ import rs.banka4.user_service.domain.card.db.CardStatus;
 import rs.banka4.user_service.domain.card.db.CardType;
 import rs.banka4.user_service.domain.card.dtos.AuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
+import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
+import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.service.mock.generators.ClientObjectMother;
 
@@ -40,6 +42,22 @@ public class CardObjectMother {
                 "215351385938112",
                 ClientObjectMother.generateBasicClientDto(),
                 generateAuthorizedUserDto()
+        );
+    }
+
+    public static CreateCardDto validRequest() {
+        return new CreateCardDto(
+                "44400011234567890",
+                new CreateAuthorizedUserDto(
+                        "Mehmedalija",
+                        "Krupalija",
+                        LocalDate.parse("1995-05-05"),
+                        Gender.MALE,
+                        "mehmedalija@banka4.rs",
+                        "+38766111222",
+                        "Bankarska 4"
+                ),
+                "123456"
         );
     }
 
