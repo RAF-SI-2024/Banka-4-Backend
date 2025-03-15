@@ -13,7 +13,7 @@ public interface CardService {
     Card blockCard(String cardNumber, String token);
     Card unblockCard(String cardNumber, String token);
     Card deactivateCard(String cardNumber, String token);
-    ResponseEntity<Page<CardDto>> clientSearchCards(String accountNumber, Pageable pageable);
-    ResponseEntity<Page<CardDto>> employeeSearchCards(String cardNumber, String firstName, String lastName,
+    ResponseEntity<Page<CardDto>> clientSearchCards(String token, String accountNumber, Pageable pageable);
+    ResponseEntity<Page<CardDto>> employeeSearchCards(String token, String cardNumber, String firstName, String lastName,
                                                     String email, String cardStatus, Pageable pageable);
 }
