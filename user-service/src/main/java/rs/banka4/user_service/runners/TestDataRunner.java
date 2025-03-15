@@ -7,8 +7,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
 import rs.banka4.user_service.domain.card.db.Card;
@@ -79,7 +77,7 @@ public class TestDataRunner implements CommandLineRunner {
     private void cardSeeder() {
 
         if (accountRepository.count() == 0) {
-            System.out.println("No accounts found. Skipping card seeder.");
+            LOGGER.info("No accounts found. Skipping card seeder.");
             return;
         }
 
@@ -87,7 +85,7 @@ public class TestDataRunner implements CommandLineRunner {
         Client client = account.getClient();
         Currency currency = account.getCurrency();
         if (client == null || currency == null) {
-            System.out.println("Client or Currency not found. Skipping card seeder.");
+            LOGGER.info("Client or Currency not found. Skipping card seeder.");
             return;
         }
         List<Card> cards = List.of(
@@ -558,7 +556,6 @@ public class TestDataRunner implements CommandLineRunner {
 
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     protected void currencySeeder() {
         Set<Currency> currencies = Set.of(
                 Currency.builder()
@@ -1083,7 +1080,7 @@ public class TestDataRunner implements CommandLineRunner {
     }
 
     private void interestRateSeeder(){
-        if(interestRateRepository.findAll().isEmpty()){
+        if (interestRateRepository.findAll().isEmpty()) {
             List<InterestRate> interestRates = List.of(
                     createInterestRate(0, 500000L, 6.25),
                     createInterestRate(500001, 1000000L, 6.00),

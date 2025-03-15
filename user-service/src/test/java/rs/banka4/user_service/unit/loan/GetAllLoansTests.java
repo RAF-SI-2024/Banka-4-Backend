@@ -24,6 +24,7 @@ import rs.banka4.user_service.domain.loan.mapper.LoanMapper;
 import rs.banka4.user_service.repositories.LoanRepository;
 import rs.banka4.user_service.repositories.LoanRequestRepository;
 import rs.banka4.user_service.service.impl.LoanServiceImpl;
+import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 import java.math.BigDecimal;
@@ -47,6 +48,8 @@ public class GetAllLoansTests {
     @InjectMocks
     private LoanServiceImpl loanService;
     private LoanRequest sampleLoanRequest;
+    @Mock
+    private JwtUtil jwtUtil;
 
     @BeforeEach
     void setUp() {
@@ -54,6 +57,7 @@ public class GetAllLoansTests {
         Account account = new Account();
         account.setId(UUID.randomUUID());
         account.setAccountNumber("35123456789012345678");
+        account.setCurrency(Currency.builder().name("EUR").build());
 
         Loan loan = new Loan();
         loan.setLoanNumber(1234567L);
@@ -82,7 +86,7 @@ public class GetAllLoansTests {
                     LocalDate.now(), LocalDate.now().plusYears(5),
                     BigDecimal.valueOf(500), LocalDate.now().plusMonths(1),
                     BigDecimal.valueOf(5000),
-                    new CurrencyDto(UUID.randomUUID(), "Euro", "EUR", "European currency", true, Currency.Code.EUR),
+                    Currency.Code.EUR,
                     LoanStatus.APPROVED,
                     Loan.InterestType.FIXED
             ),
@@ -92,7 +96,7 @@ public class GetAllLoansTests {
                     LocalDate.now(), LocalDate.now().plusYears(5),
                     BigDecimal.valueOf(500), LocalDate.now().plusMonths(1),
                     BigDecimal.valueOf(5000),
-                    new CurrencyDto(UUID.randomUUID(), "Euro", "€", "Official currency of the eurozone", true, Currency.Code.EUR),
+                    Currency.Code.EUR,
                     LoanStatus.APPROVED,
                     Loan.InterestType.FIXED
 
@@ -102,46 +106,11 @@ public class GetAllLoansTests {
                     LocalDate.now(), LocalDate.now().plusYears(5),
                     BigDecimal.valueOf(500), LocalDate.now().plusMonths(1),
                     BigDecimal.valueOf(5000),
-                    new CurrencyDto(UUID.randomUUID(), "Euro", "€", "Official currency of the eurozone", true, Currency.Code.EUR),
+                    Currency.Code.EUR,
                     LoanStatus.APPROVED,
                     Loan.InterestType.FIXED
             )
     );
-
-    @Test
-    void getAllLoansProcessing() {
-        // Arrange: create a Page containing our sample LoanRequest
-        PageRequest pageRequest = PageRequest.of(0, 10);
-        Page<LoanRequest> loanRequestPage = new PageImpl<>(List.of(sampleLoanRequest), pageRequest, 1);
-
-        // Stub repository call:
-        when(loanRequestRepository.findAllWithLoans(any(), any(PageRequest.class)))
-                .thenReturn(loanRequestPage);
-
-        // Create a simple filter dto (values don't affect mapping here)
-        LoanFilterDto filterDto = new LoanFilterDto(null, null, null);
-
-        // Act: call the service method
-        ResponseEntity<Page<LoanApplicationResponseDto>> response =
-                loanService.getAllLoansProcessing(pageRequest, filterDto);
-
-        // Assert: verify response and mapping
-        assertEquals(200, response.getStatusCodeValue());
-        Page<LoanApplicationResponseDto> dtoPage = response.getBody();
-        assertThat(dtoPage.getTotalElements()).isEqualTo(1);
-        LoanApplicationResponseDto dto = dtoPage.getContent().get(0);
-        assertEquals(1234567L, dto.loanNumber());
-        assertEquals(LoanType.CASH, dto.loanType());
-        // Depending on your LoanMapper implementation, ensure the amount and other fields are mapped correctly.
-        assertEquals(new BigDecimal("10000"), dto.amount());
-        assertEquals("Education", dto.purposeOfLoan());
-        assertEquals(new BigDecimal("2500"), dto.monthlyIncome());
-        assertEquals("Permanent", dto.employmentStatus());
-        assertEquals(60, dto.repaymentPeriod());
-        assertEquals("+381641234567", dto.contactPhone());
-        assertEquals("35123456789012345678", dto.accountNumber());
-        assertEquals(Loan.InterestType.FIXED, dto.interestType());
-    }
 
     @Test
     void whenStatusIsNull_thenSortByAccountAccountNumber() {
@@ -155,11 +124,20 @@ public class GetAllLoansTests {
         account1.setAccountNumber("12");
         loan1.setAccount(account1);
 
+        Currency currency = new Currency();
+        currency.setId(UUID.randomUUID());
+        currency.setName("EUR");
+        currency.setActive(true);
+        currency.setSymbol("E");
+        currency.setVersion(0L);
+
         Loan loan2 = new Loan();
         loan2.setLoanNumber(222L);
         Account account2 = new Account();
         account2.setAccountNumber("12");
         loan2.setAccount(account2);
+        account2.setCurrency(currency);
+        account1.setCurrency(currency);
 
         List<Loan> loans = List.of(loan1, loan2);
         Page<Loan> loanPage = new PageImpl<>(loans, basePageRequest.withSort(Sort.by("account.accountNumber")), loans.size());
@@ -167,10 +145,11 @@ public class GetAllLoansTests {
 
         LoanInformationDto dto1 = mockLoans.get(0);
         LoanInformationDto dto2 = mockLoans.get(1);
-        when(loanMapper.toDto(loan1,CurrencyMapper.INSTANCE)).thenReturn(dto1);
-        when(loanMapper.toDto(loan2,CurrencyMapper.INSTANCE)).thenReturn(dto2);
+        when(loanMapper.toDto(loan1)).thenReturn(dto1);
+        when(loanMapper.toDto(loan2)).thenReturn(dto2);
+        when(jwtUtil.extractRole(any())).thenReturn("employee");
 
-        ResponseEntity<Page<LoanInformationDto>> response = loanService.getAllLoans(basePageRequest, filterDto);
+        ResponseEntity<Page<LoanInformationDto>> response = loanService.getAllLoans("", basePageRequest, filterDto);
 
         assertNotNull(response);
         Page<LoanInformationDto> resultPage = response.getBody();

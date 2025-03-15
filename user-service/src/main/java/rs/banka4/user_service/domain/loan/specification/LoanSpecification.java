@@ -1,5 +1,6 @@
 package rs.banka4.user_service.domain.loan.specification;
 
+import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -46,9 +47,14 @@ public class LoanSpecification {
             return builder.and(predicates.toArray(new Predicate[0]));
         };
     }
+
     public static Specification<LoanRequest> searchLoanRequests(LoanFilterDto filter) {
         return (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            if (query.getResultType() != Long.class) {
+                root.fetch("loan", JoinType.LEFT);
+            }
 
             if (filter.type() != null) {
                 predicates.add(builder.equal(root.get("type"), filter.type()));
@@ -62,7 +68,8 @@ public class LoanSpecification {
             return builder.and(predicates.toArray(new Predicate[0]));
         };
     }
-    public static Specification<Loan> hasAccountNumber(String accountNumber) {
+
+        public static Specification<Loan> hasAccountNumber(String accountNumber) {
         return (root, query, criteriaBuilder) -> {
             Join<Loan, Account> accountJoin = root.join("account", JoinType.INNER);
             return criteriaBuilder.equal(

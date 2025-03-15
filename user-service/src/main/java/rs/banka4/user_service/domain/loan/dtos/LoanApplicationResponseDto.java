@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 public record LoanApplicationResponseDto(
         @Schema(description = "Unique identifier for the loan", example = "1234567")
         Long loanNumber,
+
         @Schema(description = "Type of loan", example = "CASH")
         LoanType loanType,
 
@@ -18,7 +19,7 @@ public record LoanApplicationResponseDto(
         BigDecimal amount,
 
         @Schema(description = "Currency of the loan", example = "EUR")
-        Currency currency,
+        Currency.Code currency,
 
         @Schema(description = "Purpose of the loan", example = "Education")
         String purposeOfLoan,

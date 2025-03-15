@@ -43,7 +43,7 @@ public class LoanObjectMother {
                 BigDecimal.valueOf(100.00),
                 LocalDate.now().plusDays(30),
                 BigDecimal.valueOf(900.00),
-                new CurrencyDto(UUID.randomUUID(), "Serbian Dinar", "RSD", "Serbian Dinar currency", true, Currency.Code.RSD),
+                Currency.Code.EUR,
                 LoanStatus.APPROVED,
                 Loan.InterestType.FIXED
         );

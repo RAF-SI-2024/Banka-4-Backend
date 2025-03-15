@@ -46,6 +46,7 @@ public class ErrorResponseHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("failed", true);
         response.put("code", "InvalidJsonInput");
+        response.put("message", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
