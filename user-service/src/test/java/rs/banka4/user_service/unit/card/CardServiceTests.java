@@ -78,7 +78,7 @@ public class CardServiceTests {
                         "John",
                         "Doe",
                         LocalDate.of(1980, 1, 1),
-                        Gender.MALE,
+                        Gender.MALE.toString(),
                         "john.doe@example.com",
                         "123456789",
                         "123 Business St"
@@ -174,7 +174,7 @@ public class CardServiceTests {
                         "Jane",
                         "Doe",
                         LocalDate.of(1990, 1, 1),
-                        Gender.FEMALE,
+                        Gender.FEMALE.toString(),
                         "jane.doe@example.com",
                         "987654321",
                         "123 Personal St"

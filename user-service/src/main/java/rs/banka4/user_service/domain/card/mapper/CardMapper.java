@@ -11,6 +11,7 @@ import rs.banka4.user_service.domain.card.db.CardName;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
+import rs.banka4.user_service.domain.user.Gender;
 
 import java.util.UUID;
 
@@ -35,22 +36,15 @@ public interface CardMapper {
     CardDto toDto(Card card);
 
     @Named("mapAuthorizedUser")
-    default AuthorizedUser map(CreateAuthorizedUserDto dto) {
-        System.out.println("DTO: " + dto);
-        if (dto == null) return null;
-        return new AuthorizedUser(
-                UUID.randomUUID(),
-                dto.firstName(),
-                dto.lastName(),
-                dto.dateOfBirth(),
-                dto.email(),
-                dto.phoneNumber(),
-                dto.address(),
-                dto.gender()
-        );
-    }
+    @Mapping(target = "gender", source = "gender", qualifiedByName = "mapGender")
+    AuthorizedUser map(CreateAuthorizedUserDto dto);
 
     @Mapping(target = "phoneNumber", source = "phone")
     CreateAuthorizedUserDto toAuthorizedUserDto(AccountClientIdDto dto);
+
+    @Named("mapGender")
+    default Gender mapGender(String gender) {
+        return gender != null ? Gender.valueOf(gender.toUpperCase()) : null;
+    }
 
 }

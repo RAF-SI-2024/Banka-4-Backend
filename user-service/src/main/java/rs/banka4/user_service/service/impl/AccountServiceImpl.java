@@ -236,16 +236,4 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-    private CreateAuthorizedUserDto mapClientToAuthorizedUser(AccountClientIdDto client) {
-        return new CreateAuthorizedUserDto(
-                client.firstName(),
-                client.lastName(),
-                client.dateOfBirth(),
-                Gender.valueOf(client.gender().toUpperCase()),
-                client.email(),
-                client.phone(),
-                client.address()
-        );
-    }
-
 }

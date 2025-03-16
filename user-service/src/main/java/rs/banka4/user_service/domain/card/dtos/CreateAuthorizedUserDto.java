@@ -1,6 +1,8 @@
 package rs.banka4.user_service.domain.card.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import rs.banka4.user_service.domain.user.Gender;
 
 import java.time.LocalDate;
@@ -15,8 +17,10 @@ public record CreateAuthorizedUserDto(
         @Schema(description = "Date of birth", example = "1990-05-15")
         LocalDate dateOfBirth,
 
-        @Schema(description = "Gender of the user", example = "M")
-        Gender gender,
+        @Schema(description = "Client's gender (Male or Female)", example = "Male")
+        @Pattern(regexp = "Male|Female", message = "Gender must be Male or Female")
+        @NotBlank(message = "Gender is required")
+        String gender,
 
         @Schema(description = "Email address of the user", example = "petar@example.com")
         String email,
