@@ -53,7 +53,7 @@ public class AccountObjectMother {
                 AccountTypeDto.CheckingPersonal,
                 BigDecimal.valueOf(100.00),
                 BigDecimal.valueOf(1000.00),
-                new CurrencyDto(UUID.randomUUID(), "Serbian Dinar", "RSD", "Serbian Dinar currency", true, Currency.Code.RSD),
+                Currency.Code.RSD,
                 new EmployeeDto(UUID.randomUUID(), "John", "Doe", LocalDate.of(1990, 1, 1), Gender.MALE, "mehmedalija.doe@example.com", "+1234567890", "123 Main St", "Mahd", "Developer", "IT",  true),
                 new ClientDto(UUID.randomUUID(), "Jane", "Doe", LocalDate.of(1990, 1, 1), Gender.FEMALE, "jane.doe@example.com", "+1234567890", "123 Main St", EnumSet.noneOf(Privilege.class), false),
                 null
