@@ -21,6 +21,7 @@ public interface AccountMapper {
     AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
     @Mapping(target = "accountType", expression = "java(toAccountTypeDto(account))")
+    @Mapping(target = "currency", source = "currency.code")
     AccountDto toDto(Account account);
     Account toEntity(CreateAccountDto dto);
 
