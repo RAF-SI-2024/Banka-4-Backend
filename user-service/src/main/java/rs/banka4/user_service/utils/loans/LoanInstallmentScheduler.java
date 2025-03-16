@@ -27,6 +27,16 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Service that schedules and manages loan installment payments.
+ *
+ * This service performs scheduled operations related to loan installments:
+ * - Processing due installments
+ * - Retrying delayed installments
+ * - Applying late payment penalties
+ *
+ * The service interacts with repositories, sends notifications, and manages loan installment statuses.
+ */
 @Service
 @RequiredArgsConstructor
 public class LoanInstallmentScheduler {
@@ -41,7 +51,9 @@ public class LoanInstallmentScheduler {
     private static final BigDecimal LEGAL_THRESHOLD = new BigDecimal("1000");
 
     /**
-     * Daily job at 1 AM: Process due installments.
+     * Scheduled task to process due installments every day at 1 AM.
+     *
+     * It retrieves unpaid installments that are due today and attempts to process payments.
      */
     @Scheduled(cron = "0 0 1 * * ?")
     public void processDueInstallments() {
@@ -54,7 +66,9 @@ public class LoanInstallmentScheduler {
     }
 
     /**
-     * Retries `DELAYED` installments every 6 hours for up to 72 hours.
+     * Retries processing delayed installments every 6 hours.
+     *
+     * Attempts to reprocess installments that were marked as delayed within the last 3 days.
      */
     @Scheduled(cron = "0 0 */6 * * ?")
     public void retryDelayedInstallments() {
@@ -68,7 +82,9 @@ public class LoanInstallmentScheduler {
     }
 
     /**
-     * Daily at midnight: Apply penalties for `DELAYED` installments after 72 hours.
+     * Runs daily at midnight:
+     *
+     * Applies penalties for installments that remain unpaid for more than 72 hours.
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void applyLatePaymentPenalties() {
