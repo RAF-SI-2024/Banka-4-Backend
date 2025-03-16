@@ -17,6 +17,10 @@ import rs.banka4.user_service.utils.JwtUtil;
 import java.io.IOException;
 import java.util.Objects;
 
+
+/**
+ * Filter that checks if the request has a valid JWT token in the Authorization header.
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -28,6 +32,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * Filters the incoming request to check if it contains a valid JWT token in the
+     * Authorization header. If a valid token is found, the method sets the user
+     * authentication in the {@link SecurityContextHolder}. If the token is invalid
+     * or not provided, an exception is thrown.
+     * <p>
+     * This method is invoked once per request, ensuring that the request is authenticated
+     * before reaching the intended endpoint.
+     *
+     * @param request the incoming HTTP request
+     * @param response the HTTP response that will be sent back to the client
+     * @param filterChain the chain of filters to be applied after this filter
+     * @throws ServletException if a servlet-related error occurs during the filtering process
+     * @throws IOException if an I/O error occurs during request or response handling
+     */
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
