@@ -1,6 +1,7 @@
 package rs.banka4.user_service.service.impl;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
 import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
+import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.domain.company.db.Company;
@@ -27,7 +29,9 @@ import rs.banka4.user_service.domain.account.mapper.AccountMapper;
 import rs.banka4.user_service.domain.company.mapper.CompanyMapper;
 import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
+import rs.banka4.user_service.exceptions.account.InvalidAccountOperationException;
 import rs.banka4.user_service.exceptions.account.InvalidCurrency;
+import rs.banka4.user_service.exceptions.account.UnauthorizedAccountException;
 import rs.banka4.user_service.exceptions.user.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.user.NotFound;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
@@ -39,6 +43,7 @@ import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.specification.AccountSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -150,6 +155,38 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account getAccountByAccountNumber(String accountNumber) {
         return accountRepository.findAccountByAccountNumber(accountNumber).orElseThrow(AccountNotFound::new);
+    }
+
+    @Transactional
+    public void setAccountLimits(SetAccountLimitsDto dto, String token) {
+        // Get account
+        Account account = accountRepository.findAccountByAccountNumber(dto.accountNumber())
+                .orElseThrow(AccountNotFound::new);
+
+        // Verify ownership
+        String userId = jwtUtil.extractClaim(token, claims -> claims.get("id", String.class));
+        if (!account.getClient().getId().toString().equals(userId)) {
+            throw new UnauthorizedAccountException();
+        }
+
+        // Check account status and expiration
+        if (!account.isActive()) {
+            throw new InvalidAccountOperationException("Account is inactive");
+        }
+
+        if (account.getExpirationDate().isBefore(LocalDate.now())) {
+            throw new InvalidAccountOperationException("Account has expired");
+        }
+
+        // Update limits
+        if (dto.daily() != null) {
+            account.setDailyLimit(dto.daily());
+        }
+        if (dto.monthly() != null) {
+            account.setMonthlyLimit(dto.monthly());
+        }
+
+        accountRepository.save(account);
     }
 
     private void connectCompanyToAccount(Account account, CreateAccountDto createAccountDto) {

@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
 import rs.banka4.user_service.domain.account.db.Account;
+import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
 
 import java.util.Set;
 
@@ -16,5 +17,5 @@ public interface AccountService {
     Account getAccountByAccountNumber(String accountNumber);
     void createAccount(CreateAccountDto createAccountDto, String auth);
     ResponseEntity<Page<AccountDto>> getAll(Authentication authentication, String firstName, String lastName, String accountNumber, PageRequest pageRequest);
-
+    void setAccountLimits(SetAccountLimitsDto dto, String token);
 }

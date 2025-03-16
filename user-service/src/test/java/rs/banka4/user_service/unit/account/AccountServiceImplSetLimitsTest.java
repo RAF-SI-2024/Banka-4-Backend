@@ -1,0 +1,204 @@
+package rs.banka4.user_service.unit.account;
+
+import jakarta.validation.ConstraintViolationException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import rs.banka4.user_service.domain.account.db.Account;
+import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
+import rs.banka4.user_service.domain.user.client.db.Client;
+import rs.banka4.user_service.exceptions.BaseApiException;
+import rs.banka4.user_service.exceptions.account.AccountNotFound;
+import rs.banka4.user_service.exceptions.account.InvalidAccountOperationException;
+import rs.banka4.user_service.exceptions.account.UnauthorizedAccountException;
+import rs.banka4.user_service.repositories.AccountRepository;
+import rs.banka4.user_service.service.impl.AccountServiceImpl;
+import rs.banka4.user_service.utils.JwtUtil;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class AccountServiceImplSetLimitsTest {
+
+    @Mock
+    private AccountRepository accountRepository;
+
+    @Mock
+    private JwtUtil jwtUtil;
+
+    @InjectMocks
+    private AccountServiceImpl accountService;
+
+    private Account validAccount;
+    private Client ownerClient;
+
+    @BeforeEach
+    void setUp() {
+        ownerClient = Client.builder()
+                .id(UUID.randomUUID())
+                .email("owner@example.com")
+                .build();
+
+        validAccount = Account.builder()
+                .id(UUID.randomUUID())
+                .accountNumber("4440001123456789020")
+                .active(true)
+                .expirationDate(LocalDate.now().plusYears(1))
+                .client(ownerClient)
+                .dailyLimit(BigDecimal.ZERO)
+                .monthlyLimit(BigDecimal.ZERO)
+                .build();
+    }
+
+    @Test
+    void setAccountLimits_Success() {
+        // Arrange
+        SetAccountLimitsDto dto = new SetAccountLimitsDto(
+                "4440001123456789020",
+                BigDecimal.valueOf(5000),
+                BigDecimal.valueOf(50000)
+        );
+
+        when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))
+                .thenReturn(Optional.of(validAccount));
+        when(jwtUtil.extractClaim(any(), any()))
+                .thenReturn(ownerClient.getId().toString());
+
+        // Act
+        accountService.setAccountLimits(dto, "valid.token");
+
+        // Assert
+        assertThat(validAccount.getDailyLimit()).isEqualByComparingTo(dto.daily());
+        assertThat(validAccount.getMonthlyLimit()).isEqualByComparingTo(dto.monthly());
+        verify(accountRepository).save(validAccount);
+    }
+
+    @Test
+    void setAccountLimits_AccountNotFound() {
+        // Arrange
+        SetAccountLimitsDto dto = new SetAccountLimitsDto(
+                "invalidnumber",
+                BigDecimal.TEN,
+                BigDecimal.TEN
+        );
+
+        when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() -> accountService.setAccountLimits(dto, "token"))
+                .isInstanceOf(AccountNotFound.class)
+                .extracting(ex -> ((BaseApiException) ex).getExtra())
+                .extracting("message")
+                .isEqualTo("Account not found");
+    }
+
+    @Test
+    void setAccountLimits_UnauthorizedAccess() {
+        // Arrange
+        SetAccountLimitsDto dto = new SetAccountLimitsDto(
+                validAccount.getAccountNumber(),
+                BigDecimal.TEN,
+                BigDecimal.TEN
+        );
+
+        when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))
+                .thenReturn(Optional.of(validAccount));
+        when(jwtUtil.extractClaim(any(), any()))
+                .thenReturn(UUID.randomUUID().toString());
+
+        // Act & Assert
+        assertThatThrownBy(() -> accountService.setAccountLimits(dto, "invalid.token"))
+                .isInstanceOf(UnauthorizedAccountException.class)
+                .extracting(ex -> ((BaseApiException) ex).getExtra())
+                .extracting("message")
+                .isEqualTo("You don't own this account");
+    }
+
+    @Test
+    void setAccountLimits_AccountInactive() {
+        // Arrange
+        validAccount.setActive(false);
+        SetAccountLimitsDto dto = new SetAccountLimitsDto(
+                validAccount.getAccountNumber(),
+                BigDecimal.TEN,
+                BigDecimal.TEN
+        );
+
+        when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))
+                .thenReturn(Optional.of(validAccount));
+        when(jwtUtil.extractClaim(any(), any()))
+                .thenReturn(ownerClient.getId().toString());
+
+        // Act & Assert
+        assertThatThrownBy(() -> accountService.setAccountLimits(dto, "valid.token"))
+                .isInstanceOf(InvalidAccountOperationException.class)
+                .extracting(ex -> ((BaseApiException) ex).getExtra())
+                .satisfies(extra -> {
+                    assertThat(extra.get("message")).isEqualTo("Cannot modify account limits");
+                    assertThat(extra.get("reason")).isEqualTo("Account is inactive");
+                });
+    }
+
+    @Test
+    void setAccountLimits_AccountExpired() {
+        // Arrange
+        validAccount.setExpirationDate(LocalDate.now().minusDays(1));
+        SetAccountLimitsDto dto = new SetAccountLimitsDto(
+                validAccount.getAccountNumber(),
+                BigDecimal.TEN,
+                BigDecimal.TEN
+        );
+
+        when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))
+                .thenReturn(Optional.of(validAccount));
+        when(jwtUtil.extractClaim(any(), any()))
+                .thenReturn(ownerClient.getId().toString());
+
+        // Act & Assert
+        assertThatThrownBy(() -> accountService.setAccountLimits(dto, "valid.token"))
+                .isInstanceOf(InvalidAccountOperationException.class)
+                .extracting(ex -> ((BaseApiException) ex).getExtra())
+                .satisfies(extra -> {
+                    assertThat(extra.get("message")).isEqualTo("Cannot modify account limits");
+                    assertThat(extra.get("reason")).isEqualTo("Account has expired");
+                });
+    }
+
+    @Test
+    void setAccountLimits_PartialUpdate() {
+        // Arrange
+        validAccount.setDailyLimit(BigDecimal.valueOf(1000));
+        validAccount.setMonthlyLimit(BigDecimal.valueOf(10000));
+
+        SetAccountLimitsDto dto = new SetAccountLimitsDto(
+                validAccount.getAccountNumber(),
+                null,
+                BigDecimal.valueOf(20000)
+        );
+
+        when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))
+                .thenReturn(Optional.of(validAccount));
+        when(jwtUtil.extractClaim(any(), any()))
+                .thenReturn(ownerClient.getId().toString());
+
+        // Act
+        accountService.setAccountLimits(dto, "valid.token");
+
+        // Assert
+        assertThat(validAccount.getDailyLimit()).isEqualByComparingTo("1000"); // unchanged
+        assertThat(validAccount.getMonthlyLimit()).isEqualByComparingTo("20000"); // updated
+    }
+}

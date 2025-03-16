@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.AccountApiDocumentation;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
+import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
 import rs.banka4.user_service.service.abstraction.AccountService;
 
 import java.util.Set;
@@ -51,4 +52,15 @@ public class AccountController implements AccountApiDocumentation {
         accountService.createAccount(createAccountDto, (String) auth.getCredentials());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    @PutMapping("/set-limits")
+    public ResponseEntity<Void> setAccountLimits(
+            Authentication authentication,
+            @RequestBody @Valid SetAccountLimitsDto dto
+    ) {
+        String token = authentication.getCredentials().toString();
+        accountService.setAccountLimits(dto, token);
+        return ResponseEntity.ok().build();
+    }
+
 }

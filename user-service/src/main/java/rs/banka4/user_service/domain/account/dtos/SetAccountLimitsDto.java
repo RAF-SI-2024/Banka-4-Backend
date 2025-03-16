@@ -1,0 +1,17 @@
+package rs.banka4.user_service.domain.account.dtos;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
+
+import java.math.BigDecimal;
+
+public record SetAccountLimitsDto(
+        @NotBlank(message = "Account number is required")
+        String accountNumber,
+
+        @PositiveOrZero(message = "Daily limit must be positive or zero")
+        BigDecimal daily,
+
+        @PositiveOrZero(message = "Monthly limit must be positive or zero")
+        BigDecimal monthly
+) {}

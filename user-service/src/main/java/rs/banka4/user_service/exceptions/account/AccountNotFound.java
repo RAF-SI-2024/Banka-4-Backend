@@ -6,12 +6,7 @@ import rs.banka4.user_service.exceptions.BaseApiException;
 import java.util.Map;
 
 public class AccountNotFound extends BaseApiException {
-
     public AccountNotFound() {
-        super(HttpStatus.NOT_FOUND, null);
-    }
-
-    public AccountNotFound(String accountNumber){
-        super(HttpStatus.NOT_FOUND, Map.of("accountNumber", accountNumber));
+        super(HttpStatus.NOT_FOUND, Map.of("message", "Account not found"));
     }
 }

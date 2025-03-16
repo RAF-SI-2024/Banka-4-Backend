@@ -11,8 +11,10 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.RequestBody;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
+import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.exceptions.company.CompanyNotFound;
 import rs.banka4.user_service.exceptions.user.employee.EmployeeNotFound;
@@ -101,4 +103,17 @@ public interface AccountApiDocumentation {
             }
     )
     ResponseEntity<Void> createAccount(@Valid CreateAccountDto createAccountDto, Authentication auth);
+
+    @Operation(
+            summary = "Set account limits",
+            description = "Sets withdrawal limits for an account. Requires ownership of active, non-expired account",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Limits updated successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid limit values"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized access"),
+                    @ApiResponse(responseCode = "404", description = "Account not found"),
+                    @ApiResponse(responseCode = "409", description = "Account inactive/expired")
+            }
+    )
+    ResponseEntity<Void> setAccountLimits(Authentication auth, @RequestBody @Valid SetAccountLimitsDto dto);
 }
