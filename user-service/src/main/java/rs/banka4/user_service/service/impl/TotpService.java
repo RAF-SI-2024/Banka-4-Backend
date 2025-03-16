@@ -104,6 +104,10 @@ public class TotpService implements TotpAbs {
         return new RegenerateAuthenticatorResponseDto(createTotpUrl("RAFeisen", email, newSecret), newSecret);
     }
 
+    public boolean verifyClient(Authentication authentication, String otpCode) {
+        return validate(authentication.getCredentials().toString(), otpCode);
+    }
+
     @Override
     public String generateCode(String authorization) {
         String email = extractEmailFromToken(authorization);

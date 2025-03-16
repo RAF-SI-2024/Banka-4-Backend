@@ -12,7 +12,9 @@ import rs.banka4.user_service.controller.docs.AccountApiDocumentation;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
 import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
+import rs.banka4.user_service.exceptions.authenticator.NotValidTotpException;
 import rs.banka4.user_service.service.abstraction.AccountService;
+import rs.banka4.user_service.service.impl.TotpService;
 
 import java.util.Set;
 
@@ -22,6 +24,7 @@ import java.util.Set;
 public class AccountController implements AccountApiDocumentation {
 
     private final AccountService accountService;
+    private final TotpService totpService;
 
     @Override
     @GetMapping("/search")
@@ -58,9 +61,14 @@ public class AccountController implements AccountApiDocumentation {
             Authentication authentication,
             @RequestBody @Valid SetAccountLimitsDto dto
     ) {
-        String token = authentication.getCredentials().toString();
-        accountService.setAccountLimits(dto, token);
-        return ResponseEntity.ok().build();
+
+        if (totpService.verifyClient(authentication, dto.otpCode())) {
+            String token = authentication.getCredentials().toString();
+            accountService.setAccountLimits(dto, token);
+            return ResponseEntity.ok().build();
+        } else {
+            throw new NotValidTotpException();
+        }
     }
 
 }

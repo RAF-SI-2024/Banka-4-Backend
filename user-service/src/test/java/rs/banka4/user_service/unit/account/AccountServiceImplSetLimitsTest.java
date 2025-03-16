@@ -68,7 +68,8 @@ class AccountServiceImplSetLimitsTest {
         SetAccountLimitsDto dto = new SetAccountLimitsDto(
                 "4440001123456789020",
                 BigDecimal.valueOf(5000),
-                BigDecimal.valueOf(50000)
+                BigDecimal.valueOf(50000),
+                "123456"
         );
 
         when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))
@@ -91,7 +92,8 @@ class AccountServiceImplSetLimitsTest {
         SetAccountLimitsDto dto = new SetAccountLimitsDto(
                 "invalidnumber",
                 BigDecimal.TEN,
-                BigDecimal.TEN
+                BigDecimal.TEN,
+                "123456"
         );
 
         when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))
@@ -111,7 +113,8 @@ class AccountServiceImplSetLimitsTest {
         SetAccountLimitsDto dto = new SetAccountLimitsDto(
                 validAccount.getAccountNumber(),
                 BigDecimal.TEN,
-                BigDecimal.TEN
+                BigDecimal.TEN,
+                "123456"
         );
 
         when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))
@@ -134,7 +137,8 @@ class AccountServiceImplSetLimitsTest {
         SetAccountLimitsDto dto = new SetAccountLimitsDto(
                 validAccount.getAccountNumber(),
                 BigDecimal.TEN,
-                BigDecimal.TEN
+                BigDecimal.TEN,
+                "123456"
         );
 
         when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))
@@ -159,7 +163,8 @@ class AccountServiceImplSetLimitsTest {
         SetAccountLimitsDto dto = new SetAccountLimitsDto(
                 validAccount.getAccountNumber(),
                 BigDecimal.TEN,
-                BigDecimal.TEN
+                BigDecimal.TEN,
+                "123456"
         );
 
         when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))
@@ -186,7 +191,8 @@ class AccountServiceImplSetLimitsTest {
         SetAccountLimitsDto dto = new SetAccountLimitsDto(
                 validAccount.getAccountNumber(),
                 null,
-                BigDecimal.valueOf(20000)
+                BigDecimal.valueOf(20000),
+                "123456"
         );
 
         when(accountRepository.findAccountByAccountNumber(dto.accountNumber()))

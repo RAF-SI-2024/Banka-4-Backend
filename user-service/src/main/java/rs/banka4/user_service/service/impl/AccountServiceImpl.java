@@ -32,6 +32,7 @@ import rs.banka4.user_service.exceptions.account.AccountNotFound;
 import rs.banka4.user_service.exceptions.account.InvalidAccountOperationException;
 import rs.banka4.user_service.exceptions.account.InvalidCurrency;
 import rs.banka4.user_service.exceptions.account.UnauthorizedAccountException;
+import rs.banka4.user_service.exceptions.authenticator.NotValidTotpException;
 import rs.banka4.user_service.exceptions.user.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.user.NotFound;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
@@ -64,6 +65,7 @@ public class AccountServiceImpl implements AccountService {
     private final JwtUtil jwtUtil;
     private final EmployeeService employeeService;
     private final CardService cardService;
+    private final TotpService totpService;
 
 
     @Override
