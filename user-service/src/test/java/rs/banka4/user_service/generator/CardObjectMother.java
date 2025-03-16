@@ -52,7 +52,7 @@ public class CardObjectMother {
                         "Mehmedalija",
                         "Krupalija",
                         LocalDate.parse("1995-05-05"),
-                        Gender.MALE.toString(),
+                        Gender.MALE,
                         "mehmedalija@banka4.rs",
                         "+38766111222",
                         "Bankarska 4"
