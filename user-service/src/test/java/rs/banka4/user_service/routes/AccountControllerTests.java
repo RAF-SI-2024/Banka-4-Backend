@@ -28,6 +28,7 @@ import rs.banka4.user_service.repositories.CardRepository;
 import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.CardService;
 import rs.banka4.user_service.service.impl.CustomUserDetailsService;
+import rs.banka4.user_service.service.impl.TotpService;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.util.MockMvcUtil;
 
@@ -110,8 +111,12 @@ public class AccountControllerTests {
         public CustomUserDetailsService customUserDetailsService() {
             return Mockito.mock(CustomUserDetailsService.class);
         }
-    }
 
+        @Bean
+        public TotpService totpService() {
+            return Mockito.mock(TotpService.class);
+        }
+    }
 
 //    @Test
 //    void createAccount_WithCardForBusiness_Success() {
