@@ -27,7 +27,7 @@ public class AccountObjectMother {
                         "John",
                         "Doe",
                         LocalDate.of(1990, 1, 1),
-                        "Male",
+                        Gender.MALE,
                         "john.doe@example.com",
                         "+1234567890",
                         "123 Grove Street, City, Country",

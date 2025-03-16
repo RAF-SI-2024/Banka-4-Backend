@@ -242,7 +242,7 @@ public class AccountServiceImpl implements AccountService {
                 client.firstName(),
                 client.lastName(),
                 client.dateOfBirth(),
-                Gender.valueOf(client.gender().toUpperCase()),
+                client.gender(),
                 client.email(),
                 client.phone(),
                 client.address()

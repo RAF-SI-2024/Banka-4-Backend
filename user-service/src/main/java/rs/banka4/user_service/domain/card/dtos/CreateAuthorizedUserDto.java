@@ -17,10 +17,8 @@ public record CreateAuthorizedUserDto(
         @Schema(description = "Date of birth", example = "1990-05-15")
         LocalDate dateOfBirth,
 
-        @Schema(description = "Client's gender (Male or Female)", example = "Male")
-        @Pattern(regexp = "Male|Female", message = "Gender must be Male or Female")
-        @NotBlank(message = "Gender is required")
-        String gender,
+        @Schema(description = "Client's gender (MALE or FEMALE)", example = "MALE")
+        Gender gender,
 
         @Schema(description = "Email address of the user", example = "petar@example.com")
         String email,
