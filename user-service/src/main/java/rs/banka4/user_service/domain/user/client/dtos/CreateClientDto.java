@@ -25,7 +25,7 @@ public record CreateClientDto(
         @NotNull(message = "Date of birth is required")
         LocalDate dateOfBirth,
 
-        @Schema(description = "Client's gender (Male or Female)", example = "MALE")
+        @Schema(description = "Client's gender (MALE or FEMALE)", example = "MALE")
         @NotNull(message = "Gender is required")
         Gender gender,
 

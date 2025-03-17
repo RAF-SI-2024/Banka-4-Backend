@@ -21,7 +21,7 @@ public record EmployeeDto (
         @Schema(description = "Employee's date of birth", example = "1990-05-15")
         LocalDate dateOfBirth,
 
-        @Schema(description = "Employee's gender", example = "Male")
+        @Schema(description = "Employee's gender (MALE or FEMALE)", example = "MALE")
         Gender gender,
 
         @Schema(description = "Employee's email address", example = "mljubic9422112rn@raf.rs")

@@ -20,7 +20,7 @@ public record UpdateClientDto(
         @Schema(description = "Date of birth", example = "1990-01-01")
         LocalDate dateOfBirth,
 
-        @Schema(description = "Gender", example = "MALE")
+        @Schema(description = "Gender (MALE or FEMALE)", example = "MALE")
         Gender gender,
 
         @Email(message = "Invalid email format.")

@@ -22,7 +22,7 @@ public record ClientDto(
         @Schema(description = "Date of birth", example = "1990-01-01")
         LocalDate dateOfBirth,
 
-        @Schema(description = "Gender", example = "Male")
+        @Schema(description = "Gender (MALE or FEMALE)", example = "MALE")
         Gender gender,
 
         @Schema(description = "Email address", example = "danny.jo@example.com")

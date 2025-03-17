@@ -32,7 +32,7 @@ public record AccountClientIdDto(
         @NotNull(message = "Date of birth is required")
         LocalDate dateOfBirth,
 
-        @Schema(description = "Client's gender (Male or Female)", example = "Male")
+        @Schema(description = "Client's gender (MALE or FEMALE)", example = "MALE")
         @NotBlank(message = "Gender is required")
         Gender gender,
 

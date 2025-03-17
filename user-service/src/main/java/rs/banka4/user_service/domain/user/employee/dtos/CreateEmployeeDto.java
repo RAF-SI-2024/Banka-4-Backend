@@ -29,7 +29,7 @@ public record CreateEmployeeDto(
         @NotNull(message = "Date of birth is required")
         LocalDate dateOfBirth,
 
-        @Schema(description = "Employee's gender", example = "MALE")
+        @Schema(description = "Employee's gender (MALE or FEMALE)", example = "MALE")
         @NotNull(message = "Gender is required")
         Gender gender,
 
