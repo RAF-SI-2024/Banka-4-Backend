@@ -173,11 +173,11 @@ public class AccountServiceImpl implements AccountService {
 
         // Check account status and expiration
         if (!account.isActive()) {
-            throw new InvalidAccountOperationException("Account is inactive");
+            throw new InvalidAccountOperationException();
         }
 
         if (account.getExpirationDate().isBefore(LocalDate.now())) {
-            throw new InvalidAccountOperationException("Account has expired");
+            throw new InvalidAccountOperationException();
         }
 
         // Update limits

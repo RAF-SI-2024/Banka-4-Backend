@@ -7,6 +7,6 @@ import java.util.Map;
 
 public class AccountNotFound extends BaseApiException {
     public AccountNotFound() {
-        super(HttpStatus.NOT_FOUND, Map.of("message", "Account not found"));
+        super(HttpStatus.NOT_FOUND, null);
     }
 }
