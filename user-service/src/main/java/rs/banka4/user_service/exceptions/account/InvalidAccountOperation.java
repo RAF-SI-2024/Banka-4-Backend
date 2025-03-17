@@ -3,10 +3,8 @@ package rs.banka4.user_service.exceptions.account;
 import org.springframework.http.HttpStatus;
 import rs.banka4.user_service.exceptions.BaseApiException;
 
-import java.util.Map;
-
-public class InvalidAccountOperationException extends BaseApiException {
-    public InvalidAccountOperationException() {
+public class InvalidAccountOperation extends BaseApiException {
+    public InvalidAccountOperation() {
         super(HttpStatus.CONFLICT, null);
     }
 }

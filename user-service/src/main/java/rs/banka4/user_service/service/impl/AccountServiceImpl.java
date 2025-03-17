@@ -26,10 +26,7 @@ import rs.banka4.user_service.domain.company.dtos.CreateCompanyDto;
 import rs.banka4.user_service.domain.account.mapper.AccountMapper;
 import rs.banka4.user_service.domain.company.mapper.CompanyMapper;
 import rs.banka4.user_service.domain.currency.db.Currency;
-import rs.banka4.user_service.exceptions.account.AccountNotFound;
-import rs.banka4.user_service.exceptions.account.InvalidAccountOperationException;
-import rs.banka4.user_service.exceptions.account.InvalidCurrency;
-import rs.banka4.user_service.exceptions.account.NotAccountOwnerException;
+import rs.banka4.user_service.exceptions.account.*;
 import rs.banka4.user_service.exceptions.user.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.exceptions.company.CompanyNotFound;
@@ -163,16 +160,16 @@ public class AccountServiceImpl implements AccountService {
         // Verify ownership
         String userId = jwtUtil.extractClaim(token, claims -> claims.get("id", String.class));
         if (!account.getClient().getId().toString().equals(userId)) {
-            throw new NotAccountOwnerException();
+            throw new NotAccountOwner();
         }
 
         // Check account status and expiration
         if (!account.isActive()) {
-            throw new InvalidAccountOperationException();
+            throw new InvalidAccountOperation();
         }
 
         if (account.getExpirationDate().isBefore(LocalDate.now())) {
-            throw new InvalidAccountOperationException();
+            throw new InvalidAccountOperation();
         }
 
         // Update limits

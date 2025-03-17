@@ -9,10 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
 import rs.banka4.user_service.domain.user.client.db.Client;
-import rs.banka4.user_service.exceptions.BaseApiException;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
-import rs.banka4.user_service.exceptions.account.InvalidAccountOperationException;
-import rs.banka4.user_service.exceptions.account.NotAccountOwnerException;
+import rs.banka4.user_service.exceptions.account.InvalidAccountOperation;
+import rs.banka4.user_service.exceptions.account.NotAccountOwner;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.service.impl.AccountServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
@@ -120,7 +119,7 @@ class AccountServiceImplSetLimitsTest {
 
         // Act & Assert
         assertThatThrownBy(() -> accountService.setAccountLimits(dto, "invalid.token"))
-                .isInstanceOf(NotAccountOwnerException.class);
+                .isInstanceOf(NotAccountOwner.class);
     }
 
     @Test
@@ -141,7 +140,7 @@ class AccountServiceImplSetLimitsTest {
 
         // Act & Assert
         assertThatThrownBy(() -> accountService.setAccountLimits(dto, "valid.token"))
-                .isInstanceOf(InvalidAccountOperationException.class);
+                .isInstanceOf(InvalidAccountOperation.class);
     }
 
     @Test
@@ -162,7 +161,7 @@ class AccountServiceImplSetLimitsTest {
 
         // Act & Assert
         assertThatThrownBy(() -> accountService.setAccountLimits(dto, "valid.token"))
-                .isInstanceOf(InvalidAccountOperationException.class);
+                .isInstanceOf(InvalidAccountOperation.class);
     }
 
     @Test
