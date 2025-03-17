@@ -7,9 +7,6 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 public record SetAccountLimitsDto(
-        @NotBlank(message = "Account number is required")
-        String accountNumber,
-
         @PositiveOrZero(message = "Daily limit must be positive or zero")
         BigDecimal daily,
 

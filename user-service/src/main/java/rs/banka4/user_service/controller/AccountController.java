@@ -1,6 +1,7 @@
 package rs.banka4.user_service.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -56,14 +57,13 @@ public class AccountController implements AccountApiDocumentation {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PutMapping("/set-limits")
-    public ResponseEntity<Void> setAccountLimits(
-            Authentication authentication,
-            @RequestBody @Valid SetAccountLimitsDto dto
-    ) {
+    @PutMapping("/set-limits/{accountNumber}")
+    public ResponseEntity<Void> setAccountLimits(Authentication authentication,
+                                                 @NotBlank @PathVariable("accountNumber") String accountNumber,
+                                                 @RequestBody @Valid SetAccountLimitsDto dto) {
         if (totpService.verifyClient(authentication, dto.otpCode())) {
             String token = authentication.getCredentials().toString();
-            accountService.setAccountLimits(dto, token);
+            accountService.setAccountLimits(accountNumber, dto, token);
             return ResponseEntity.ok().build();
         } else {
             throw new NotValidTotpException();

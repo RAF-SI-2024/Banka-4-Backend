@@ -17,5 +17,5 @@ public interface AccountService {
     Account getAccountByAccountNumber(String accountNumber);
     void createAccount(CreateAccountDto createAccountDto, String auth);
     ResponseEntity<Page<AccountDto>> getAll(Authentication authentication, String firstName, String lastName, String accountNumber, PageRequest pageRequest);
-    void setAccountLimits(SetAccountLimitsDto dto, String token);
+    void setAccountLimits(String accountNumber, SetAccountLimitsDto dto, String token);
 }

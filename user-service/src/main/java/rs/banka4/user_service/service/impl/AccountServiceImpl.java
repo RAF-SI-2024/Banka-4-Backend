@@ -152,9 +152,9 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Transactional
-    public void setAccountLimits(SetAccountLimitsDto dto, String token) {
+    public void setAccountLimits(String accountNumber, SetAccountLimitsDto dto, String token) {
         // Get account
-        Account account = accountRepository.findAccountByAccountNumber(dto.accountNumber())
+        Account account = accountRepository.findAccountByAccountNumber(accountNumber)
                 .orElseThrow(AccountNotFound::new);
 
         // Verify ownership
