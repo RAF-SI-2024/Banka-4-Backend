@@ -29,12 +29,10 @@ import java.util.List;
 
 /**
  * Service that schedules and manages loan installment payments.
- *
  * This service performs scheduled operations related to loan installments:
  * - Processing due installments
  * - Retrying delayed installments
  * - Applying late payment penalties
- *
  * The service interacts with repositories, sends notifications, and manages loan installment statuses.
  */
 @Service
@@ -51,9 +49,9 @@ public class LoanInstallmentScheduler {
     private static final BigDecimal LEGAL_THRESHOLD = new BigDecimal("1000");
 
     /**
-     * Scheduled task to process due installments every day at 1 AM.
-     *
+     * Processes due installments every day at 1 AM.
      * It retrieves unpaid installments that are due today and attempts to process payments.
+     * The method uses self-invocation to ensure transactional behavior.
      */
     @Scheduled(cron = "0 0 1 * * ?")
     public void processDueInstallments() {
@@ -67,7 +65,6 @@ public class LoanInstallmentScheduler {
 
     /**
      * Retries processing delayed installments every 6 hours.
-     *
      * Attempts to reprocess installments that were marked as delayed within the last 3 days.
      */
     @Scheduled(cron = "0 0 */6 * * ?")
@@ -82,9 +79,8 @@ public class LoanInstallmentScheduler {
     }
 
     /**
-     * Runs daily at midnight:
-     *
      * Applies penalties for installments that remain unpaid for more than 72 hours.
+     * This method runs daily at midnight.
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void applyLatePaymentPenalties() {
@@ -97,6 +93,12 @@ public class LoanInstallmentScheduler {
         }
     }
 
+    /**
+     * Applies a late payment penalty to a loan and loan installment.
+     * Sends message to client about applied penalty.
+     *
+     * @param installment The loan installment to which the penalty is applied.
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void applyPenaltyToInstallment(LoanInstallment installment) {
         Loan loan = installment.getLoan();
@@ -128,7 +130,13 @@ public class LoanInstallmentScheduler {
         }
     }
 
-
+    /**
+     * Attempts to pay a loan installment if the account has sufficient balance.
+     * If loan installment is paid, next one is created in case loan is not fully paid off.
+     * Message is sent to client after successful or denied payment.
+     *
+     * @param installment The loan installment to be paid.
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void payInstallmentIfPossible(LoanInstallment installment){
         Loan loan = installment.getLoan();
