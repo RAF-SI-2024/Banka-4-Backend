@@ -61,6 +61,11 @@ public class LoanSpecification {
                 root.fetch("loan", JoinType.LEFT);
             }
 
+            if (root.get("loan") != null) {
+                Join<Loan, Account> accountJoin = root.join("loan");
+                predicates.add(builder.equal(accountJoin.get("status"), LoanStatus.PROCESSING));
+            }
+
             if (filter.type() != null) {
                 predicates.add(builder.equal(root.get("type"), filter.type()));
             }
