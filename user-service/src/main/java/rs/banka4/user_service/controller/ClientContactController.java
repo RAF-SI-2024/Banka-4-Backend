@@ -12,6 +12,7 @@ import rs.banka4.user_service.domain.user.client.dtos.ClientContactDto;
 import rs.banka4.user_service.domain.user.client.dtos.ClientContactRequest;
 import rs.banka4.user_service.service.abstraction.ClientContactService;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -24,6 +25,11 @@ public class ClientContactController {
     @GetMapping
     public ResponseEntity<Page<ClientContactDto>> getAllClientContacts(Authentication auth, Pageable pageable) {
         return ResponseEntity.ok(clientContactService.getAllClientContacts(auth.getCredentials().toString(), pageable));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<ClientContactDto>> getListContact(Authentication auth) {
+        return ResponseEntity.ok(clientContactService.getClientContacts(auth.getCredentials().toString()));
     }
 
     @GetMapping("/{id}")

@@ -9,6 +9,7 @@ import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.db.ClientContact;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -19,4 +20,6 @@ public interface ClientContactRepository extends JpaRepository<ClientContact, UU
     boolean existsByAccountNumber(String accountNumber);
 
     boolean existsByClient(Client client);
+
+    List<ClientContact> findByClient(Client client);
 }

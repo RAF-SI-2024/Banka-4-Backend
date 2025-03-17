@@ -17,7 +17,9 @@ import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.service.abstraction.ClientContactService;
 import rs.banka4.user_service.utils.JwtUtil;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +36,18 @@ public class ClientContactServiceImpl implements ClientContactService {
 
         Page<ClientContact> clientContacts = clientContactRepository.findAllActive(pageable, client);
         return clientContacts.map(ClientContactMapper.INSTANCE::toDto);
+    }
+
+    @Override
+    public List<ClientContactDto> getClientContacts(String token) {
+        String email = jwtUtil.extractUsername(token);
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new ClientNotFound(email));
+
+        List<ClientContact> clientContacts = clientContactRepository.findByClient(client);
+        return clientContacts.stream()
+                .map(ClientContactMapper.INSTANCE::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
