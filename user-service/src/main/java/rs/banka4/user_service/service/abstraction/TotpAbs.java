@@ -9,4 +9,5 @@ public interface TotpAbs {
     RegenerateAuthenticatorResponseDto regenerateSecret(Authentication auth);
     void verifyNewAuthenticator(Authentication auth, String code);
     String generateCode(String authorization);
+    boolean verifyClient(Authentication authentication, String otpCode);
 }
