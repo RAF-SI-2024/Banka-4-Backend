@@ -61,7 +61,6 @@ public class AccountServiceImpl implements AccountService {
     private final JwtUtil jwtUtil;
     private final EmployeeService employeeService;
     private final CardService cardService;
-    private final TotpService totpService;
 
 
     @Override
