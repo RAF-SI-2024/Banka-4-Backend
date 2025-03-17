@@ -1,7 +1,7 @@
 package rs.banka4.user_service.domain.currency.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import rs.banka4.user_service.domain.currency.db.Currency;
+import rs.banka4.user_service.domain.currency.db.Currency.Code;
 
 import java.util.UUID;
 
@@ -24,5 +24,5 @@ public record CurrencyDto(
         boolean active,
 
         @Schema(description = "Currency code", example = "RSD")
-        Currency.Code code
+        Code code
 ) { }

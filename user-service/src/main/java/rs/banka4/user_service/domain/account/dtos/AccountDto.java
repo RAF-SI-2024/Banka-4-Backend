@@ -1,7 +1,7 @@
 package rs.banka4.user_service.domain.account.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import rs.banka4.user_service.domain.currency.db.Currency;
+import rs.banka4.user_service.domain.currency.dtos.CurrencyDto;
 import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
 import rs.banka4.user_service.domain.user.employee.dtos.EmployeeDto;
 import rs.banka4.user_service.domain.company.dtos.CompanyDto;
@@ -46,7 +46,7 @@ public record AccountDto(
         BigDecimal monthlyLimit,
 
         @Schema(description = "Currency associated with the account")
-        Currency.Code currency,
+        CurrencyDto currency,
 
         @Schema(description = "Employee that created this account")
         EmployeeDto employee,

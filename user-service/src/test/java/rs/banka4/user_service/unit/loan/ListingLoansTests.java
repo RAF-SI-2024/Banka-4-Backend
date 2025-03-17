@@ -30,7 +30,6 @@ import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.impl.LoanServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
-import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
