@@ -94,6 +94,21 @@ public class AccountServiceImpl implements AccountService {
         return AccountMapper.INSTANCE.toDto(account.get());
     }
 
+    /**
+     * Creates a new account with the given details. If the client's id is set to null, a new client
+     * will be created. If the client's id is available it will first check for it and then the
+     * account will be created. Company functions in the similar way. If the company's object is set
+     * to null then the Account will be set to {@link AccountType#STANDARD}. Otherwise, if the
+     * company's id is given then it will first check for it and then the account will be made and
+     * it will be set to {@link AccountType#DOO}. Currency will be set if the provided currency code
+     * exists.
+     *
+     * @exception InvalidCurrency if the currency code doesn't exist
+     * @exception CompanyNotFound if the company with the given id is not found
+     * @exception ClientNotFound if the client with the given id is not found
+     * @param createAccountDto the details of the account to be created
+     * @param auth the authentication details of the client
+     */
     @Transactional
     @Override
     public void createAccount(CreateAccountDto createAccountDto, String auth) {
@@ -166,6 +181,16 @@ public class AccountServiceImpl implements AccountService {
             .orElseThrow(AccountNotFound::new);
     }
 
+
+    /**
+     * Connects the given company to the account if the company is present in the database. If the
+     * company is not present it will create a new company with the given details.
+     *
+     * @param account the account to be connected
+     * @param createAccountDto with the details of the company given in
+     *        {@link rs.banka4.user_service.domain.company.dtos.CompanyDto}
+     * @exception CompanyNotFound if the company with the given id is not found
+     */
     private void connectCompanyToAccount(Account account, CreateAccountDto createAccountDto) {
         if (createAccountDto.company() == null) return;
 
@@ -206,6 +231,15 @@ public class AccountServiceImpl implements AccountService {
         account.setAccountType(AccountType.DOO);
     }
 
+
+    /**
+     * Connects a client to an account. If the client id is null, a new one will be created,
+     * otherwise it will check for an existing client with the given id.
+     *
+     * @exception ClientNotFound if the given client id is not found
+     * @param account the account to connect a client to
+     * @param createAccountDto with the details of the client given in {@link AccountClientIdDto}
+     */
     private void connectClientToAccount(Account account, CreateAccountDto createAccountDto) {
         if (
             createAccountDto.client()
@@ -233,6 +267,13 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
+    /**
+     * Connects the specified currency to the given account.
+     *
+     * @param account the account to which the currency is to be connected
+     * @param createAccountDto contains the details of the currency code {@link Currency.Code}
+     * @throws InvalidCurrency if the currency code does not exist in the repository
+     */
     private void connectCurrencyToAccount(Account account, CreateAccountDto createAccountDto) {
         Currency currency = currencyRepository.findByCode(createAccountDto.currency());
         if (currency == null)
@@ -245,6 +286,14 @@ public class AccountServiceImpl implements AccountService {
         account.setAccountMaintenance();
     }
 
+    /**
+     * Connects the employee to the account from the given JWT token. The email of the employee is
+     * extracted from the token and then the employee is found in the repository.
+     *
+     * @param account the account to connect the employee to
+     * @param auth the JWT token from which the email is extracted
+     * @throws EmployeeNotFound if the employee with the given email is not found
+     */
     private void connectEmployeeToAccount(Account account, String auth) {
         String username = jwtUtil.extractUsername(auth);
         Optional<Employee> employee = employeeService.findEmployeeByEmail(username);
@@ -256,6 +305,20 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
+    /**
+     * Generates a unique account number for the given account. The account number is 18 digits long
+     * and follows the following format:
+     * <ul>
+     * <li>First 3 digits are 444 (bank code)</li>
+     * <li>Next 4 digits are a number of the affiliated bank</li>
+     * <li>Next 9 digits are a random number between 0 and 10^9 - 1</li>
+     * <li>Last 2 digits are 10 for RSD and 20 for foreign currencies</li>
+     * </ul>
+     * The account number is generated until a unique number is found.
+     *
+     * @param currency the currency of the account
+     * @param account the account for which the account number is generated
+     */
     private void makeAnAccountNumber(Currency.Code currency, Account account) {
         String accountNumber = "";
         while (true) {
