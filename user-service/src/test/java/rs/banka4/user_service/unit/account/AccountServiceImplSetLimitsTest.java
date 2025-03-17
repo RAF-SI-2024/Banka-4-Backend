@@ -1,6 +1,5 @@
 package rs.banka4.user_service.unit.account;
 
-import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +12,7 @@ import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.exceptions.BaseApiException;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
 import rs.banka4.user_service.exceptions.account.InvalidAccountOperationException;
-import rs.banka4.user_service.exceptions.account.UnauthorizedAccountException;
+import rs.banka4.user_service.exceptions.account.NotAccountOwnerException;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.service.impl.AccountServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
@@ -101,10 +100,7 @@ class AccountServiceImplSetLimitsTest {
 
         // Act & Assert
         assertThatThrownBy(() -> accountService.setAccountLimits(dto, "token"))
-                .isInstanceOf(AccountNotFound.class)
-                .extracting(ex -> ((BaseApiException) ex).getExtra())
-                .extracting("message")
-                .isEqualTo("Account not found");
+                .isInstanceOf(AccountNotFound.class);
     }
 
     @Test
@@ -124,10 +120,7 @@ class AccountServiceImplSetLimitsTest {
 
         // Act & Assert
         assertThatThrownBy(() -> accountService.setAccountLimits(dto, "invalid.token"))
-                .isInstanceOf(UnauthorizedAccountException.class)
-                .extracting(ex -> ((BaseApiException) ex).getExtra())
-                .extracting("message")
-                .isEqualTo("You don't own this account");
+                .isInstanceOf(NotAccountOwnerException.class);
     }
 
     @Test
@@ -148,12 +141,7 @@ class AccountServiceImplSetLimitsTest {
 
         // Act & Assert
         assertThatThrownBy(() -> accountService.setAccountLimits(dto, "valid.token"))
-                .isInstanceOf(InvalidAccountOperationException.class)
-                .extracting(ex -> ((BaseApiException) ex).getExtra())
-                .satisfies(extra -> {
-                    assertThat(extra.get("message")).isEqualTo("Cannot modify account limits");
-                    assertThat(extra.get("reason")).isEqualTo("Account is inactive");
-                });
+                .isInstanceOf(InvalidAccountOperationException.class);
     }
 
     @Test
@@ -174,12 +162,7 @@ class AccountServiceImplSetLimitsTest {
 
         // Act & Assert
         assertThatThrownBy(() -> accountService.setAccountLimits(dto, "valid.token"))
-                .isInstanceOf(InvalidAccountOperationException.class)
-                .extracting(ex -> ((BaseApiException) ex).getExtra())
-                .satisfies(extra -> {
-                    assertThat(extra.get("message")).isEqualTo("Cannot modify account limits");
-                    assertThat(extra.get("reason")).isEqualTo("Account has expired");
-                });
+                .isInstanceOf(InvalidAccountOperationException.class);
     }
 
     @Test

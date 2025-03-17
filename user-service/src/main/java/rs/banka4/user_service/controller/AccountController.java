@@ -61,7 +61,6 @@ public class AccountController implements AccountApiDocumentation {
             Authentication authentication,
             @RequestBody @Valid SetAccountLimitsDto dto
     ) {
-
         if (totpService.verifyClient(authentication, dto.otpCode())) {
             String token = authentication.getCredentials().toString();
             accountService.setAccountLimits(dto, token);

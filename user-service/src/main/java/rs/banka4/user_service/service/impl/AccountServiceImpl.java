@@ -1,7 +1,6 @@
 package rs.banka4.user_service.service.impl;
 
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +18,6 @@ import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.domain.company.db.Company;
-import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
@@ -31,10 +29,8 @@ import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
 import rs.banka4.user_service.exceptions.account.InvalidAccountOperationException;
 import rs.banka4.user_service.exceptions.account.InvalidCurrency;
-import rs.banka4.user_service.exceptions.account.UnauthorizedAccountException;
-import rs.banka4.user_service.exceptions.authenticator.NotValidTotpException;
+import rs.banka4.user_service.exceptions.account.NotAccountOwnerException;
 import rs.banka4.user_service.exceptions.user.IncorrectCredentials;
-import rs.banka4.user_service.exceptions.user.NotFound;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.exceptions.company.CompanyNotFound;
 import rs.banka4.user_service.exceptions.user.employee.EmployeeNotFound;
@@ -168,7 +164,7 @@ public class AccountServiceImpl implements AccountService {
         // Verify ownership
         String userId = jwtUtil.extractClaim(token, claims -> claims.get("id", String.class));
         if (!account.getClient().getId().toString().equals(userId)) {
-            throw new UnauthorizedAccountException();
+            throw new NotAccountOwnerException();
         }
 
         // Check account status and expiration
