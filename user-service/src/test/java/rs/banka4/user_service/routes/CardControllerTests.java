@@ -61,7 +61,7 @@ public class CardControllerTests {
         Mockito.doNothing().when(cardService).createAuthorizedCard(any(Authentication.class), eq(createCardDto));
 
         // Use the custom MockMvcUtil to perform a POST request.
-        mockMvcUtil.performPostRequest(post("/cards/create"), createCardDto);
+        mockMvcUtil.performPostRequest(post("/cards/create"), createCardDto, 201);
     }
 
     /**

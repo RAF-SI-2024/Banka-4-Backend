@@ -108,8 +108,6 @@ public class AccountServiceImpl implements AccountService {
         account.setBalance(createAccountDto.availableBalance());
         makeAnAccountNumber(createAccountDto.currency(), account);
 
-        account = accountRepository.save(account);
-
         if (createAccountDto.createCard()) {
             cardService.createEmployeeCard(
                     new CreateCardDto(
