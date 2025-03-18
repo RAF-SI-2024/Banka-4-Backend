@@ -4,6 +4,13 @@ plugins {
 	id("io.spring.dependency-management")
 }
 
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+
 group = "rs.banka4"
 version = "0.0.1-SNAPSHOT"
 
