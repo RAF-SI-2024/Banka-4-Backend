@@ -1,6 +1,5 @@
 plugins {
 	`java-library`
-	id("org.springframework.boot")
 	id("io.spring.dependency-management")
 }
 
@@ -26,6 +25,12 @@ configurations {
 			group = "org.junit.vintage",
 			module = "junit-vintage-engine"
 		)
+	}
+}
+
+dependencyManagement {
+	imports {
+		mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
 	}
 }
 
