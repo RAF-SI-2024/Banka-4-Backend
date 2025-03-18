@@ -124,6 +124,11 @@ public class TotpService implements TotpAbs {
         return generateCodeFromSecret(totp.getSecret());
     }
 
+    @Override
+    public boolean verifyClient(Authentication authentication, String otpCode) {
+        return false;
+    }
+
     // --- Private helper methods ---
 
     private String generateCodeFromSecret(String secret) {
