@@ -1,7 +1,7 @@
 # Run tests and integration tests on the user-service
 presubmits:
   - name: pull-banka-4-backend-user-service-test
-    run_if_changed: "(user-service/|\\.prow/)"
+    run_if_changed: "^(.*kts$|user-service/|\\.prow/)"
     decorate: true
     spec:
       containers:
