@@ -103,9 +103,9 @@ public class AccountServiceImpl implements AccountService {
      * it will be set to {@link AccountType#DOO}. Currency will be set if the provided currency code
      * exists.
      *
-     * @exception InvalidCurrency if the currency code doesn't exist
-     * @exception CompanyNotFound if the company with the given id is not found
-     * @exception ClientNotFound if the client with the given id is not found
+     * @throws  InvalidCurrency if the currency code doesn't exist
+     * @throws CompanyNotFound if the company with the given id is not found
+     * @throws ClientNotFound if the client with the given id is not found
      * @param createAccountDto the details of the account to be created
      * @param auth the authentication details of the client
      */
@@ -189,7 +189,7 @@ public class AccountServiceImpl implements AccountService {
      * @param account the account to be connected
      * @param createAccountDto with the details of the company given in
      *        {@link rs.banka4.user_service.domain.company.dtos.CompanyDto}
-     * @exception CompanyNotFound if the company with the given id is not found
+     * @throws CompanyNotFound if the company with the given id is not found
      */
     private void connectCompanyToAccount(Account account, CreateAccountDto createAccountDto) {
         if (createAccountDto.company() == null) return;
@@ -236,7 +236,7 @@ public class AccountServiceImpl implements AccountService {
      * Connects a client to an account. If the client id is null, a new one will be created,
      * otherwise it will check for an existing client with the given id.
      *
-     * @exception ClientNotFound if the given client id is not found
+     * @throws ClientNotFound if the given client id is not found
      * @param account the account to connect a client to
      * @param createAccountDto with the details of the client given in {@link AccountClientIdDto}
      */
