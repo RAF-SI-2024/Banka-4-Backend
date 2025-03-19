@@ -15,10 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
-import rs.banka4.user_service.domain.card.db.Card;
-import rs.banka4.user_service.domain.card.db.CardName;
-import rs.banka4.user_service.domain.card.db.CardStatus;
-import rs.banka4.user_service.domain.card.db.CardType;
+import rs.banka4.user_service.domain.card.db.*;
 import rs.banka4.user_service.domain.company.db.ActivityCode;
 import rs.banka4.user_service.domain.company.db.Company;
 import rs.banka4.user_service.domain.currency.db.Currency;
@@ -74,6 +71,8 @@ public class TestDataRunner implements CommandLineRunner {
         seedBankMargins();
         cardSeeder();
         loanInstallmentSeeder();
+        authorizedUserSeeder();
+        bankSeeder();
     }
 
     private void cardSeeder() {
@@ -1252,7 +1251,6 @@ public class TestDataRunner implements CommandLineRunner {
         }
     }
 
-
     private InterestRate createInterestRate(long minAmount, Long maxAmount, double fixedRate) {
         return InterestRate.builder()
             .minAmount(BigDecimal.valueOf(minAmount))
@@ -1266,4 +1264,122 @@ public class TestDataRunner implements CommandLineRunner {
             .build();
     }
 
+    private void authorizedUserSeeder() {
+        List<Card> cards = cardRepository.findAll();
+
+        if (cards.isEmpty()) {
+            System.out.println("No cards found. Skipping authorized user seeder.");
+            return;
+        }
+
+        List<AuthorizedUser> authorizedUsers =
+            cards.stream()
+                .map(
+                    card -> AuthorizedUser.builder()
+                        .userId(UUID.randomUUID())
+                        .firstName(
+                            "User"
+                                + card.getCardNumber()
+                                    .substring(0, 4)
+                        )
+                        .lastName("Authorized")
+                        .dateOfBirth(LocalDate.of(1990, 1, 1))
+                        .email(
+                            "user"
+                                + card.getCardNumber()
+                                    .substring(0, 4)
+                                + "@example.com"
+                        )
+                        .phoneNumber(
+                            "+381600000"
+                                + card.getCardNumber()
+                                    .substring(0, 2)
+                        )
+                        .address(
+                            "Address "
+                                + card.getCardNumber()
+                                    .substring(0, 3)
+                        )
+                        .gender(Gender.MALE)
+                        .build()
+                )
+                .toList();
+
+        for (int i = 0; i < cards.size(); i++) {
+            cards.get(i)
+                .setAuthorizedUser(authorizedUsers.get(i));
+        }
+
+        cardRepository.saveAll(cards);
+    }
+
+    private void bankSeeder() {
+        if (
+            companyRepository.findByName("Bank 4")
+                .isEmpty()
+        ) {
+            ActivityCode activityCode =
+                activityCodeRepository.findActivityCodeByCode("64.19")
+                    .orElse(null);
+            Client client =
+                clientRepository.findByEmail("danielm@example.com")
+                    .orElse(null);
+
+            if (activityCode != null) {
+                Company ourBank =
+                    Company.builder()
+                        .name("Bank 4")
+                        .tin("133456789")
+                        .crn("988654321")
+                        .address("123 Bank St")
+                        .activityCode(activityCode)
+                        .majorityOwner(client)
+                        .build();
+
+                companyRepository.save(ourBank);
+
+                List<String> bankAccountNumbers =
+                    List.of(
+                        "4440001000000000010",
+                        "4440001000000000020",
+                        "4440001000000000120",
+                        "4440001000000000220",
+                        "4440001000000000320",
+                        "4440001000000000420",
+                        "4440001000000000520"
+                    );
+
+                List<Currency> currencies = currencyRepository.findAll();
+                List<Account> accounts = new ArrayList<>();
+
+                for (int i = 0; i < bankAccountNumbers.size(); i++) {
+                    String accountNumber = bankAccountNumbers.get(i);
+                    Currency currency = currencies.get(i);
+
+                    Account account =
+                        Account.builder()
+                            .accountNumber(accountNumber)
+                            .balance(BigDecimal.valueOf(1000000))
+                            .availableBalance(BigDecimal.valueOf(1000000))
+                            .accountMaintenance(BigDecimal.valueOf(100))
+                            .createdDate(LocalDate.now())
+                            .expirationDate(
+                                LocalDate.now()
+                                    .plusYears(5)
+                            )
+                            .active(true)
+                            .accountType(AccountType.DOO)
+                            .dailyLimit(BigDecimal.valueOf(100000))
+                            .monthlyLimit(BigDecimal.valueOf(1000000))
+                            .company(ourBank)
+                            .currency(currency)
+                            .build();
+
+                    accounts.add(account);
+                }
+
+                accountRepository.saveAll(accounts);
+            }
+        }
+    }
 }

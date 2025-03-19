@@ -84,6 +84,12 @@ public class TransactionServiceCreateTests {
             Optional.of(toAccount)
         );
         when(transactionMapper.toDto(any())).thenReturn(transactionDto);
+        when(transactionRepository.getTotalDailyTransactions(any(), any())).thenReturn(
+            BigDecimal.ZERO
+        );
+        when(transactionRepository.getTotalMonthlyTransactions(any(), anyInt())).thenReturn(
+            BigDecimal.ZERO
+        );
 
         // Act
         TransactionDto result =

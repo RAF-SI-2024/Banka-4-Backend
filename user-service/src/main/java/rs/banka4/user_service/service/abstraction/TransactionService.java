@@ -32,4 +32,6 @@ public interface TransactionService {
     );
 
     TransactionDto getTransactionById(String token, UUID transactionId);
+
+    Page<TransactionDto> getAllTransfersForClient(String token, PageRequest pageRequest);
 }

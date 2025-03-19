@@ -1,11 +1,11 @@
 package rs.banka4.user_service.generator;
 
+import static rs.banka4.user_service.generator.AccountObjectMother.generateBasicToAccount;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
-import rs.banka4.user_service.domain.card.db.CardName;
-import rs.banka4.user_service.domain.card.db.CardStatus;
-import rs.banka4.user_service.domain.card.db.CardType;
+import rs.banka4.user_service.domain.card.db.*;
 import rs.banka4.user_service.domain.card.dtos.AuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
@@ -61,6 +61,33 @@ public class CardObjectMother {
             ),
             "123456"
         );
+    }
+
+    public static Card generateCardWithAllAttributes() {
+        return Card.builder()
+            .id(UUID.randomUUID())
+            .cardNumber("1234567812345678")
+            .cvv("123")
+            .cardName(CardName.VISA)
+            .cardType(CardType.CREDIT)
+            .limit(BigDecimal.valueOf(5000))
+            .cardStatus(CardStatus.ACTIVATED)
+            .account(generateBasicToAccount())
+            .authorizedUser(generateAuthorizedUser())
+            .createdAt(LocalDate.now())
+            .expiresAt(
+                LocalDate.now()
+                    .plusYears(5)
+            )
+            .build();
+    }
+
+    private static AuthorizedUser generateAuthorizedUser() {
+        return AuthorizedUser.builder()
+            .firstName("John")
+            .lastName("Doe")
+            .email("johndoe@example.com")
+            .build();
     }
 
 }

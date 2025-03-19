@@ -145,4 +145,29 @@ public interface TransactionApiDocumentation {
         Authentication auth,
         @Parameter(description = "Transaction ID") UUID id
     );
+
+    @Operation(
+        summary = "Get Client Transfers",
+        description = "Retrieves the list of transfers for the authenticated client. Requires authentication.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successfully retrieved transfers",
+                content = @Content(schema = @Schema(implementation = TransactionDto.class))
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - Token errors"
+            ),
+            @ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - Access denied"
+            )
+        }
+    )
+    ResponseEntity<Page<TransactionDto>> getAllTransfers(
+        Authentication auth,
+        @Parameter(description = "Page number") int page,
+        @Parameter(description = "Number of transfers per page") int size
+    );
 }

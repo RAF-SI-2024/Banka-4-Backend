@@ -17,7 +17,7 @@ presubmits:
               git worktree add --detach /tmp/STYLE_CHECK_SRC_1
               cd /tmp/STYLE_CHECK_SRC_1
               git rebase --exec "\
-                [[ -e .prow/code-formatter.yml ]] || exit 0; \
+                [ -e .prow/code-formatter.yml ] || exit 0; \
                 git --no-pager show --no-patch; \
                 ./gradlew spotlessCheck || touch /tmp/STYLE_CHECK_WHEW; \
               " "${PULL_BASE_SHA}"
@@ -36,7 +36,7 @@ presubmits:
               git worktree add --detach /tmp/STYLE_CHECK_SRC_2
               cd /tmp/STYLE_CHECK_SRC_2
               git rebase --exec "\
-                [[ -e .prow/code-formatter.yml ]] || exit 0; \
+                [ -e .prow/code-formatter.yml ] || exit 0; \
                 git --no-pager show --no-patch; \
                 SKIP=spotless-apply pre-commit run -a --show-diff-on-failure; \
                 git checkout .;\

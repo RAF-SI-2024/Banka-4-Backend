@@ -41,6 +41,7 @@ tasks.jacocoTestReport {
 val integrationTestReport = tasks.register<JacocoReport>("jacocoIntegrationTestReport") {
 	// For some reason, the dumb thing misdetects this path if I pass it
 	// 'integrationTest' directly.
+	group = "verification"
 	executionData(layout.buildDirectory.file("jacoco/integrationTest.exec"))
 	sourceSets(sourceSets.main.get())
 	reports {
