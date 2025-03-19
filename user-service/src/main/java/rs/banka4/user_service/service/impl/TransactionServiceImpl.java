@@ -65,9 +65,9 @@ public class TransactionServiceImpl implements TransactionService {
     ) {
         Client client = getClient(authentication);
 
-//        if (!verifyClient(authentication, createPaymentDto.otpCode())) {
-//            throw new NotValidTotpException();
-//        }
+        if (!verifyClient(authentication, createPaymentDto.otpCode())) {
+            throw new NotValidTotpException();
+        }
 
         Account fromAccount = getAccount(createPaymentDto.fromAccount());
         Account toAccount = getAccount(createPaymentDto.toAccount());
