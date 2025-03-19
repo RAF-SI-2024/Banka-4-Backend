@@ -29,7 +29,7 @@ import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.ClientContactRepository;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.TransactionRepository;
-import rs.banka4.user_service.service.impl.TotpService;
+import rs.banka4.user_service.service.impl.TotpServiceImpl;
 import rs.banka4.user_service.service.impl.TransactionServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
 
@@ -48,7 +48,7 @@ public class TransactionServiceCreateTests {
     @Mock
     private TransactionMapper transactionMapper;
     @Mock
-    private TotpService totpService;
+    private TotpServiceImpl totpService;
     @InjectMocks
     private TransactionServiceImpl transactionService;
     @Mock

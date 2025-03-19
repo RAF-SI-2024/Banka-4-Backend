@@ -25,12 +25,12 @@ import rs.banka4.user_service.exceptions.user.NotFound;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.repositories.UserTotpSecretRepository;
-import rs.banka4.user_service.service.abstraction.TotpAbs;
+import rs.banka4.user_service.service.abstraction.TotpService;
 import rs.banka4.user_service.utils.JwtUtil;
 
 @Service
 @RequiredArgsConstructor
-public class TotpService implements TotpAbs {
+public class TotpServiceImpl implements TotpService {
 
     private static final int SECRET_LENGTH = 32;
     private static final int TIME_PERIOD = 30;

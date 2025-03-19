@@ -26,6 +26,7 @@ import rs.banka4.user_service.exceptions.card.DuplicateAuthorizationException;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.CardRepository;
 import rs.banka4.user_service.service.abstraction.CardService;
+import rs.banka4.user_service.service.abstraction.TotpService;
 import rs.banka4.user_service.utils.JwtUtil;
 
 @Service

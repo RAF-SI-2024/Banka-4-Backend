@@ -16,7 +16,7 @@ import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
 import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
 import rs.banka4.user_service.exceptions.authenticator.NotValidTotpException;
 import rs.banka4.user_service.service.abstraction.AccountService;
-import rs.banka4.user_service.service.impl.TotpService;
+import rs.banka4.user_service.service.abstraction.TotpService;
 
 @RestController
 @RequestMapping("/account")

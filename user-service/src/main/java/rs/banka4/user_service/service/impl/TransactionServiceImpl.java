@@ -31,6 +31,7 @@ import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.ClientContactRepository;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.TransactionRepository;
+import rs.banka4.user_service.service.abstraction.TotpService;
 import rs.banka4.user_service.service.abstraction.TransactionService;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.specification.PaymentSpecification;

@@ -27,7 +27,7 @@ import rs.banka4.user_service.exceptions.card.DuplicateAuthorizationException;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.CardRepository;
 import rs.banka4.user_service.service.impl.CardServiceImpl;
-import rs.banka4.user_service.service.impl.TotpService;
+import rs.banka4.user_service.service.impl.TotpServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 public class CardServiceTests {
@@ -39,7 +39,7 @@ public class CardServiceTests {
     private AccountRepository accountRepository;
 
     @Mock
-    private TotpService totpService;
+    private TotpServiceImpl totpService;
 
     @InjectMocks
     private CardServiceImpl cardService;

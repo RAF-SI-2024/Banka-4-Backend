@@ -3,7 +3,6 @@ package rs.banka4.user_service.service.abstraction;
 import dev.samstevens.totp.code.DefaultCodeVerifier;
 import dev.samstevens.totp.code.HashingAlgorithm;
 import dev.samstevens.totp.secret.DefaultSecretGenerator;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.domain.authenticator.dtos.RegenerateAuthenticatorResponseDto;
 import rs.banka4.user_service.exceptions.authenticator.NoTotpException;
@@ -42,7 +41,7 @@ import rs.banka4.user_service.utils.JwtUtil;
  * @see DefaultSecretGenerator
  * @see DefaultCodeVerifier
  */
-public interface TotpAbs {
+public interface TotpService {
     /**
      * Validates a TOTP code for an authenticated user.
      *

@@ -18,7 +18,7 @@ import rs.banka4.user_service.controller.TotpController;
 import rs.banka4.user_service.domain.authenticator.db.SentCode;
 import rs.banka4.user_service.domain.authenticator.dtos.RegenerateAuthenticatorResponseDto;
 import rs.banka4.user_service.service.impl.CustomUserDetailsService;
-import rs.banka4.user_service.service.impl.TotpService;
+import rs.banka4.user_service.service.impl.TotpServiceImpl;
 import rs.banka4.user_service.util.MockMvcUtil;
 import rs.banka4.user_service.utils.JwtUtil;
 
@@ -31,7 +31,7 @@ public class TotpControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
-    private TotpService totpService;
+    private TotpServiceImpl totpService;
 
     private MockMvcUtil mockMvcUtil;
 
@@ -72,8 +72,8 @@ public class TotpControllerTests {
     @TestConfiguration
     static class MockBeansConfig {
         @Bean
-        public TotpService totpService() {
-            return Mockito.mock(TotpService.class);
+        public TotpServiceImpl totpService() {
+            return Mockito.mock(TotpServiceImpl.class);
         }
 
         @Bean

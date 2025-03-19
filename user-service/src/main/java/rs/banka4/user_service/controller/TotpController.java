@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.controller.docs.TotpControllerDocumentation;
 import rs.banka4.user_service.domain.authenticator.db.SentCode;
 import rs.banka4.user_service.domain.authenticator.dtos.RegenerateAuthenticatorResponseDto;
-import rs.banka4.user_service.service.impl.TotpService;
+import rs.banka4.user_service.service.abstraction.TotpService;
 
 @RestController
 @RequestMapping("/verify")

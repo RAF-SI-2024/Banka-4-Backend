@@ -24,11 +24,11 @@ import rs.banka4.user_service.exceptions.user.NotFound;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.repositories.UserTotpSecretRepository;
-import rs.banka4.user_service.service.impl.TotpService;
+import rs.banka4.user_service.service.impl.TotpServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
 
 @ExtendWith(MockitoExtension.class)
-public class TotpServiceTest {
+public class TotpServiceImplTest {
 
     @Mock
     private JwtUtil jwtUtil;
@@ -43,7 +43,7 @@ public class TotpServiceTest {
     private EmployeeRepository employeeRepository;
 
     @InjectMocks
-    private TotpService totpService;
+    private TotpServiceImpl totpService;
 
     private final String testEmail = "janesmith92@example.com";
     private final String testSecret = "TEST_SECRET_1234567890";
@@ -166,7 +166,7 @@ public class TotpServiceTest {
 
     // ------------------------- Helper Methods -------------------------
     private String generateCodeForSecret(String secret) throws Exception {
-        Method method = TotpService.class.getDeclaredMethod("generateCodeFromSecret", String.class);
+        Method method = TotpServiceImpl.class.getDeclaredMethod("generateCodeFromSecret", String.class);
         method.setAccessible(true);
         return (String) method.invoke(totpService, secret);
     }
