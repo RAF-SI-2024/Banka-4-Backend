@@ -41,5 +41,4 @@ public record CreatePaymentDto(
     ) String paymentPurpose,
     @NotBlank(message = "TOTP code content is required")
     @NotNull(message = "TOTP code cannot be null") String otpCode
-) {
-}
+) implements CreateTransactionDto { }

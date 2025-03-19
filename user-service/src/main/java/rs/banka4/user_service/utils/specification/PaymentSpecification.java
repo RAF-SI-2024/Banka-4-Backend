@@ -1,5 +1,6 @@
 package rs.banka4.user_service.utils.specification;
 
+import jakarta.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.springframework.data.jpa.domain.Specification;
@@ -50,4 +51,19 @@ public class PaymentSpecification {
             ? criteriaBuilder.conjunction()
             : criteriaBuilder.equal(root.get("toAccount"), toAccount);
     }
+
+    public static Specification<Transaction> isNotSpecialTransaction() {
+        return (root, query, criteriaBuilder) -> {
+            String[] specialPrefixes = {
+                "CONV-","TRF-","FEE-"
+            };
+            Predicate[] predicates = new Predicate[specialPrefixes.length];
+            for (int i = 0; i < specialPrefixes.length; i++) {
+                predicates[i] =
+                    criteriaBuilder.notLike(root.get("referenceNumber"), specialPrefixes[i] + "%");
+            }
+            return criteriaBuilder.and(predicates);
+        };
+    }
+
 }

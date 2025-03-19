@@ -46,7 +46,8 @@ public class Currency {
         CHF,
         JPY,
         AUD,
-        CAD;
+        CAD,
+        GBP;
 
         @JsonCreator
         public static Code fromString(String raw) {
