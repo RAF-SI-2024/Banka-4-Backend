@@ -114,6 +114,8 @@ public class AccountServiceImpl implements AccountService {
         connectEmployeeToAccount(account, auth);
         account.setAvailableBalance(createAccountDto.availableBalance());
         account.setBalance(createAccountDto.availableBalance());
+        account.setDailyLimit(BigDecimal.valueOf(1500));
+        account.setMonthlyLimit(BigDecimal.valueOf(15000));
         makeAnAccountNumber(account);
 
         if (createAccountDto.createCard()) {
