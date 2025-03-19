@@ -9,13 +9,17 @@ import rs.banka4.user_service.domain.user.client.db.Client;
 public class CardSpecification {
 
     public static Specification<Card> hasCardNumber(String cardNumber) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("cardNumber"), cardNumber);
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+            root.get("cardNumber"),
+            cardNumber
+        );
     }
 
     public static Specification<Card> hasCardStatus(String status) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("cardStatus"), status);
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+            root.get("cardStatus"),
+            status
+        );
     }
 
     public static Specification<Card> hasFirstName(String firstName) {
@@ -24,8 +28,12 @@ public class CardSpecification {
             Join<Account, Client> clientJoin = accountJoin.join("client");
 
             return criteriaBuilder.or(
-                    criteriaBuilder.equal(clientJoin.get("firstName"), firstName),
-                    criteriaBuilder.equal(root.get("authorizedUser").get("firstName"), firstName)
+                criteriaBuilder.equal(clientJoin.get("firstName"), firstName),
+                criteriaBuilder.equal(
+                    root.get("authorizedUser")
+                        .get("firstName"),
+                    firstName
+                )
             );
         };
     }
@@ -36,8 +44,12 @@ public class CardSpecification {
             Join<Account, Client> clientJoin = accountJoin.join("client");
 
             return criteriaBuilder.or(
-                    criteriaBuilder.equal(clientJoin.get("lastName"), lastName),
-                    criteriaBuilder.equal(root.get("authorizedUser").get("lastName"), lastName)
+                criteriaBuilder.equal(clientJoin.get("lastName"), lastName),
+                criteriaBuilder.equal(
+                    root.get("authorizedUser")
+                        .get("lastName"),
+                    lastName
+                )
             );
         };
     }
@@ -48,8 +60,12 @@ public class CardSpecification {
             Join<Account, Client> clientJoin = accountJoin.join("client");
 
             return criteriaBuilder.or(
-                    criteriaBuilder.equal(clientJoin.get("email"), email),
-                    criteriaBuilder.equal(root.get("authorizedUser").get("email"), email)
+                criteriaBuilder.equal(clientJoin.get("email"), email),
+                criteriaBuilder.equal(
+                    root.get("authorizedUser")
+                        .get("email"),
+                    email
+                )
             );
         };
     }
