@@ -323,35 +323,33 @@ public class AccountServiceCreateTests {
     }
 
     @Test
-    void testAccountNumberCreationBusinessType(){
+    void testAccountNumberCreationBusinessType() {
         CreateAccountDto dto = AccountObjectMother.generateBusinessAccount();
 
         Currency currency =
-                AccountObjectMother.generateBasicEURFromAccount()
-                        .getCurrency();
+            AccountObjectMother.generateBasicEURFromAccount()
+                .getCurrency();
         Client client =
-                AccountObjectMother.generateBasicFromAccount()
-                        .getClient();
+            AccountObjectMother.generateBasicFromAccount()
+                .getClient();
         Employee employee =
-                AccountObjectMother.generateBasicFromAccount()
-                        .getEmployee();
-        Company company =
-                CompanyObjectMother
-                    .createCompanyEntityWithId(client);
+            AccountObjectMother.generateBasicFromAccount()
+                .getEmployee();
+        Company company = CompanyObjectMother.createCompanyEntityWithId(client);
 
         when(currencyRepository.findByCode(dto.currency())).thenReturn(currency);
         when(
-                clientRepository.findById(
-                        dto.client()
-                                .id()
-                )
+            clientRepository.findById(
+                dto.client()
+                    .id()
+            )
         ).thenReturn(Optional.of(client));
 
         when(clientService.createClient(dto.client())).thenReturn(client);
         when(companyService.getCompany(anyString())).thenReturn(Optional.of(company));
         when(jwtUtil.extractUsername("authToken")).thenReturn("employee@example.com");
         when(employeeService.findEmployeeByEmail("employee@example.com")).thenReturn(
-                Optional.of(employee)
+            Optional.of(employee)
         );
 
         accountService.createAccount(dto, "authToken");

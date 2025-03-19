@@ -43,28 +43,28 @@ public class AccountObjectMother {
 
     public static CreateAccountDto generateBusinessAccount() {
         return new CreateAccountDto(
-                new AccountClientIdDto(
-                        UUID.randomUUID(),
-                        "John",
-                        "Doe",
-                        LocalDate.of(1990, 1, 1),
-                        Gender.MALE,
-                        "john.doe@example.com",
-                        "+1234567890",
-                        "123 Grove Street, City, Country",
-                        EnumSet.noneOf(Privilege.class)
-                ),
-                new CompanyDto(
-                        "1231313131213123312",
-                        "Test Plumbing",
-                        "12312312",
-                        "12312313",
-                        "testAdresss",
-                        "testACode"
-                ),
-                BigDecimal.ZERO,
-                Currency.Code.EUR,
-                false
+            new AccountClientIdDto(
+                UUID.randomUUID(),
+                "John",
+                "Doe",
+                LocalDate.of(1990, 1, 1),
+                Gender.MALE,
+                "john.doe@example.com",
+                "+1234567890",
+                "123 Grove Street, City, Country",
+                EnumSet.noneOf(Privilege.class)
+            ),
+            new CompanyDto(
+                "1231313131213123312",
+                "Test Plumbing",
+                "12312312",
+                "12312313",
+                "testAdresss",
+                "testACode"
+            ),
+            BigDecimal.ZERO,
+            Currency.Code.EUR,
+            false
         );
     }
 
@@ -157,22 +157,22 @@ public class AccountObjectMother {
         account.setDailyLimit(BigDecimal.valueOf(1000.00));
         account.setMonthlyLimit(BigDecimal.valueOf(10000.00));
         account.setCurrency(
-                new Currency(
-                        UUID.randomUUID(),
-                        1L,
-                        "European Currency",
-                        "EUR",
-                        "European currency",
-                        true,
-                        Currency.Code.EUR
-                )
+            new Currency(
+                UUID.randomUUID(),
+                1L,
+                "European Currency",
+                "EUR",
+                "European currency",
+                true,
+                Currency.Code.EUR
+            )
         );
         account.setEmployee(EmployeeObjectMother.generateBasicEmployee());
         account.setClient(
-                ClientObjectMother.generateClient(
-                        UUID.fromString("9df5e618-f21d-48a7-a7a4-ac55ea8bec97"),
-                        "markezaa@example.com"
-                )
+            ClientObjectMother.generateClient(
+                UUID.fromString("9df5e618-f21d-48a7-a7a4-ac55ea8bec97"),
+                "markezaa@example.com"
+            )
         );
         return account;
     }

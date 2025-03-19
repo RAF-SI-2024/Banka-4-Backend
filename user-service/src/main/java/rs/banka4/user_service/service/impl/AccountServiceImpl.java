@@ -1,8 +1,8 @@
 package rs.banka4.user_service.service.impl;
 
 import jakarta.transaction.Transactional;
-import java.time.LocalDate;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -311,19 +311,22 @@ public class AccountServiceImpl implements AccountService {
                         .nextLong(0, (long) 1e10 - 1);
                 accountNumber = String.format("4440001%09d", random);
 
-                if(!account.getAccountMaintenance().equals(BigDecimal.ZERO)){
-                    switch(account.getAccountType()){
-                        case AccountType.STANDARD -> accountNumber+="11";
-                        case AccountType.SAVINGS -> accountNumber+="12";
-                        case AccountType.RETIREMENT -> accountNumber+="13";
-                        case AccountType.YOUTH -> accountNumber+="14";
-                        case AccountType.STUDENT -> accountNumber+="15";
-                        default -> accountNumber+="16";
+                if (
+                    !account.getAccountMaintenance()
+                        .equals(BigDecimal.ZERO)
+                ) {
+                    switch (account.getAccountType()) {
+                    case AccountType.STANDARD -> accountNumber += "11";
+                    case AccountType.SAVINGS -> accountNumber += "12";
+                    case AccountType.RETIREMENT -> accountNumber += "13";
+                    case AccountType.YOUTH -> accountNumber += "14";
+                    case AccountType.STUDENT -> accountNumber += "15";
+                    default -> accountNumber += "16";
                     }
-                }else{
-                    switch(account.getAccountType()){
-                        case AccountType.DOO -> accountNumber+="21";
-                        default -> accountNumber+="22";
+                } else {
+                    switch (account.getAccountType()) {
+                    case AccountType.DOO -> accountNumber += "21";
+                    default -> accountNumber += "22";
                     }
                 }
                 account.setAccountNumber(accountNumber);
