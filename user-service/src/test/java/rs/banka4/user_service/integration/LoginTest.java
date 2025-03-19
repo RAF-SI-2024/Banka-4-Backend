@@ -57,6 +57,7 @@ public class LoginTest {
         userGen.createEmployee(x -> x);
         var toks = userGen.doEmployeeLogin("john.doe@example.com", "test");
 
+
         m.post()
             .uri("/auth/refresh-token")
             .contentType(MediaType.APPLICATION_JSON)
