@@ -42,6 +42,7 @@ public class CardServiceMock implements CardService {
 
     @Override
     public ResponseEntity<Page<CardDto>> clientSearchCards(
+        String token,
         String accountNumber,
         Pageable pageable
     ) {
@@ -55,6 +56,7 @@ public class CardServiceMock implements CardService {
 
     @Override
     public ResponseEntity<Page<CardDto>> employeeSearchCards(
+        String token,
         String cardNumber,
         String firstName,
         String lastName,
