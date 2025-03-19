@@ -51,6 +51,14 @@ public interface CardMapper {
             target = "expirationDate",
             source = "expiresAt"
     )
+    @Mapping(
+            target = "authorizedUserDto",
+            source = "authorizedUser"
+    )
+    @Mapping(
+            target = "authorizedUserDto.id",
+            source = "authorizedUser.userId"
+    )
     CardDto toDto(Card card);
 
     @Mapping(
