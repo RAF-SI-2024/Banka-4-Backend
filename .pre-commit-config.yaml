@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+    - id: trailing-whitespace
+      args: [--markdown-linebreak-ext=md]
+    - id: end-of-file-fixer
+      # The SQL files are checksummed, so, can't be edited.  When people were
+      # writing them, their editors were wrong.  Now we can't fix them.  Truly
+      # a tragedy.
+      exclude: ^.*/db/migration/V([1-9]|1[0-7])__.*\.sql$
+    - id: check-added-large-files
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 25.1.0
+    hooks:
+      - id: black
+  - repo: https://github.com/pycqa/isort
+    rev: 6.0.1
+    hooks:
+      - id: isort
+        name: isort (python)
+  - repo: local
+    hooks:
+      - id: spotless-apply
+        name: Apply Spotless rules
+        language: system
+        pass_filenames: false
+        entry: ./gradlew spotlessApply

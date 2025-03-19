@@ -1,6 +1,11 @@
 package rs.banka4.user_service.unit.filters;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
 import jakarta.servlet.FilterChain;
+import java.util.ArrayList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,12 +22,6 @@ import rs.banka4.user_service.exceptions.RouteNotFound;
 import rs.banka4.user_service.exceptions.jwt.NoJwtProvided;
 import rs.banka4.user_service.service.impl.CustomUserDetailsService;
 import rs.banka4.user_service.utils.JwtUtil;
-
-import java.util.ArrayList;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 public class RoutesFilterTests {
 
@@ -78,7 +77,13 @@ public class RoutesFilterTests {
         when(handlerMapping.getHandler(request)).thenReturn(handlerExecutionChain);
         when(jwtUtil.extractUsername(token)).thenReturn("username");
         when(jwtUtil.validateToken(token, "username")).thenReturn(true);
-        when(customUserDetailsService.loadUserByUsername("username")).thenReturn(new org.springframework.security.core.userdetails.User("username", "", new ArrayList<>()));
+        when(customUserDetailsService.loadUserByUsername("username")).thenReturn(
+            new org.springframework.security.core.userdetails.User(
+                "username",
+                "",
+                new ArrayList<>()
+            )
+        );
 
         // Act
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);

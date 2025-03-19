@@ -1,0 +1,10 @@
+root = true
+
+[*]
+# Stop misconfigured editors from messing up files.
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.kts]
+# Gradle Kotlin scripts use tabs for indentation, for some reason.
+indent_style = tab

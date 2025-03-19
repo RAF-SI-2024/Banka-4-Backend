@@ -1,5 +1,9 @@
 package rs.banka4.user_service.unit.loan;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +18,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
+import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.dtos.LoanApplicationDto;
 import rs.banka4.user_service.domain.loan.dtos.LoanInformationDto;
@@ -29,12 +34,6 @@ import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.impl.LoanServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
-import rs.banka4.user_service.utils.specification.SpecificationCombinator;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ListingLoansTests {
@@ -75,11 +74,19 @@ public class ListingLoansTests {
 
         UUID accountId = UUID.randomUUID();
 
+        rs.banka4.user_service.domain.currency.db.Currency currency = new Currency();
+        currency.setId(UUID.randomUUID());
+        currency.setName("EUR");
+        currency.setActive(true);
+        currency.setSymbol("E");
+        currency.setVersion(0L);
+
         account = new Account();
         account.setId(accountId);
         account.setClient(client);
         account.setAccountNumber("444394438340549");
         account.setActive(true);
+        account.setCurrency(currency);
 
         accountDto = AccountObjectMother.generateBasicAccountDto();
     }
@@ -89,8 +96,7 @@ public class ListingLoansTests {
         PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "amount"));
         when(jwtUtil.extractUsername(anyString())).thenReturn("test@example.com");
         when(clientService.getClientByEmail("test@example.com")).thenReturn(Optional.of(client));
-        when(accountService.getAccountsForClient(anyString()))
-                .thenReturn(Set.of(accountDto));
+        when(accountService.getAccountsForClient(anyString())).thenReturn(Set.of(accountDto));
 
         Loan loan = new Loan();
         loan.setAccount(account);
@@ -99,14 +105,20 @@ public class ListingLoansTests {
 
         Page<Loan> loanPage = new PageImpl<>(loans, pageRequest, loans.size());
 
-        when(loanRepository.findAll(any(Specification.class),any(PageRequest.class)))
-                .thenReturn(loanPage);
+        when(loanRepository.findAll(any(Specification.class), any(PageRequest.class))).thenReturn(
+            loanPage
+        );
 
-        ResponseEntity<Page<LoanInformationDto>> response = loanService.getMyLoans(anyString(), pageRequest);
+        ResponseEntity<Page<LoanInformationDto>> response =
+            loanService.getMyLoans(anyString(), pageRequest);
 
         assertNotNull(response);
 
-        assertEquals(1, response.getBody().getTotalElements());
+        assertEquals(
+            1,
+            response.getBody()
+                .getTotalElements()
+        );
     }
 
     @Test
@@ -114,12 +126,15 @@ public class ListingLoansTests {
         when(jwtUtil.extractUsername(anyString())).thenReturn("test@example.com");
         when(clientService.getClientByEmail("test@example.com")).thenReturn(Optional.empty());
 
-        assertThrows(ClientNotFound.class, () -> loanService.getMyLoans(anyString(), PageRequest.of(0, 10)));
+        assertThrows(
+            ClientNotFound.class,
+            () -> loanService.getMyLoans(anyString(), PageRequest.of(0, 10))
+        );
     }
 
     @Test
-    void invalidPageRequest(){
-        assertThrows(NullPageRequest.class, () -> loanService.getMyLoans("Bearer token",null));
+    void invalidPageRequest() {
+        assertThrows(NullPageRequest.class, () -> loanService.getMyLoans("Bearer token", null));
     }
 
     @Test
@@ -128,7 +143,10 @@ public class ListingLoansTests {
         when(clientService.getClientByEmail("test@example.com")).thenReturn(Optional.of(client));
         when(accountService.getAccountsForClient(anyString())).thenReturn(Set.of());
 
-        assertThrows(NoLoansOnAccount.class, () -> loanService.getMyLoans(anyString(), PageRequest.of(0, 10)));
+        assertThrows(
+            NoLoansOnAccount.class,
+            () -> loanService.getMyLoans(anyString(), PageRequest.of(0, 10))
+        );
     }
 
 }

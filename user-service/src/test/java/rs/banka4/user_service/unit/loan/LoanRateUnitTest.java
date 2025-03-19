@@ -1,5 +1,11 @@
 package rs.banka4.user_service.unit.loan;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,13 +17,6 @@ import rs.banka4.user_service.domain.loan.db.LoanType;
 import rs.banka4.user_service.exceptions.loan.LoanTypeNotFound;
 import rs.banka4.user_service.repositories.BankMarginRepository;
 import rs.banka4.user_service.utils.loans.LoanRateUtil;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LoanRateUtilTest {
@@ -41,7 +40,9 @@ class LoanRateUtilTest {
         BigDecimal referenceValue = new BigDecimal("5.0");
         LoanType loanType = LoanType.AUTO_LOAN;
 
-        when(bankMarginRepository.findBankMarginByType(loanType)).thenReturn(Optional.of(fixedLoanMargin));
+        when(bankMarginRepository.findBankMarginByType(loanType)).thenReturn(
+            Optional.of(fixedLoanMargin)
+        );
 
         BigDecimal result = loanRateUtil.calculateInterestRate(referenceValue, loanType);
         assertNotNull(result);
@@ -53,7 +54,10 @@ class LoanRateUtilTest {
         LoanType loanType = LoanType.CASH;
         when(bankMarginRepository.findBankMarginByType(loanType)).thenReturn(Optional.empty());
 
-        assertThrows(LoanTypeNotFound.class, () -> loanRateUtil.calculateInterestRate(BigDecimal.TEN, loanType));
+        assertThrows(
+            LoanTypeNotFound.class,
+            () -> loanRateUtil.calculateInterestRate(BigDecimal.TEN, loanType)
+        );
     }
 
     @Test
@@ -62,7 +66,8 @@ class LoanRateUtilTest {
         BigDecimal monthlyInterestRate = new BigDecimal("0.005");
         BigInteger numberOfInstallments = BigInteger.valueOf(12);
 
-        BigDecimal result = loanRateUtil.calculateMonthly(loanAmount, monthlyInterestRate, numberOfInstallments);
+        BigDecimal result =
+            loanRateUtil.calculateMonthly(loanAmount, monthlyInterestRate, numberOfInstallments);
 
         assertNotNull(result);
         assertTrue(result.compareTo(BigDecimal.ZERO) > 0);
@@ -74,7 +79,8 @@ class LoanRateUtilTest {
         BigDecimal monthlyInterestRate = BigDecimal.ZERO;
         BigInteger numberOfInstallments = BigInteger.valueOf(12);
 
-        BigDecimal result = loanRateUtil.calculateMonthly(loanAmount, monthlyInterestRate, numberOfInstallments);
+        BigDecimal result =
+            loanRateUtil.calculateMonthly(loanAmount, monthlyInterestRate, numberOfInstallments);
 
         assertEquals(new BigDecimal("10000.0000000000"), result);
     }

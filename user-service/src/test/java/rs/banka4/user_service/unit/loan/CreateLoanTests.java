@@ -1,6 +1,13 @@
 package rs.banka4.user_service.unit.loan;
 
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +23,6 @@ import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.exceptions.account.AccountNotActive;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
 import rs.banka4.user_service.exceptions.account.NotAccountOwner;
-import rs.banka4.user_service.exceptions.user.NotFound;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.generator.LoanObjectMother;
 import rs.banka4.user_service.repositories.InterestRateRepository;
@@ -27,14 +33,6 @@ import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.impl.LoanServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.loans.LoanRateUtil;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateLoanTests {
@@ -91,10 +89,14 @@ public class CreateLoanTests {
         when(clientService.getClientByEmail("test@example.com")).thenReturn(Optional.of(client));
         when(accountService.getAccountByAccountNumber("444394438340549")).thenReturn(account);
         when(loanRepository.save(any(Loan.class))).thenReturn(new Loan());
-        when(interestRateRepository.findByAmountAndDate(BigDecimal.valueOf(1000.0), LocalDate.now())).thenReturn(Optional.of(new InterestRate()));
+        when(
+            interestRateRepository.findByAmountAndDate(BigDecimal.valueOf(1000.0), LocalDate.now())
+        ).thenReturn(Optional.of(new InterestRate()));
 
 
-        assertDoesNotThrow(() -> loanService.createLoanApplication(loanApplicationDto, anyString()));
+        assertDoesNotThrow(
+            () -> loanService.createLoanApplication(loanApplicationDto, anyString())
+        );
     }
 
     @Test
@@ -102,16 +104,24 @@ public class CreateLoanTests {
         when(jwtUtil.extractUsername(anyString())).thenReturn("test@example.com");
         when(clientService.getClientByEmail("test@example.com")).thenReturn(Optional.empty());
 
-        assertThrows(ClientNotFound.class, () -> loanService.createLoanApplication(loanApplicationDto,  anyString()));
+        assertThrows(
+            ClientNotFound.class,
+            () -> loanService.createLoanApplication(loanApplicationDto, anyString())
+        );
     }
 
     @Test
     void connectAccountToLoan_AccountNotFound() {
         when(jwtUtil.extractUsername(anyString())).thenReturn("test@example.com");
         when(clientService.getClientByEmail("test@example.com")).thenReturn(Optional.of(client));
-        when(accountService.getAccountByAccountNumber("444394438340549")).thenThrow(new AccountNotFound());
+        when(accountService.getAccountByAccountNumber("444394438340549")).thenThrow(
+            new AccountNotFound()
+        );
 
-        assertThrows(AccountNotFound.class, () -> loanService.createLoanApplication(loanApplicationDto, anyString()));
+        assertThrows(
+            AccountNotFound.class,
+            () -> loanService.createLoanApplication(loanApplicationDto, anyString())
+        );
     }
 
     @Test
@@ -123,7 +133,10 @@ public class CreateLoanTests {
 
         account.setActive(false);
 
-        assertThrows(AccountNotActive.class, () -> loanService.createLoanApplication(loanApplicationDto, anyString()));
+        assertThrows(
+            AccountNotActive.class,
+            () -> loanService.createLoanApplication(loanApplicationDto, anyString())
+        );
     }
 
     @Test
@@ -133,9 +146,13 @@ public class CreateLoanTests {
 
         when(accountService.getAccountByAccountNumber("444394438340549")).thenReturn(account);
 
-        when(interestRateRepository.findByAmountAndDate(BigDecimal.valueOf(1000.0), LocalDate.now())).thenReturn(Optional.of(new InterestRate()));
+        when(
+            interestRateRepository.findByAmountAndDate(BigDecimal.valueOf(1000.0), LocalDate.now())
+        ).thenReturn(Optional.of(new InterestRate()));
 
-        assertDoesNotThrow(() -> loanService.createLoanApplication(loanApplicationDto, anyString()));
+        assertDoesNotThrow(
+            () -> loanService.createLoanApplication(loanApplicationDto, anyString())
+        );
 
         Loan loan = new Loan();
         loan.setAccount(account);
@@ -144,7 +161,11 @@ public class CreateLoanTests {
 
         assertEquals(loanApplicationDto.amount(), loan.getAmount());
         assertEquals(loanApplicationDto.interestType(), loan.getInterestType());
-        assertEquals(loanApplicationDto.accountNumber(), loan.getAccount().getAccountNumber());
+        assertEquals(
+            loanApplicationDto.accountNumber(),
+            loan.getAccount()
+                .getAccountNumber()
+        );
     }
 
     @Test
@@ -154,9 +175,13 @@ public class CreateLoanTests {
 
         when(accountService.getAccountByAccountNumber("444394438340549")).thenReturn(account);
 
-        account.getClient().setEmail("aaaa@example.com");
+        account.getClient()
+            .setEmail("aaaa@example.com");
 
-        assertThrows(NotAccountOwner.class, () -> loanService.createLoanApplication(loanApplicationDto, anyString()));
+        assertThrows(
+            NotAccountOwner.class,
+            () -> loanService.createLoanApplication(loanApplicationDto, anyString())
+        );
     }
 
     @Test
@@ -166,17 +191,21 @@ public class CreateLoanTests {
 
         when(accountService.getAccountByAccountNumber("444394438340549")).thenReturn(account);
 
-        when(interestRateRepository.findByAmountAndDate(BigDecimal.valueOf(1000.0),LocalDate.now())).thenReturn(Optional.of(new InterestRate()));
+        when(
+            interestRateRepository.findByAmountAndDate(BigDecimal.valueOf(1000.0), LocalDate.now())
+        ).thenReturn(Optional.of(new InterestRate()));
 
         Loan loan = new Loan();
         when(loanRepository.save(any(Loan.class))).thenReturn(loan);
         loan.setLoanNumber(321432L);
 
-        assertDoesNotThrow(() -> loanService.createLoanApplication(loanApplicationDto, anyString()));
+        assertDoesNotThrow(
+            () -> loanService.createLoanApplication(loanApplicationDto, anyString())
+        );
 
         assertNotNull(loan.getLoanNumber());
 
-        verify(loanRepository,times(1)).save(any(Loan.class));
+        verify(loanRepository, times(1)).save(any(Loan.class));
     }
 
     @Test
@@ -188,19 +217,24 @@ public class CreateLoanTests {
 
 
         Loan loan = new Loan();
-        when(loanRepository.save(any(Loan.class)))
-                .thenThrow(new DataIntegrityViolationException("Duplicate"))
-                .thenReturn(loan);
+        when(loanRepository.save(any(Loan.class))).thenThrow(
+            new DataIntegrityViolationException("Duplicate")
+        )
+            .thenReturn(loan);
 
-        when(interestRateRepository.findByAmountAndDate(BigDecimal.valueOf(1000.0), LocalDate.now())).thenReturn(Optional.of(new InterestRate()));
+        when(
+            interestRateRepository.findByAmountAndDate(BigDecimal.valueOf(1000.0), LocalDate.now())
+        ).thenReturn(Optional.of(new InterestRate()));
 
         loan.setLoanNumber(321432L);
 
-        assertDoesNotThrow(() -> loanService.createLoanApplication(loanApplicationDto,anyString()));
+        assertDoesNotThrow(
+            () -> loanService.createLoanApplication(loanApplicationDto, anyString())
+        );
 
         assertNotNull(loan.getLoanNumber());
 
-        verify(loanRepository,atLeast(2)).save(any(Loan.class));
+        verify(loanRepository, atLeast(2)).save(any(Loan.class));
     }
 
 }

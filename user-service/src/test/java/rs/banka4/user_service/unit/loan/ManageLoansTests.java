@@ -1,5 +1,11 @@
 package rs.banka4.user_service.unit.loan;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
+import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -15,18 +21,12 @@ import rs.banka4.user_service.repositories.LoanRepository;
 import rs.banka4.user_service.service.impl.LoanServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
 
-import java.time.LocalDate;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-
 public class ManageLoansTests {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
+
     @Mock
     private LoanRepository loanRepository;
     @Mock
@@ -37,19 +37,21 @@ public class ManageLoansTests {
     private LoanServiceImpl loanService;
 
     @Test
-    void unauthorizedJwt_approveLoan(){
+    void unauthorizedJwt_approveLoan() {
         when(jwtUtil.extractRole("jwt")).thenReturn("client");
 
-        assertThrows(Unauthorized.class, () -> loanService.approveLoan(123L,"jwt"));
+        assertThrows(Unauthorized.class, () -> loanService.approveLoan(123L, "jwt"));
         verify(loanRepository, never()).save(any(Loan.class));
     }
+
     @Test
-    void unauthorizedJwt_rejectLoan(){
+    void unauthorizedJwt_rejectLoan() {
         when(jwtUtil.extractRole("jwt")).thenReturn("client");
 
-        assertThrows(Unauthorized.class, () -> loanService.rejectLoan(123L,"jwt"));
+        assertThrows(Unauthorized.class, () -> loanService.rejectLoan(123L, "jwt"));
         verify(loanRepository, never()).save(any(Loan.class));
     }
+
     @Test
     void approveLoan_loanStatusBad() {
         Long loanNumber = 123L;
@@ -60,14 +62,14 @@ public class ManageLoansTests {
 
         when(jwtUtil.extractRole("jwt")).thenReturn("employee");
 
-        when(loanRepository.findByLoanNumber(loanNumber))
-                .thenReturn(Optional.of(loan));
+        when(loanRepository.findByLoanNumber(loanNumber)).thenReturn(Optional.of(loan));
         when(loanRepository.save(loan)).thenReturn(loan);
 
 
-        assertThrows(InvalidLoanStatus.class,() -> loanService.approveLoan(loanNumber,"jwt"));
-        verify(loanRepository,never()).save(loan);
+        assertThrows(InvalidLoanStatus.class, () -> loanService.approveLoan(loanNumber, "jwt"));
+        verify(loanRepository, never()).save(loan);
     }
+
     @Test
     void rejectLoan_loanStatusBad() {
         Long loanNumber = 123L;
@@ -78,13 +80,12 @@ public class ManageLoansTests {
 
         when(jwtUtil.extractRole("jwt")).thenReturn("employee");
 
-        when(loanRepository.findByLoanNumber(loanNumber))
-                .thenReturn(Optional.of(loan));
+        when(loanRepository.findByLoanNumber(loanNumber)).thenReturn(Optional.of(loan));
         when(loanRepository.save(loan)).thenReturn(loan);
 
 
-        assertThrows(InvalidLoanStatus.class,() -> loanService.rejectLoan(loanNumber,"jwt"));
-        verify(loanRepository,never()).save(loan);
+        assertThrows(InvalidLoanStatus.class, () -> loanService.rejectLoan(loanNumber, "jwt"));
+        verify(loanRepository, never()).save(loan);
     }
 
     @Test
@@ -97,15 +98,22 @@ public class ManageLoansTests {
 
         when(jwtUtil.extractRole("jwt")).thenReturn("employee");
 
-        when(loanRepository.findByLoanNumber(loanNumber))
-                .thenReturn(Optional.of(loan));
+        when(loanRepository.findByLoanNumber(loanNumber)).thenReturn(Optional.of(loan));
         when(loanRepository.save(loan)).thenReturn(loan);
 
-        loanService.approveLoan(loanNumber,"jwt");
+        loanService.approveLoan(loanNumber, "jwt");
 
         assertEquals(loan.getAgreementDate(), LocalDate.now());
-        assertEquals(loan.getNextInstallmentDate(), LocalDate.now().plusMonths(1));
-        assertEquals(loan.getDueDate(), LocalDate.now().plusMonths(3));
+        assertEquals(
+            loan.getNextInstallmentDate(),
+            LocalDate.now()
+                .plusMonths(1)
+        );
+        assertEquals(
+            loan.getDueDate(),
+            LocalDate.now()
+                .plusMonths(3)
+        );
         assertEquals(LoanStatus.APPROVED, loan.getStatus());
         verify(loanRepository).save(loan);
     }
@@ -113,12 +121,10 @@ public class ManageLoansTests {
     @Test
     void approveLoan_notFound() {
         Long loanNumber = 123L;
-        when(loanRepository.findByLoanNumber(loanNumber))
-                .thenReturn(Optional.empty());
+        when(loanRepository.findByLoanNumber(loanNumber)).thenReturn(Optional.empty());
         when(jwtUtil.extractRole("jwt")).thenReturn("employee");
 
-
-        assertThrows(LoanNotFound.class, () -> loanService.approveLoan(loanNumber,"jwt"));
+        assertThrows(LoanNotFound.class, () -> loanService.approveLoan(loanNumber, "jwt"));
         verify(loanRepository, never()).save(any(Loan.class));
     }
 
@@ -130,8 +136,7 @@ public class ManageLoansTests {
         loan.setStatus(LoanStatus.PROCESSING);
 
         when(jwtUtil.extractRole("jwt")).thenReturn("employee");
-        when(loanRepository.findByLoanNumber(loanNumber))
-                .thenReturn(Optional.of(loan));
+        when(loanRepository.findByLoanNumber(loanNumber)).thenReturn(Optional.of(loan));
         when(loanRepository.save(loan)).thenReturn(loan);
 
         loanService.rejectLoan(loanNumber, "jwt");
@@ -145,10 +150,9 @@ public class ManageLoansTests {
         Long loanNumber = 456L;
 
         when(jwtUtil.extractRole("jwt")).thenReturn("employee");
-        when(loanRepository.findByLoanNumber(loanNumber))
-                .thenReturn(Optional.empty());
+        when(loanRepository.findByLoanNumber(loanNumber)).thenReturn(Optional.empty());
 
-        assertThrows(LoanNotFound.class, () -> loanService.rejectLoan(loanNumber,"jwt"));
+        assertThrows(LoanNotFound.class, () -> loanService.rejectLoan(loanNumber, "jwt"));
         verify(loanRepository, never()).save(any(Loan.class));
     }
 }

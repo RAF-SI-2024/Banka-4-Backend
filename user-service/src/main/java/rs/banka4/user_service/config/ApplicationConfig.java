@@ -13,17 +13,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import rs.banka4.user_service.service.impl.CustomUserDetailsService;
 
 @Configuration
-@EnableSpringDataWebSupport(pageSerializationMode=PageSerializationMode.VIA_DTO)
+@EnableSpringDataWebSupport(pageSerializationMode = PageSerializationMode.VIA_DTO)
 public class ApplicationConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
 
-    public ApplicationConfig(CustomUserDetailsService customUserDetailsService){
+    public ApplicationConfig(CustomUserDetailsService customUserDetailsService) {
         this.customUserDetailsService = customUserDetailsService;
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(){
+    public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(customUserDetailsService);
         authenticationProvider.setPasswordEncoder(passwordEncoder());
@@ -31,12 +31,13 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
+        throws Exception {
         return config.getAuthenticationManager();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }

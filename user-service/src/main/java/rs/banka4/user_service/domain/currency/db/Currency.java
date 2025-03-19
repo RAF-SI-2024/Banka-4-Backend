@@ -2,12 +2,11 @@ package rs.banka4.user_service.domain.currency.db;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.persistence.*;
+import java.util.Objects;
+import java.util.UUID;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 import rs.banka4.user_service.exceptions.account.InvalidCurrency;
-
-import java.util.Objects;
-import java.util.UUID;
 
 @Entity
 @NoArgsConstructor
@@ -41,7 +40,14 @@ public class Currency {
     private Code code;
 
     public enum Code {
-        RSD, EUR, USD, CHF, JPY, AUD, CAD;
+        RSD,
+        EUR,
+        USD,
+        CHF,
+        JPY,
+        AUD,
+        CAD;
+
         @JsonCreator
         public static Code fromString(String raw) {
             try {
@@ -54,18 +60,23 @@ public class Currency {
 
     @Override
     public String toString() {
-        return "Currency{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                '}';
+        return "Currency{" + "id=" + id + ", name='" + name + '\'' + '}';
     }
 
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
         if (o == null) return false;
-        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
-        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        Class<?> oEffectiveClass =
+            o instanceof HibernateProxy
+                ? ((HibernateProxy) o).getHibernateLazyInitializer()
+                    .getPersistentClass()
+                : o.getClass();
+        Class<?> thisEffectiveClass =
+            this instanceof HibernateProxy
+                ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                    .getPersistentClass()
+                : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
         Currency currency = (Currency) o;
         return getId() != null && Objects.equals(getId(), currency.getId());
@@ -73,6 +84,10 @@ public class Currency {
 
     @Override
     public final int hashCode() {
-        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+        return this instanceof HibernateProxy
+            ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                .getPersistentClass()
+                .hashCode()
+            : getClass().hashCode();
     }
 }

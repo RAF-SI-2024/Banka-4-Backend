@@ -4,8 +4,8 @@ import rs.banka4.user_service.domain.loan.db.LoanStatus;
 import rs.banka4.user_service.domain.loan.db.LoanType;
 
 public record LoanFilterDto(
-         LoanType type,
-         LoanStatus status,
-         String accountNumber
+    LoanType type,
+    LoanStatus status,
+    String accountNumber
 ) {
 }

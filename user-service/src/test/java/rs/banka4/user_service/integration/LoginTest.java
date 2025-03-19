@@ -1,21 +1,18 @@
 package rs.banka4.user_service.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import rs.banka4.testlib.integration.DbEnabledTest;
 import rs.banka4.user_service.integration.generator.UserGenerator;
-import rs.banka4.user_service.integration.utils.DbEnabledTest;
 import rs.banka4.user_service.utils.JwtUtil;
-
-import static org.assertj.core.api.Assertions.*;
-
-import java.util.Map;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -39,21 +36,20 @@ public class LoginTest {
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .content("""
-                     {
-                       "email": "john.doe@example.com",
-                       "password": "test"
-                     }
-                     """)
-
+                {
+                  "email": "john.doe@example.com",
+                  "password": "test"
+                }
+                """)
             .assertThat()
             .hasStatusOk()
             .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
             .bodyJson()
             .extractingPath("refreshToken")
             .asString()
-            .satisfies(rt ->
-                assertThat(jwtUtil.extractUsername(rt))
-                    .isEqualTo("john.doe@example.com"));
+            .satisfies(
+                rt -> assertThat(jwtUtil.extractUsername(rt)).isEqualTo("john.doe@example.com")
+            );
     }
 
     @Test
@@ -65,18 +61,15 @@ public class LoginTest {
             .uri("/auth/refresh-token")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .content(objMapper.writeValueAsString(
-                Map.of("refreshToken", toks.refreshToken())
-            ))
-
+            .content(objMapper.writeValueAsString(Map.of("refreshToken", toks.refreshToken())))
             .assertThat()
             .hasStatusOk()
             .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
             .bodyJson()
             .extractingPath("accessToken")
             .asString()
-            .satisfies(rt ->
-                assertThat(jwtUtil.extractUsername(rt))
-                    .isEqualTo("john.doe@example.com"));
+            .satisfies(
+                rt -> assertThat(jwtUtil.extractUsername(rt)).isEqualTo("john.doe@example.com")
+            );
     }
 }

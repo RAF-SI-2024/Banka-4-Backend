@@ -2,11 +2,10 @@ package rs.banka4.user_service.domain.loan.db;
 
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import lombok.*;
 
 @Entity
 @Getter
@@ -21,19 +20,34 @@ public class InterestRate {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "min_amount", nullable = false)
+    @Column(
+        name = "min_amount",
+        nullable = false
+    )
     private BigDecimal minAmount;
 
-    @Column(name = "max_amount", nullable = false)
+    @Column(
+        name = "max_amount",
+        nullable = false
+    )
     private BigDecimal maxAmount;
 
-    @Column(name = "fixed_rate", nullable = false)
+    @Column(
+        name = "fixed_rate",
+        nullable = false
+    )
     private BigDecimal fixedRate;
 
-    @Column(name = "date_active_from", nullable = false)
+    @Column(
+        name = "date_active_from",
+        nullable = false
+    )
     private LocalDate dateActiveFrom;
 
-    @Column(name = "date_active_to", nullable = false)
+    @Column(
+        name = "date_active_to",
+        nullable = false
+    )
     private LocalDate dateActiveTo;
 
 
@@ -49,13 +63,19 @@ public class InterestRate {
 
     @Override
     public String toString() {
-        return "InterestRate{" +
-                "id=" + id +
-                ", minAmount=" + minAmount +
-                ", maxAmount=" + maxAmount +
-                ", fixedRate=" + fixedRate +
-                ", dateActiveFrom=" + dateActiveFrom +
-                ", dateActiveTo=" + dateActiveTo +
-                '}';
+        return "InterestRate{"
+            + "id="
+            + id
+            + ", minAmount="
+            + minAmount
+            + ", maxAmount="
+            + maxAmount
+            + ", fixedRate="
+            + fixedRate
+            + ", dateActiveFrom="
+            + dateActiveFrom
+            + ", dateActiveTo="
+            + dateActiveTo
+            + '}';
     }
 }

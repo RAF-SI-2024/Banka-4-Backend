@@ -1,5 +1,12 @@
 package rs.banka4.user_service.unit.loan;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,14 +26,6 @@ import rs.banka4.user_service.repositories.LoanInstallmentRepository;
 import rs.banka4.user_service.repositories.LoanRepository;
 import rs.banka4.user_service.utils.loans.LoanInstallmentScheduler;
 import rs.banka4.user_service.utils.loans.LoanRateUtil;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
-
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class LoanInstallmentSchedulerTest {
@@ -66,7 +65,7 @@ class LoanInstallmentSchedulerTest {
         account.setAvailableBalance(new BigDecimal("5000"));
 
         Currency currency = new Currency();
-        currency.setCode(Currency.Code.RSD);  // Use the appropriate currency code
+        currency.setCode(Currency.Code.RSD); // Use the appropriate currency code
         account.setCurrency(currency); // Ensure account has a currency
 
 
@@ -92,17 +91,25 @@ class LoanInstallmentSchedulerTest {
         installment.setLoan(loan);
         installment.setInstallmentAmount(new BigDecimal("1000"));
         installment.setPaymentStatus(PaymentStatus.DELAYED);
-        installment.setExpectedDueDate(LocalDate.now().minusDays(3));
+        installment.setExpectedDueDate(
+            LocalDate.now()
+                .minusDays(3)
+        );
         installment.setInterestRateAmount(loan.getBaseInterestRate());
-        when(applicationContext.getBean(LoanInstallmentScheduler.class)).thenReturn(loanInstallmentScheduler);
+        when(applicationContext.getBean(LoanInstallmentScheduler.class)).thenReturn(
+            loanInstallmentScheduler
+        );
     }
-
 
 
     @Test
     void testProcessDueInstallments_ShouldPayInstallmentIfPossible() {
-        when(loanInstallmentRepository.findByExpectedDueDateAndPaymentStatus(LocalDate.now(), PaymentStatus.UNPAID))
-                .thenReturn(List.of(installment));
+        when(
+            loanInstallmentRepository.findByExpectedDueDateAndPaymentStatus(
+                LocalDate.now(),
+                PaymentStatus.UNPAID
+            )
+        ).thenReturn(List.of(installment));
 
         loanInstallmentScheduler.processDueInstallments();
 
@@ -112,43 +119,75 @@ class LoanInstallmentSchedulerTest {
         verify(accountRepository).save(account);
         verify(loanRepository).save(loan);
         verify(loanInstallmentRepository).save(installment);
-        verify(rabbitTemplate).convertAndSend(anyString(), anyString(), any(NotificationTransferDto.class));
+        verify(rabbitTemplate).convertAndSend(
+            anyString(),
+            anyString(),
+            any(NotificationTransferDto.class)
+        );
     }
 
     @Test
     void testRetryDelayedInstallments_ShouldRetryIfDelayed() {
         // Given: Delayed installment with expected due date 3 days ago
         installment.setPaymentStatus(PaymentStatus.DELAYED);
-        installment.setExpectedDueDate(LocalDate.now().minusDays(2));
+        installment.setExpectedDueDate(
+            LocalDate.now()
+                .minusDays(2)
+        );
 
-        when(loanInstallmentRepository.findRecentDelayedInstallments(
-                PaymentStatus.DELAYED, LocalDate.now().minusDays(3)))
-                .thenReturn(List.of(installment));
+        when(
+            loanInstallmentRepository.findRecentDelayedInstallments(
+                PaymentStatus.DELAYED,
+                LocalDate.now()
+                    .minusDays(3)
+            )
+        ).thenReturn(List.of(installment));
 
         // When: Retrying delayed installment payments
         loanInstallmentScheduler.retryDelayedInstallments();
 
         // Verify that payInstallmentIfPossible() was actually called
-        verify(loanInstallmentRepository, times(1)).findRecentDelayedInstallments(PaymentStatus.DELAYED, LocalDate.now().minusDays(3));
+        verify(loanInstallmentRepository, times(1)).findRecentDelayedInstallments(
+            PaymentStatus.DELAYED,
+            LocalDate.now()
+                .minusDays(3)
+        );
         verify(loanInstallmentRepository, times(1)).save(installment);
         verify(loanRepository, times(1)).save(loan);
         verify(accountRepository, times(1)).save(account);
 
         // Then: Installment should now be PAID
-        assertEquals(PaymentStatus.PAID, installment.getPaymentStatus(), "Installment should be marked as PAID");
+        assertEquals(
+            PaymentStatus.PAID,
+            installment.getPaymentStatus(),
+            "Installment should be marked as PAID"
+        );
 
         // Remaining debt should be reduced
-        assertEquals(new BigDecimal("0"), loan.getRemainingDebt(), "Loan remaining debt should be zero after payment");
+        assertEquals(
+            new BigDecimal("0"),
+            loan.getRemainingDebt(),
+            "Loan remaining debt should be zero after payment"
+        );
 
         // Available balance should be updated correctly
-        assertEquals(new BigDecimal("4000"), account.getAvailableBalance(), "Account balance should be updated after payment");
+        assertEquals(
+            new BigDecimal("4000"),
+            account.getAvailableBalance(),
+            "Account balance should be updated after payment"
+        );
     }
 
 
     @Test
     void testApplyLatePaymentPenalties_ShouldApplyPenalty() {
-        when(loanInstallmentRepository.findByPaymentStatusAndExpectedDueDate(PaymentStatus.DELAYED, LocalDate.now().minusDays(3)))
-                .thenReturn(List.of(installment));
+        when(
+            loanInstallmentRepository.findByPaymentStatusAndExpectedDueDate(
+                PaymentStatus.DELAYED,
+                LocalDate.now()
+                    .minusDays(3)
+            )
+        ).thenReturn(List.of(installment));
 
         loanInstallmentScheduler.applyLatePaymentPenalties();
 
@@ -157,14 +196,26 @@ class LoanInstallmentSchedulerTest {
         verify(loanInstallmentRepository).save(captor.capture());
         LoanInstallment savedInstallment = captor.getValue();
 
-        assertNotNull(savedInstallment.getLoan(), "Loan should not be null after penalty is applied");
+        assertNotNull(
+            savedInstallment.getLoan(),
+            "Loan should not be null after penalty is applied"
+        );
 
         // Ensure interest rate increases
-        assertTrue(savedInstallment.getLoan().getBaseInterestRate().compareTo(new BigDecimal("0.05")) > 0,
-                "Base interest rate should increase due to penalty");
+        assertTrue(
+            savedInstallment.getLoan()
+                .getBaseInterestRate()
+                .compareTo(new BigDecimal("0.05"))
+                > 0,
+            "Base interest rate should increase due to penalty"
+        );
 
         verify(loanRepository).save(savedInstallment.getLoan());
-        verify(rabbitTemplate).convertAndSend(anyString(), anyString(), any(NotificationTransferDto.class));
+        verify(rabbitTemplate).convertAndSend(
+            anyString(),
+            anyString(),
+            any(NotificationTransferDto.class)
+        );
     }
 
 }
