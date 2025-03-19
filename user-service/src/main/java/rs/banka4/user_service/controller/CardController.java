@@ -111,7 +111,12 @@ public class CardController implements CardDocumentation {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
-        return cardService.clientSearchCards(auth.getCredentials().toString(), accountNumber, PageRequest.of(page, size));
+        return cardService.clientSearchCards(
+            auth.getCredentials()
+                .toString(),
+            accountNumber,
+            PageRequest.of(page, size)
+        );
     }
 
     @Override
@@ -127,7 +132,8 @@ public class CardController implements CardDocumentation {
         @RequestParam(defaultValue = "10") int size
     ) {
         return cardService.employeeSearchCards(
-            auth.getCredentials().toString(),
+            auth.getCredentials()
+                .toString(),
             cardNumber,
             firstName,
             lastName,

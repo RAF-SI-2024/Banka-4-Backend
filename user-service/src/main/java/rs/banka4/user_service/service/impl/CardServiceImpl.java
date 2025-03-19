@@ -1,8 +1,6 @@
 package rs.banka4.user_service.service.impl;
 
-import jakarta.persistence.SecondaryTable;
 import jakarta.transaction.Transactional;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -173,23 +171,34 @@ public class CardServiceImpl implements CardService {
 
 
     @Override
-    public ResponseEntity<Page<CardDto>> clientSearchCards(String token, String accountNumber, Pageable pageable) {
+    public ResponseEntity<Page<CardDto>> clientSearchCards(
+        String token,
+        String accountNumber,
+        Pageable pageable
+    ) {
 
         String email = jwtUtil.extractUsername(token);
 
         Optional<Client> client = clientRepository.findByEmail(email);
 
-        if(client.isEmpty()) throw new ClientNotFound(email);
+        if (client.isEmpty()) throw new ClientNotFound(email);
 
         Set<Account> accounts = accountRepository.findAllByClient(client.get());
 
-        boolean found = accounts.stream().map(Account::getAccountNumber).collect(Collectors.toSet()).contains(accountNumber);
+        boolean found =
+            accounts.stream()
+                .map(Account::getAccountNumber)
+                .collect(Collectors.toSet())
+                .contains(accountNumber);
 
         if (!found) throw new NotAccountOwner();
 
         List<Card> clientCards = cardRepository.findByAccountAccountNumber(accountNumber);
 
-        List<CardDto> cardDtos = clientCards.stream().map(CardMapper.INSTANCE::toDto).toList();
+        List<CardDto> cardDtos =
+            clientCards.stream()
+                .map(CardMapper.INSTANCE::toDto)
+                .toList();
 
         Page<CardDto> pagedClientCards = new PageImpl<>(cardDtos, pageable, clientCards.size());
 
@@ -198,9 +207,20 @@ public class CardServiceImpl implements CardService {
 
     // Private functions
     @Override
-    public ResponseEntity<Page<CardDto>> employeeSearchCards(String token, String cardNumber, String firstName, String lastName, String email, String cardStatus, Pageable pageable) {
+    public ResponseEntity<Page<CardDto>> employeeSearchCards(
+        String token,
+        String cardNumber,
+        String firstName,
+        String lastName,
+        String email,
+        String cardStatus,
+        Pageable pageable
+    ) {
 
-        if(!jwtUtil.extractRole(token).equals("employee")) throw new NotAuthenticated();
+        if (
+            !jwtUtil.extractRole(token)
+                .equals("employee")
+        ) throw new NotAuthenticated();
 
         if (pageable == null) {
             throw new NullPageRequest();

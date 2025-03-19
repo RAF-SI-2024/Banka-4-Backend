@@ -112,7 +112,11 @@ public class TotpServiceImpl implements TotpService {
 
     @Override
     public boolean verifyClient(Authentication authentication, String otpCode) {
-        return validate(authentication.getCredentials().toString(), otpCode);
+        return validate(
+            authentication.getCredentials()
+                .toString(),
+            otpCode
+        );
     }
 
     @Override

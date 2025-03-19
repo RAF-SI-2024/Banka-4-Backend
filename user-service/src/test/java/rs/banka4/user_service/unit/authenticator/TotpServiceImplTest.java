@@ -166,7 +166,8 @@ public class TotpServiceImplTest {
 
     // ------------------------- Helper Methods -------------------------
     private String generateCodeForSecret(String secret) throws Exception {
-        Method method = TotpServiceImpl.class.getDeclaredMethod("generateCodeFromSecret", String.class);
+        Method method =
+            TotpServiceImpl.class.getDeclaredMethod("generateCodeFromSecret", String.class);
         method.setAccessible(true);
         return (String) method.invoke(totpService, secret);
     }

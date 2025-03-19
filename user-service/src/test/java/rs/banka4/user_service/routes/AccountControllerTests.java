@@ -29,9 +29,8 @@ import rs.banka4.user_service.generator.AccountObjectMother;
 import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.TotpService;
 import rs.banka4.user_service.service.impl.CustomUserDetailsService;
-import rs.banka4.user_service.service.impl.TotpServiceImpl;
-import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.util.MockMvcUtil;
+import rs.banka4.user_service.utils.JwtUtil;
 
 @WebMvcTest(AccountController.class)
 @Import(AccountControllerTests.MockBeansConfig.class)

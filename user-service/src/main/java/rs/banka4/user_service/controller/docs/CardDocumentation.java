@@ -132,7 +132,12 @@ public interface CardDocumentation {
             ),
         }
     )
-    ResponseEntity<Page<CardDto>> clientSearchCards(Authentication auth, String accountNumber, int page, int size);
+    ResponseEntity<Page<CardDto>> clientSearchCards(
+        Authentication auth,
+        String accountNumber,
+        int page,
+        int size
+    );
 
     @Operation(
         summary = "This endpoint is used to return all cards for specific cardNumber, firstName,"

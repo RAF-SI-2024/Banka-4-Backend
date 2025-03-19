@@ -1273,41 +1273,41 @@ public class TestDataRunner implements CommandLineRunner {
         }
 
         List<AuthorizedUser> authorizedUsers =
-                cards.stream()
-                        .map(
-                                card -> AuthorizedUser.builder()
-                                        .userId(UUID.randomUUID())
-                                        .firstName(
-                                                "User"
-                                                        + card.getCardNumber()
-                                                        .substring(0, 4)
-                                        )
-                                        .lastName("Authorized")
-                                        .dateOfBirth(LocalDate.of(1990, 1, 1))
-                                        .email(
-                                                "user"
-                                                        + card.getCardNumber()
-                                                        .substring(0, 4)
-                                                        + "@example.com"
-                                        )
-                                        .phoneNumber(
-                                                "+381600000"
-                                                        + card.getCardNumber()
-                                                        .substring(0, 2)
-                                        )
-                                        .address(
-                                                "Address "
-                                                        + card.getCardNumber()
-                                                        .substring(0, 3)
-                                        )
-                                        .gender(Gender.MALE)
-                                        .build()
+            cards.stream()
+                .map(
+                    card -> AuthorizedUser.builder()
+                        .userId(UUID.randomUUID())
+                        .firstName(
+                            "User"
+                                + card.getCardNumber()
+                                    .substring(0, 4)
                         )
-                        .toList();
+                        .lastName("Authorized")
+                        .dateOfBirth(LocalDate.of(1990, 1, 1))
+                        .email(
+                            "user"
+                                + card.getCardNumber()
+                                    .substring(0, 4)
+                                + "@example.com"
+                        )
+                        .phoneNumber(
+                            "+381600000"
+                                + card.getCardNumber()
+                                    .substring(0, 2)
+                        )
+                        .address(
+                            "Address "
+                                + card.getCardNumber()
+                                    .substring(0, 3)
+                        )
+                        .gender(Gender.MALE)
+                        .build()
+                )
+                .toList();
 
         for (int i = 0; i < cards.size(); i++) {
             cards.get(i)
-                    .setAuthorizedUser(authorizedUsers.get(i));
+                .setAuthorizedUser(authorizedUsers.get(i));
         }
 
         cardRepository.saveAll(cards);

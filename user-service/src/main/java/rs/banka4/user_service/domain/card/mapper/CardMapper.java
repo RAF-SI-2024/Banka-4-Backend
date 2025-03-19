@@ -44,46 +44,46 @@ public interface CardMapper {
         source = "account.client"
     )
     @Mapping(
-            target = "creationDate",
-            source = "createdAt"
+        target = "creationDate",
+        source = "createdAt"
     )
     @Mapping(
-            target = "expirationDate",
-            source = "expiresAt"
+        target = "expirationDate",
+        source = "expiresAt"
     )
     @Mapping(
-            target = "authorizedUserDto",
-            source = "authorizedUser"
+        target = "authorizedUserDto",
+        source = "authorizedUser"
     )
     @Mapping(
-            target = "authorizedUserDto.id",
-            source = "authorizedUser.userId"
+        target = "authorizedUserDto.id",
+        source = "authorizedUser.userId"
     )
     CardDto toDto(Card card);
 
     @Mapping(
-            target = "accountNumber",
-            source = "account.accountNumber"
+        target = "accountNumber",
+        source = "account.accountNumber"
     )
     @Mapping(
-            target = "client",
-            source = "account.client"
+        target = "client",
+        source = "account.client"
     )
     @Mapping(
-            target = "authorizedUserDto",
-            source = "authorizedUser"
+        target = "authorizedUserDto",
+        source = "authorizedUser"
     )
     @Mapping(
-            target = "creationDate",
-            source = "createdAt"
+        target = "creationDate",
+        source = "createdAt"
     )
     @Mapping(
-            target = "expirationDate",
-            source = "expiresAt"
+        target = "expirationDate",
+        source = "expiresAt"
     )
     @Mapping(
-            target = "authorizedUserDto.id",
-            source = "authorizedUser.userId"
+        target = "authorizedUserDto.id",
+        source = "authorizedUser.userId"
     )
     CardDto toDtoWithDetails(Card card);
 

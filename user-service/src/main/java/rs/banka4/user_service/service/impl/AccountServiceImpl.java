@@ -1,6 +1,7 @@
 package rs.banka4.user_service.service.impl;
 
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -17,8 +18,8 @@ import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
 import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
-import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
+import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
 import rs.banka4.user_service.domain.account.mapper.AccountMapper;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
@@ -41,11 +42,6 @@ import rs.banka4.user_service.service.abstraction.*;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.specification.AccountSpecification;
 import rs.banka4.user_service.utils.specification.SpecificationCombinator;
-
-import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -175,12 +171,18 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public void setAccountLimits(String accountNumber, SetAccountLimitsDto dto, String token) {
         // Get account
-        Account account = accountRepository.findAccountByAccountNumber(accountNumber)
+        Account account =
+            accountRepository.findAccountByAccountNumber(accountNumber)
                 .orElseThrow(AccountNotFound::new);
 
         // Verify ownership
         String userId = jwtUtil.extractClaim(token, claims -> claims.get("id", String.class));
-        if (!account.getClient().getId().toString().equals(userId)) {
+        if (
+            !account.getClient()
+                .getId()
+                .toString()
+                .equals(userId)
+        ) {
             throw new NotAccountOwner();
         }
 
@@ -189,7 +191,10 @@ public class AccountServiceImpl implements AccountService {
             throw new InvalidAccountOperation();
         }
 
-        if (account.getExpirationDate().isBefore(LocalDate.now())) {
+        if (
+            account.getExpirationDate()
+                .isBefore(LocalDate.now())
+        ) {
             throw new InvalidAccountOperation();
         }
 
@@ -321,13 +326,13 @@ public class AccountServiceImpl implements AccountService {
 
     private CreateAuthorizedUserDto mapClientToAuthorizedUser(AccountClientIdDto client) {
         return new CreateAuthorizedUserDto(
-                client.firstName(),
-                client.lastName(),
-                client.dateOfBirth(),
-                client.gender(),
-                client.email(),
-                client.phone(),
-                client.address()
+            client.firstName(),
+            client.lastName(),
+            client.dateOfBirth(),
+            client.gender(),
+            client.email(),
+            client.phone(),
+            client.address()
         );
     }
 

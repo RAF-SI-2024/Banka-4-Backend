@@ -1,9 +1,10 @@
 package rs.banka4.user_service.generator;
 
+import static rs.banka4.user_service.generator.AccountObjectMother.generateBasicToAccount;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
-
 import rs.banka4.user_service.domain.card.db.*;
 import rs.banka4.user_service.domain.card.dtos.AuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
@@ -11,8 +12,6 @@ import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.service.mock.generators.ClientObjectMother;
-
-import static rs.banka4.user_service.generator.AccountObjectMother.generateBasicToAccount;
 
 public class CardObjectMother {
 
@@ -66,26 +65,29 @@ public class CardObjectMother {
 
     public static Card generateCardWithAllAttributes() {
         return Card.builder()
-                .id(UUID.randomUUID())
-                .cardNumber("1234567812345678")
-                .cvv("123")
-                .cardName(CardName.VISA)
-                .cardType(CardType.CREDIT)
-                .limit(BigDecimal.valueOf(5000))
-                .cardStatus(CardStatus.ACTIVATED)
-                .account(generateBasicToAccount())
-                .authorizedUser(generateAuthorizedUser())
-                .createdAt(LocalDate.now())
-                .expiresAt(LocalDate.now().plusYears(5))
-                .build();
+            .id(UUID.randomUUID())
+            .cardNumber("1234567812345678")
+            .cvv("123")
+            .cardName(CardName.VISA)
+            .cardType(CardType.CREDIT)
+            .limit(BigDecimal.valueOf(5000))
+            .cardStatus(CardStatus.ACTIVATED)
+            .account(generateBasicToAccount())
+            .authorizedUser(generateAuthorizedUser())
+            .createdAt(LocalDate.now())
+            .expiresAt(
+                LocalDate.now()
+                    .plusYears(5)
+            )
+            .build();
     }
 
     private static AuthorizedUser generateAuthorizedUser() {
         return AuthorizedUser.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .email("johndoe@example.com")
-                .build();
+            .firstName("John")
+            .lastName("Doe")
+            .email("johndoe@example.com")
+            .build();
     }
 
 }

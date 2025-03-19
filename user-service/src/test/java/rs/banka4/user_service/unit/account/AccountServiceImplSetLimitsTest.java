@@ -1,5 +1,15 @@
 package rs.banka4.user_service.unit.account;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,17 +25,6 @@ import rs.banka4.user_service.exceptions.account.NotAccountOwner;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.service.impl.AccountServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceImplSetLimitsTest {
@@ -44,16 +43,21 @@ class AccountServiceImplSetLimitsTest {
 
     @BeforeEach
     void setUp() {
-        ownerClient = Client.builder()
+        ownerClient =
+            Client.builder()
                 .id(UUID.randomUUID())
                 .email("owner@example.com")
                 .build();
 
-        validAccount = Account.builder()
+        validAccount =
+            Account.builder()
                 .id(UUID.randomUUID())
                 .accountNumber("4440001123456789020")
                 .active(true)
-                .expirationDate(LocalDate.now().plusYears(1))
+                .expirationDate(
+                    LocalDate.now()
+                        .plusYears(1)
+                )
                 .client(ownerClient)
                 .dailyLimit(BigDecimal.ZERO)
                 .monthlyLimit(BigDecimal.ZERO)
@@ -64,16 +68,16 @@ class AccountServiceImplSetLimitsTest {
     void setAccountLimits_Success() {
         // Arrange
         String accountNumber = "4440001123456789020";
-        SetAccountLimitsDto dto = new SetAccountLimitsDto(
-                BigDecimal.valueOf(5000),
-                BigDecimal.valueOf(50000),
-                "123456"
-        );
+        SetAccountLimitsDto dto =
+            new SetAccountLimitsDto(BigDecimal.valueOf(5000), BigDecimal.valueOf(50000), "123456");
 
-        when(accountRepository.findAccountByAccountNumber(accountNumber))
-                .thenReturn(Optional.of(validAccount));
-        when(jwtUtil.extractClaim(any(), any()))
-                .thenReturn(ownerClient.getId().toString());
+        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(
+            Optional.of(validAccount)
+        );
+        when(jwtUtil.extractClaim(any(), any())).thenReturn(
+            ownerClient.getId()
+                .toString()
+        );
 
         // Act
         accountService.setAccountLimits(accountNumber, dto, "valid.token");
@@ -88,38 +92,35 @@ class AccountServiceImplSetLimitsTest {
     void setAccountLimits_AccountNotFound() {
         // Arrange
         String accountNumber = "4440001123456789020";
-        SetAccountLimitsDto dto = new SetAccountLimitsDto(
-                BigDecimal.TEN,
-                BigDecimal.TEN,
-                "123456"
-        );
+        SetAccountLimitsDto dto = new SetAccountLimitsDto(BigDecimal.TEN, BigDecimal.TEN, "123456");
 
-        when(accountRepository.findAccountByAccountNumber(accountNumber))
-                .thenReturn(Optional.empty());
+        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(
+            Optional.empty()
+        );
 
         // Act & Assert
         assertThatThrownBy(() -> accountService.setAccountLimits(accountNumber, dto, "token"))
-                .isInstanceOf(AccountNotFound.class);
+            .isInstanceOf(AccountNotFound.class);
     }
 
     @Test
     void setAccountLimits_UnauthorizedAccess() {
         // Arrange
         String accountNumber = "4440001123456789020";
-        SetAccountLimitsDto dto = new SetAccountLimitsDto(
-                BigDecimal.TEN,
-                BigDecimal.TEN,
-                "123456"
+        SetAccountLimitsDto dto = new SetAccountLimitsDto(BigDecimal.TEN, BigDecimal.TEN, "123456");
+
+        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(
+            Optional.of(validAccount)
+        );
+        when(jwtUtil.extractClaim(any(), any())).thenReturn(
+            UUID.randomUUID()
+                .toString()
         );
 
-        when(accountRepository.findAccountByAccountNumber(accountNumber))
-                .thenReturn(Optional.of(validAccount));
-        when(jwtUtil.extractClaim(any(), any()))
-                .thenReturn(UUID.randomUUID().toString());
-
         // Act & Assert
-        assertThatThrownBy(() -> accountService.setAccountLimits(accountNumber, dto, "invalid.token"))
-                .isInstanceOf(NotAccountOwner.class);
+        assertThatThrownBy(
+            () -> accountService.setAccountLimits(accountNumber, dto, "invalid.token")
+        ).isInstanceOf(NotAccountOwner.class);
     }
 
     @Test
@@ -127,41 +128,42 @@ class AccountServiceImplSetLimitsTest {
         // Arrange
         String accountNumber = "4440001123456789020";
         validAccount.setActive(false);
-        SetAccountLimitsDto dto = new SetAccountLimitsDto(
-                BigDecimal.TEN,
-                BigDecimal.TEN,
-                "123456"
-        );
+        SetAccountLimitsDto dto = new SetAccountLimitsDto(BigDecimal.TEN, BigDecimal.TEN, "123456");
 
-        when(accountRepository.findAccountByAccountNumber(accountNumber))
-                .thenReturn(Optional.of(validAccount));
-        when(jwtUtil.extractClaim(any(), any()))
-                .thenReturn(ownerClient.getId().toString());
+        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(
+            Optional.of(validAccount)
+        );
+        when(jwtUtil.extractClaim(any(), any())).thenReturn(
+            ownerClient.getId()
+                .toString()
+        );
 
         // Act & Assert
         assertThatThrownBy(() -> accountService.setAccountLimits(accountNumber, dto, "valid.token"))
-                .isInstanceOf(InvalidAccountOperation.class);
+            .isInstanceOf(InvalidAccountOperation.class);
     }
 
     @Test
     void setAccountLimits_AccountExpired() {
         // Arrange
         String accountNumber = "4440001123456789020";
-        validAccount.setExpirationDate(LocalDate.now().minusDays(1));
-        SetAccountLimitsDto dto = new SetAccountLimitsDto(
-                BigDecimal.TEN,
-                BigDecimal.TEN,
-                "123456"
+        validAccount.setExpirationDate(
+            LocalDate.now()
+                .minusDays(1)
         );
+        SetAccountLimitsDto dto = new SetAccountLimitsDto(BigDecimal.TEN, BigDecimal.TEN, "123456");
 
-        when(accountRepository.findAccountByAccountNumber(accountNumber))
-                .thenReturn(Optional.of(validAccount));
-        when(jwtUtil.extractClaim(any(), any()))
-                .thenReturn(ownerClient.getId().toString());
+        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(
+            Optional.of(validAccount)
+        );
+        when(jwtUtil.extractClaim(any(), any())).thenReturn(
+            ownerClient.getId()
+                .toString()
+        );
 
         // Act & Assert
         assertThatThrownBy(() -> accountService.setAccountLimits(accountNumber, dto, "valid.token"))
-                .isInstanceOf(InvalidAccountOperation.class);
+            .isInstanceOf(InvalidAccountOperation.class);
     }
 
     @Test
@@ -171,16 +173,16 @@ class AccountServiceImplSetLimitsTest {
         validAccount.setDailyLimit(BigDecimal.valueOf(1000));
         validAccount.setMonthlyLimit(BigDecimal.valueOf(10000));
 
-        SetAccountLimitsDto dto = new SetAccountLimitsDto(
-                null,
-                BigDecimal.valueOf(20000),
-                "123456"
-        );
+        SetAccountLimitsDto dto =
+            new SetAccountLimitsDto(null, BigDecimal.valueOf(20000), "123456");
 
-        when(accountRepository.findAccountByAccountNumber(accountNumber))
-                .thenReturn(Optional.of(validAccount));
-        when(jwtUtil.extractClaim(any(), any()))
-                .thenReturn(ownerClient.getId().toString());
+        when(accountRepository.findAccountByAccountNumber(accountNumber)).thenReturn(
+            Optional.of(validAccount)
+        );
+        when(jwtUtil.extractClaim(any(), any())).thenReturn(
+            ownerClient.getId()
+                .toString()
+        );
 
         // Act
         accountService.setAccountLimits(accountNumber, dto, "valid.token");

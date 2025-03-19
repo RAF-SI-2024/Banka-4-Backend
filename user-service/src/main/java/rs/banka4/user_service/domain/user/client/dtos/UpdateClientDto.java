@@ -2,11 +2,10 @@ package rs.banka4.user_service.domain.user.client.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
-import rs.banka4.user_service.domain.user.Gender;
-import rs.banka4.user_service.domain.user.Privilege;
-
 import java.time.LocalDate;
 import java.util.Set;
+import rs.banka4.user_service.domain.user.Gender;
+import rs.banka4.user_service.domain.user.Privilege;
 
 @Schema(description = "DTO for updating client details")
 public record UpdateClientDto(
