@@ -231,15 +231,19 @@ public class CardServiceImpl implements CardService {
         if (cardNumber != null && !cardNumber.isEmpty()) {
             combinator.and(CardSpecification.hasCardNumber(cardNumber));
         }
+
         if (firstName != null && !firstName.isEmpty()) {
             combinator.and(CardSpecification.hasFirstName(firstName));
         }
+
         if (lastName != null && !lastName.isEmpty()) {
             combinator.and(CardSpecification.hasLastName(lastName));
         }
+
         if (email != null && !email.isEmpty()) {
             combinator.and(CardSpecification.hasEmail(email));
         }
+
         if (cardStatus != null && !cardStatus.isEmpty()) {
             try {
                 CardStatus statusEnum = CardStatus.valueOf(cardStatus.toUpperCase());
