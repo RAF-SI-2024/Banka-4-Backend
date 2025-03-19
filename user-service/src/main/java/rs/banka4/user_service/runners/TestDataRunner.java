@@ -15,10 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
-import rs.banka4.user_service.domain.card.db.Card;
-import rs.banka4.user_service.domain.card.db.CardName;
-import rs.banka4.user_service.domain.card.db.CardStatus;
-import rs.banka4.user_service.domain.card.db.CardType;
+import rs.banka4.user_service.domain.card.db.*;
 import rs.banka4.user_service.domain.company.db.ActivityCode;
 import rs.banka4.user_service.domain.company.db.Company;
 import rs.banka4.user_service.domain.currency.db.Currency;
@@ -74,6 +71,7 @@ public class TestDataRunner implements CommandLineRunner {
         seedBankMargins();
         cardSeeder();
         loanInstallmentSeeder();
+        authorizedUserSeeder();
     }
 
     private void cardSeeder() {
@@ -1264,6 +1262,55 @@ public class TestDataRunner implements CommandLineRunner {
                     .plusYears(1)
             )
             .build();
+    }
+
+    private void authorizedUserSeeder() {
+        List<Card> cards = cardRepository.findAll();
+
+        if (cards.isEmpty()) {
+            System.out.println("No cards found. Skipping authorized user seeder.");
+            return;
+        }
+
+        List<AuthorizedUser> authorizedUsers =
+                cards.stream()
+                        .map(
+                                card -> AuthorizedUser.builder()
+                                        .userId(UUID.randomUUID())
+                                        .firstName(
+                                                "User"
+                                                        + card.getCardNumber()
+                                                        .substring(0, 4)
+                                        )
+                                        .lastName("Authorized")
+                                        .dateOfBirth(LocalDate.of(1990, 1, 1))
+                                        .email(
+                                                "user"
+                                                        + card.getCardNumber()
+                                                        .substring(0, 4)
+                                                        + "@example.com"
+                                        )
+                                        .phoneNumber(
+                                                "+381600000"
+                                                        + card.getCardNumber()
+                                                        .substring(0, 2)
+                                        )
+                                        .address(
+                                                "Address "
+                                                        + card.getCardNumber()
+                                                        .substring(0, 3)
+                                        )
+                                        .gender(Gender.MALE)
+                                        .build()
+                        )
+                        .toList();
+
+        for (int i = 0; i < cards.size(); i++) {
+            cards.get(i)
+                    .setAuthorizedUser(authorizedUsers.get(i));
+        }
+
+        cardRepository.saveAll(cards);
     }
 
 }
