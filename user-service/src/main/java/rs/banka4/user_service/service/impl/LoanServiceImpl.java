@@ -71,12 +71,14 @@ public class LoanServiceImpl implements LoanService {
      * Creates a new loan request for the given loan application.
      *
      * @param loanApplicationDto The loan application to be processed.
-     * @param auth               The JWT token provided by the client.
+     * @param auth The JWT token provided by the client.
      *
      * @throws ClientNotFound If the JWT token does not contain a valid client email.
-     * @throws NotAccountOwner If the account number provided in the loan application does not belong to the client.
+     * @throws NotAccountOwner If the account number provided in the loan application does not
+     *         belong to the client.
      * @throws AccountNotActive If the account is not active.
-     * @throws InterestRateAmountNotSupported If the interest rate for the given amount is not supported.
+     * @throws InterestRateAmountNotSupported If the interest rate for the given amount is not
+     *         supported.
      */
     @Transactional
     @Override
@@ -97,15 +99,17 @@ public class LoanServiceImpl implements LoanService {
     }
 
     /**
-     * Sets the interest rate on a loan based on the current date and loan amount.
-     * If the interest type is not fixed, the interest rate is modified to include the
-     * current interest rate variant.
+     * Sets the interest rate on a loan based on the current date and loan amount. If the interest
+     * type is not fixed, the interest rate is modified to include the current interest rate
+     * variant.
      *
      * @param newLoan the loan to set the interest rate to
      * @param loanApplicationDto application from which we get the interest type
-     *  {@link rs.banka4.user_service.domain.loan.db.Loan.InterestType#FIXED} or {@link rs.banka4.user_service.domain.loan.db.Loan.InterestType#VARIABLE}
+     *        {@link rs.banka4.user_service.domain.loan.db.Loan.InterestType#FIXED} or
+     *        {@link rs.banka4.user_service.domain.loan.db.Loan.InterestType#VARIABLE}
      *
-     * @throws InterestRateAmountNotSupported if the interest rate for the given amount is not supported
+     * @throws InterestRateAmountNotSupported if the interest rate for the given amount is not
+     *         supported
      */
     private void setLoanInterestRate(Loan newLoan, LoanApplicationDto loanApplicationDto) {
         InterestRate interestRate =
@@ -161,7 +165,7 @@ public class LoanServiceImpl implements LoanService {
     /**
      * Gets all loans for the given client.
      *
-     * @param token  the JWT token containing the client email
+     * @param token the JWT token containing the client email
      * @param pageRequest the page request for pagination
      * @return a page of loans for the given client
      *
@@ -310,10 +314,11 @@ public class LoanServiceImpl implements LoanService {
      * Connects the given account to the given loan.
      *
      * @param loanApplicationDto The loan application from which to get the account number.
-     * @param newLoan             The loan to connect the account to.
-     * @param clientEmail         The email of the client to check against the account's client.
+     * @param newLoan The loan to connect the account to.
+     * @param clientEmail The email of the client to check against the account's client.
      *
-     * @throws NotAccountOwner If the account number provided in the loan application does not belong to the client.
+     * @throws NotAccountOwner If the account number provided in the loan application does not
+     *         belong to the client.
      * @throws AccountNotActive If the account is not active.
      */
     private void connectAccountToLoan(
@@ -336,20 +341,22 @@ public class LoanServiceImpl implements LoanService {
     }
 
     /**
-     * Generates a unique loan number for the given loan. The generated number
-     * is in the format <code>YYYYMMXXXX</code>, where <code>YYYY</code> is the
-     * year, <code>MM</code> is the month, and <code>XXXX</code> is a unique
-     * sequence number.
+     * Generates a unique loan number for the given loan. The generated number is in the format
+     * <code>YYYYMMXXXX</code>, where <code>YYYY</code> is the year, <code>MM</code> is the month,
+     * and <code>XXXX</code> is a unique sequence number.
      *
      * @param newLoan The loan to generate the loan number for.
      */
 //     TODO: This needs refactoring.
     private void generateLoanNumber(Loan newLoan) {
-        String comb = String.format(
-            "%d%02d",
-            LocalDate.now().getYear(),
-            LocalDate.now().getMonthValue()
-        );
+        String comb =
+            String.format(
+                "%d%02d",
+                LocalDate.now()
+                    .getYear(),
+                LocalDate.now()
+                    .getMonthValue()
+            );
 
         while (true) {
             try {
@@ -371,7 +378,7 @@ public class LoanServiceImpl implements LoanService {
     /**
      * Creates a new loan request for the given loan and loan application.
      *
-     * @param loan                The loan to create a loan request for.
+     * @param loan The loan to create a loan request for.
      * @param loanApplicationDto The loan application from which to create the loan request.
      */
     private void makeLoanRequest(Loan loan, LoanApplicationDto loanApplicationDto) {

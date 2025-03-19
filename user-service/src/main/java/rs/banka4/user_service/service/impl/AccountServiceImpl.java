@@ -106,7 +106,7 @@ public class AccountServiceImpl implements AccountService {
      * it will be set to {@link AccountType#DOO}. Currency will be set if the provided currency code
      * exists.
      *
-     * @throws  InvalidCurrency if the currency code doesn't exist
+     * @throws InvalidCurrency if the currency code doesn't exist
      * @throws CompanyNotFound if the company with the given id is not found
      * @throws ClientNotFound if the client with the given id is not found
      * @param createAccountDto the details of the account to be created
