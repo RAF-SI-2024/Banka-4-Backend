@@ -1,12 +1,18 @@
 package rs.banka4.user_service.service.impl;
 
+import jakarta.persistence.SecondaryTable;
 import jakarta.transaction.Transactional;
+
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,16 +24,25 @@ import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.domain.card.mapper.CardMapper;
+import rs.banka4.user_service.domain.user.client.db.Client;
+import rs.banka4.user_service.exceptions.NullPageRequest;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
+import rs.banka4.user_service.exceptions.account.NotAccountOwner;
 import rs.banka4.user_service.exceptions.authenticator.NotValidTotpException;
 import rs.banka4.user_service.exceptions.card.AuthorizedUserNotAllowed;
 import rs.banka4.user_service.exceptions.card.CardLimitExceededException;
 import rs.banka4.user_service.exceptions.card.DuplicateAuthorizationException;
+import rs.banka4.user_service.exceptions.card.NotValidCardStatus;
+import rs.banka4.user_service.exceptions.user.NotAuthenticated;
+import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.CardRepository;
+import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.service.abstraction.CardService;
 import rs.banka4.user_service.service.abstraction.TotpService;
 import rs.banka4.user_service.utils.JwtUtil;
+import rs.banka4.user_service.utils.specification.CardSpecification;
+import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 @Service
 @Primary
@@ -37,7 +52,7 @@ public class CardServiceImpl implements CardService {
     private final AccountRepository accountRepository;
     private final TotpService totpService;
     private final JwtUtil jwtUtil;
-
+    private final ClientRepository clientRepository;
 
     @Transactional
     public void createAuthorizedCard(Authentication auth, CreateCardDto dto) {
@@ -158,26 +173,66 @@ public class CardServiceImpl implements CardService {
 
 
     @Override
-    public ResponseEntity<Page<CardDto>> clientSearchCards(
-        String accountNumber,
-        Pageable pageable
-    ) {
-        return null;
-        // check out /client/search
+    public ResponseEntity<Page<CardDto>> clientSearchCards(String token, String accountNumber, Pageable pageable) {
+
+        String email = jwtUtil.extractUsername(token);
+
+        Optional<Client> client = clientRepository.findByEmail(email);
+
+        if(client.isEmpty()) throw new ClientNotFound(email);
+
+        Set<Account> accounts = accountRepository.findAllByClient(client.get());
+
+        boolean found = accounts.stream().map(Account::getAccountNumber).collect(Collectors.toSet()).contains(accountNumber);
+
+        if (!found) throw new NotAccountOwner();
+
+        List<Card> clientCards = cardRepository.findByAccountAccountNumber(accountNumber);
+
+        List<CardDto> cardDtos = clientCards.stream().map(CardMapper.INSTANCE::toDto).toList();
+
+        Page<CardDto> pagedClientCards = new PageImpl<>(cardDtos, pageable, clientCards.size());
+
+        return ResponseEntity.ok(pagedClientCards);
     }
 
     // Private functions
     @Override
-    public ResponseEntity<Page<CardDto>> employeeSearchCards(
-        String cardNumber,
-        String firstName,
-        String lastName,
-        String email,
-        String cardStatus,
-        Pageable pageable
-    ) {
-        return null;
-        // check out /client/search
+    public ResponseEntity<Page<CardDto>> employeeSearchCards(String token, String cardNumber, String firstName, String lastName, String email, String cardStatus, Pageable pageable) {
+
+        if(!jwtUtil.extractRole(token).equals("employee")) throw new NotAuthenticated();
+
+        if (pageable == null) {
+            throw new NullPageRequest();
+        }
+
+        SpecificationCombinator<Card> combinator = new SpecificationCombinator<>();
+
+        if (cardNumber != null && !cardNumber.isEmpty()) {
+            combinator.and(CardSpecification.hasCardNumber(cardNumber));
+        }
+        if (firstName != null && !firstName.isEmpty()) {
+            combinator.and(CardSpecification.hasFirstName(firstName));
+        }
+        if (lastName != null && !lastName.isEmpty()) {
+            combinator.and(CardSpecification.hasLastName(lastName));
+        }
+        if (email != null && !email.isEmpty()) {
+            combinator.and(CardSpecification.hasEmail(email));
+        }
+        if (cardStatus != null && !cardStatus.isEmpty()) {
+            try {
+                CardStatus statusEnum = CardStatus.valueOf(cardStatus.toUpperCase());
+                combinator.and(CardSpecification.hasCardStatus(statusEnum.name()));
+            } catch (IllegalArgumentException e) {
+                throw new NotValidCardStatus();
+            }
+        }
+
+        Page<Card> cards = cardRepository.findAll(combinator.build(), pageable);
+        Page<CardDto> dtos = cards.map(CardMapper.INSTANCE::toDtoWithDetails);
+
+        return ResponseEntity.ok(dtos);
     }
 
     // ---- Private methods ----
