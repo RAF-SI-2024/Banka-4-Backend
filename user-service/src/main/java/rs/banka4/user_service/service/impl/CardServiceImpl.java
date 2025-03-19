@@ -205,7 +205,6 @@ public class CardServiceImpl implements CardService {
         return ResponseEntity.ok(pagedClientCards);
     }
 
-    // Private functions
     @Override
     public ResponseEntity<Page<CardDto>> employeeSearchCards(
         String token,
