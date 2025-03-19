@@ -349,14 +349,13 @@ public class LoanServiceImpl implements LoanService {
      */
 //     TODO: This needs refactoring.
     private void generateLoanNumber(Loan newLoan) {
-        String comb =
-            String.format(
-                "%d%02d",
-                LocalDate.now()
-                    .getYear(),
-                LocalDate.now()
-                    .getMonthValue()
-            );
+        String comb;
+        LocalDate dayOfLoanRequest = LocalDate.now();
+        if (dayOfLoanRequest.getMonthValue() < 10) {
+            comb = dayOfLoanRequest.getYear() + "0" + dayOfLoanRequest.getMonthValue();
+        } else {
+            comb = dayOfLoanRequest.getYear() + "" + dayOfLoanRequest.getMonthValue();
+        }
 
         while (true) {
             try {
