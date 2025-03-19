@@ -24,29 +24,29 @@ import rs.banka4.user_service.utils.JwtUtil;
  *
  * <h3>Key Features:</h3>
  * <ul>
- *   <li>Card creation with TOTP verification</li>
- *   <li>Card status management (block/unblock/deactivate)</li>
- *   <li>Role-based access control</li>
- *   <li>Pagination support for search operations</li>
+ * <li>Card creation with TOTP verification</li>
+ * <li>Card status management (block/unblock/deactivate)</li>
+ * <li>Role-based access control</li>
+ * <li>Pagination support for search operations</li>
  * </ul>
  *
  * <ul>
- *    <li>Card number/CVV generation</li>
- *    <li>Account-card relationship management</li>
- *    <li>Role-based authorization checks</li>
- *    <li>Business/personal account differentiation</li>
- *  </ul>
+ * <li>Card number/CVV generation</li>
+ * <li>Account-card relationship management</li>
+ * <li>Role-based authorization checks</li>
+ * <li>Business/personal account differentiation</li>
+ * </ul>
  *
- *  <h3>Security Constraints:</h3>
- *  <ul>
- *    <li>Clients can only block their own cards</li>
- *    <li>Card unblocking/deactivation requires employee role</li>
- *    <li>Business accounts have different card limits than personal accounts</li>
- *  </ul>
+ * <h3>Security Constraints:</h3>
+ * <ul>
+ * <li>Clients can only block their own cards</li>
+ * <li>Card unblocking/deactivation requires employee role</li>
+ * <li>Business accounts have different card limits than personal accounts</li>
+ * </ul>
  *
- *  @see CardRepository
- *  @see TotpService
- *  @see JwtUtil
+ * @see CardRepository
+ * @see TotpService
+ * @see JwtUtil
  */
 public interface CardService {
     /**
@@ -58,13 +58,13 @@ public interface CardService {
      * @throws AccountNotFound if referenced account doesn't exist
      * @throws AuthorizedUserNotAllowed if unauthorized user configuration
      * @throws CardLimitExceededException if account card limit reached
-     * <p>
-     * Generation details:
-     * <ul>
-     *   <li>16-digit unique card number</li>
-     *   <li>3-digit random CVV</li>
-     *   <li>Automatic card naming based on account</li>
-     * </ul>
+     *         <p>
+     *         Generation details:
+     *         <ul>
+     *         <li>16-digit unique card number</li>
+     *         <li>3-digit random CVV</li>
+     *         <li>Automatic card naming based on account</li>
+     *         </ul>
      *
      * @throws AuthorizedUserNotAllowed for personal accounts with authorized users
      * @throws DuplicateAuthorizationException for duplicate business authorized users
@@ -78,11 +78,11 @@ public interface CardService {
      * @param token JWT authentication token
      * @return Updated card entity or null if unauthorized
      * @throws SecurityException if client attempts to block another user's card
-     * <ul>
-     *   <li>Clients can only block their own cards</li>
-     *   <li>Employees can block any card</li>
-     *   <li>No-op if card already blocked/deactivated</li>
-     * </ul>
+     *         <ul>
+     *         <li>Clients can only block their own cards</li>
+     *         <li>Employees can block any card</li>
+     *         <li>No-op if card already blocked/deactivated</li>
+     *         </ul>
      */
     Card blockCard(String cardNumber, String token);
 
@@ -93,13 +93,13 @@ public interface CardService {
      * @param token JWT authentication token
      * @return Updated card entity or null if unauthorized
      * @throws SecurityException if attempted by non-employee
-     * <p>
-     * Returns original card if:
-     * <ul>
-     *   <li>Card not in blocked state</li>
-     *   <li>Caller lacks employee privileges</li>
-     * </ul>
-
+     *         <p>
+     *         Returns original card if:
+     *         <ul>
+     *         <li>Card not in blocked state</li>
+     *         <li>Caller lacks employee privileges</li>
+     *         </ul>
+     *
      */
     Card unblockCard(String cardNumber, String token);
 

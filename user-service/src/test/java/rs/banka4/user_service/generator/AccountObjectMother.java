@@ -22,21 +22,21 @@ public class AccountObjectMother {
 
     public static CreateAccountDto generateBasicCreateAccountDto() {
         return new CreateAccountDto(
-                new AccountClientIdDto(
-                        UUID.randomUUID(),
-                        "John",
-                        "Doe",
-                        LocalDate.of(1990, 1, 1),
-                        Gender.MALE,
-                        "john.doe@example.com",
-                        "+1234567890",
-                        "123 Grove Street, City, Country",
-                        EnumSet.noneOf(Privilege.class)
-                ),
-                null,
-                BigDecimal.valueOf(1000.00),
-                Currency.Code.RSD,
-                false
+            new AccountClientIdDto(
+                UUID.randomUUID(),
+                "John",
+                "Doe",
+                LocalDate.of(1990, 1, 1),
+                Gender.MALE,
+                "john.doe@example.com",
+                "+1234567890",
+                "123 Grove Street, City, Country",
+                EnumSet.noneOf(Privilege.class)
+            ),
+            null,
+            BigDecimal.valueOf(1000.00),
+            Currency.Code.RSD,
+            false
         );
     }
 

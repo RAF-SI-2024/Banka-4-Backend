@@ -8,8 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.Set;
 import jakarta.validation.constraints.NotBlank;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
-import rs.banka4.user_service.exceptions.account.InvalidCurrency;
 import rs.banka4.user_service.domain.account.dtos.SetAccountLimitsDto;
-import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
+import rs.banka4.user_service.exceptions.account.InvalidCurrency;
 import rs.banka4.user_service.exceptions.company.CompanyNotFound;
+import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.exceptions.user.employee.EmployeeNotFound;
 
 @Tag(
@@ -167,20 +167,40 @@ public interface AccountApiDocumentation {
             )
         }
     )
-    ResponseEntity<Void> createAccount(@Valid CreateAccountDto createAccountDto, Authentication auth);
+    ResponseEntity<Void> createAccount(
+        @Valid CreateAccountDto createAccountDto,
+        Authentication auth
+    );
 
     @Operation(
-            summary = "Set account limits",
-            description = "Sets withdrawal limits for an account. Requires ownership of active, non-expired account",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Limits updated successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid limit values"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized access"),
-                    @ApiResponse(responseCode = "404", description = "Account not found"),
-                    @ApiResponse(responseCode = "409", description = "Account inactive/expired")
-            }
+        summary = "Set account limits",
+        description = "Sets withdrawal limits for an account. Requires ownership of active, non-expired account",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Limits updated successfully"
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Invalid limit values"
+            ),
+            @ApiResponse(
+                responseCode = "403",
+                description = "Unauthorized access"
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "Account not found"
+            ),
+            @ApiResponse(
+                responseCode = "409",
+                description = "Account inactive/expired"
+            )
+        }
     )
-    ResponseEntity<Void> setAccountLimits(Authentication authentication,
-                                                 @NotBlank @PathVariable("accountNumber") String accountNumber,
-                                                 @RequestBody @Valid SetAccountLimitsDto dto);
+    ResponseEntity<Void> setAccountLimits(
+        Authentication authentication,
+        @NotBlank @PathVariable("accountNumber") String accountNumber,
+        @RequestBody @Valid SetAccountLimitsDto dto
+    );
 }

@@ -26,7 +26,7 @@ public interface LoanMapper {
 
     @Mapping(
         target = "currency",
-        expression = "java(loan.getAccount().getCurrency().getCode())"
+        expression = "java(loan.getAccount().getCurrency())"
     )
     LoanInformationDto toDto(Loan loan);
 
@@ -44,7 +44,7 @@ public interface LoanMapper {
     )
     @Mapping(
         target = "currency",
-        expression = "java(loanRequest.getAccount().getCurrency().getCode())"
+        expression = "java(loanRequest.getAccount().getCurrency())"
     )
     LoanApplicationResponseDto toDtoApplicationResponse(LoanRequest loanRequest);
 

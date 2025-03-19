@@ -97,7 +97,15 @@ public class GetAllLoansTests {
                 LocalDate.now()
                     .plusMonths(1),
                 BigDecimal.valueOf(5000),
-                Currency.Code.EUR,
+                new Currency(
+                    UUID.randomUUID(),
+                    1L,
+                    "Serbian Dinar",
+                    "RSD",
+                    "Serbian Dinar currency",
+                    true,
+                    Currency.Code.RSD
+                ),
                 LoanStatus.APPROVED,
                 Loan.InterestType.FIXED
             ),
@@ -115,7 +123,15 @@ public class GetAllLoansTests {
                 LocalDate.now()
                     .plusMonths(1),
                 BigDecimal.valueOf(5000),
-                Currency.Code.EUR,
+                new Currency(
+                    UUID.randomUUID(),
+                    1L,
+                    "Serbian Dinar",
+                    "RSD",
+                    "Serbian Dinar currency",
+                    true,
+                    Currency.Code.RSD
+                ),
                 LoanStatus.APPROVED,
                 Loan.InterestType.FIXED
 
@@ -134,7 +150,15 @@ public class GetAllLoansTests {
                 LocalDate.now()
                     .plusMonths(1),
                 BigDecimal.valueOf(5000),
-                Currency.Code.EUR,
+                new Currency(
+                    UUID.randomUUID(),
+                    1L,
+                    "Serbian Dinar",
+                    "RSD",
+                    "Serbian Dinar currency",
+                    true,
+                    Currency.Code.RSD
+                ),
                 LoanStatus.APPROVED,
                 Loan.InterestType.FIXED
             )

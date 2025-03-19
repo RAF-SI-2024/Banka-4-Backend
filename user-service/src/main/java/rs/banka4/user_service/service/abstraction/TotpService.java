@@ -18,23 +18,23 @@ import rs.banka4.user_service.utils.JwtUtil;
 /**
  * Service implementation for Time-based One-Time Password (TOTP) operations.
  * <p>
- * This service handles generation and validation of TOTP codes, secret management,
- * and authenticator configuration. It supports both Client and Employee entities.
+ * This service handles generation and validation of TOTP codes, secret management, and
+ * authenticator configuration. It supports both Client and Employee entities.
  *
  * <h3>Key Configuration Parameters:</h3>
  * <ul>
- *   <li>Secret Length: 32 bytes (Base32 encoded)</li>
- *   <li>Time Period: 30 seconds</li>
- *   <li>Code Length: 6 digits</li>
- *   <li>Hashing Algorithm: SHA1</li>
+ * <li>Secret Length: 32 bytes (Base32 encoded)</li>
+ * <li>Time Period: 30 seconds</li>
+ * <li>Code Length: 6 digits</li>
+ * <li>Hashing Algorithm: SHA1</li>
  * </ul>
  *
  * <h3>Dependencies:</h3>
  * <ul>
- *   <li>{@link JwtUtil} - For JWT token handling and validation</li>
- *   <li>{@link UserTotpSecretRepository} - For TOTP secret persistence</li>
- *   <li>{@link ClientRepository} - For client entity lookups</li>
- *   <li>{@link EmployeeRepository} - For employee entity lookups</li>
+ * <li>{@link JwtUtil} - For JWT token handling and validation</li>
+ * <li>{@link UserTotpSecretRepository} - For TOTP secret persistence</li>
+ * <li>{@link ClientRepository} - For client entity lookups</li>
+ * <li>{@link EmployeeRepository} - For employee entity lookups</li>
  * </ul>
  *
  * @see HashingAlgorithm

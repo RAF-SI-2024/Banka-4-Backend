@@ -69,7 +69,7 @@ public record LoanInformationDto(
     @Schema(
         description = "Currency of the loan",
         example = "EUR"
-    ) Currency.Code currency,
+    ) Currency currency,
 
     @Schema(
         description = "Current status of the loan",

@@ -2,6 +2,7 @@ package rs.banka4.user_service.generator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.db.LoanStatus;
@@ -42,7 +43,15 @@ public class LoanObjectMother {
             LocalDate.now()
                 .plusDays(30),
             BigDecimal.valueOf(900.00),
-            Currency.Code.EUR,
+            new Currency(
+                UUID.randomUUID(),
+                1L,
+                "Serbian Dinar",
+                "RSD",
+                "Serbian Dinar currency",
+                true,
+                Currency.Code.RSD
+            ),
             LoanStatus.APPROVED,
             Loan.InterestType.FIXED
         );

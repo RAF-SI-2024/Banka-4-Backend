@@ -80,13 +80,18 @@ public class AccountController implements AccountApiDocumentation {
     }
 
     @PutMapping("/set-limits/{accountNumber}")
-    public ResponseEntity<Void> setAccountLimits(Authentication authentication,
-                                                 @NotBlank @PathVariable("accountNumber") String accountNumber,
-                                                 @RequestBody @Valid SetAccountLimitsDto dto) {
+    public ResponseEntity<Void> setAccountLimits(
+        Authentication authentication,
+        @NotBlank @PathVariable("accountNumber") String accountNumber,
+        @RequestBody @Valid SetAccountLimitsDto dto
+    ) {
         if (totpService.verifyClient(authentication, dto.otpCode())) {
-            String token = authentication.getCredentials().toString();
+            String token =
+                authentication.getCredentials()
+                    .toString();
             accountService.setAccountLimits(accountNumber, dto, token);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok()
+                .build();
         } else {
             throw new NotValidTotpException();
         }

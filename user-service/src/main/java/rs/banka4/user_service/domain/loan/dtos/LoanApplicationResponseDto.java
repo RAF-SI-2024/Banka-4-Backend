@@ -26,7 +26,7 @@ public record LoanApplicationResponseDto(
     @Schema(
         description = "Currency of the loan",
         example = "EUR"
-    ) Currency.Code currency,
+    ) Currency currency,
 
     @Schema(
         description = "Purpose of the loan",
