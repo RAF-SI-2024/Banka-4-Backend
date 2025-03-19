@@ -106,17 +106,19 @@ public class CardController implements CardDocumentation {
     @Override
     @GetMapping("/client/search")
     public ResponseEntity<Page<CardDto>> clientSearchCards(
+        Authentication auth,
         @RequestParam(required = false) String accountNumber,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
-        return cardService.clientSearchCards(accountNumber, PageRequest.of(page, size));
+        return cardService.clientSearchCards(auth.getCredentials().toString(), accountNumber, PageRequest.of(page, size));
     }
 
     @Override
     @GetMapping("/employee/search")
     public ResponseEntity<Page<CardDto>> employeeSearchCards(
-        @RequestParam(required = false) String cardNumer,
+        Authentication auth,
+        @RequestParam(required = false) String cardNumber,
         @RequestParam(required = false) String firstName,
         @RequestParam(required = false) String lastName,
         @RequestParam(required = false) String email,
@@ -125,7 +127,8 @@ public class CardController implements CardDocumentation {
         @RequestParam(defaultValue = "10") int size
     ) {
         return cardService.employeeSearchCards(
-            cardNumer,
+            auth.getCredentials().toString(),
+            cardNumber,
             firstName,
             lastName,
             email,
