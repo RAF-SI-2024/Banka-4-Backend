@@ -99,6 +99,26 @@ public class TestDataSeeder {
                         .build()
         );
     }
+
+    public Loan seedRejectedLoan(Account account) {
+        return loanRepository.saveAndFlush(
+                Loan.builder()
+                        .loanNumber(100002L)
+                        .amount(BigDecimal.valueOf(5000))
+                        .repaymentPeriod(36)
+                        .agreementDate(LocalDate.now())
+                        .dueDate(LocalDate.now().plusYears(3))
+                        .monthlyInstallment(BigDecimal.valueOf(150))
+                        .nextInstallmentDate(LocalDate.now().plusMonths(1))
+                        .remainingDebt(BigDecimal.valueOf(4500))
+                        .baseInterestRate(BigDecimal.valueOf(3.5))
+                        .account(account)
+                        .status(LoanStatus.REJECTED)
+                        .type(LoanType.CASH)
+                        .interestType(Loan.InterestType.FIXED)
+                        .build()
+        );
+    }
     /**
      * Kreira i čuva 2 kredita u bazi.
      * @return Listu sačuvanih Loans objekata.
@@ -146,7 +166,7 @@ public class TestDataSeeder {
      * Kreira i čuva karticu u bazi.
      * @return Karticu sačuvan Card objekat.
      */
-    public Card seedCard(Account account) {
+    public Card seedActiveCard(Account account) {
         return cardRepository.saveAndFlush(
                 Card.builder()
                         .cardNumber("1234567810345678")
@@ -155,6 +175,36 @@ public class TestDataSeeder {
                         .cardType(CardType.DEBIT)
                         .account(account)
                         .cardStatus(CardStatus.ACTIVATED)
+                        .limit(BigDecimal.valueOf(10000))
+                        .createdAt(LocalDate.now())
+                        .expiresAt(LocalDate.now().plusYears(5))
+                        .build()
+        );
+    }
+    public Card seedDeactivatedCard(Account account) {
+        return cardRepository.saveAndFlush(
+                Card.builder()
+                        .cardNumber("1234000810345678")
+                        .cvv("123")
+                        .cardName(CardName.VISA)
+                        .cardType(CardType.DEBIT)
+                        .account(account)
+                        .cardStatus(CardStatus.DEACTIVATED)
+                        .limit(BigDecimal.valueOf(10000))
+                        .createdAt(LocalDate.now())
+                        .expiresAt(LocalDate.now().plusYears(5))
+                        .build()
+        );
+    }
+    public Card seedBlockedCard(Account account) {
+        return cardRepository.saveAndFlush(
+                Card.builder()
+                        .cardNumber("1234567810300078")
+                        .cvv("123")
+                        .cardName(CardName.VISA)
+                        .cardType(CardType.DEBIT)
+                        .account(account)
+                        .cardStatus(CardStatus.BLOCKED)
                         .limit(BigDecimal.valueOf(10000))
                         .createdAt(LocalDate.now())
                         .expiresAt(LocalDate.now().plusYears(5))

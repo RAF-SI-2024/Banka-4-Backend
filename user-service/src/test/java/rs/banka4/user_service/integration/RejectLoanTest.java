@@ -48,11 +48,13 @@ public class RejectLoanTest {
 
     private String accessToken;
     private Loan loan;
+    private Loan rejectedLoan;
 
     @BeforeEach
     void setUp() {
         Account account = testDataSeeder.seedAccount();
         loan = testDataSeeder.seedLoan(account);
+        rejectedLoan = testDataSeeder.seedRejectedLoan(account);
 
         userGen.createEmployee(x -> x);
         var toks = userGen.doEmployeeLogin("john.doe@example.com", "test");
@@ -70,5 +72,27 @@ public class RejectLoanTest {
 
         Loan rejectedLoan = loanRepository.findByLoanNumber(loan.getLoanNumber()).orElseThrow();
         assertThat(rejectedLoan.getStatus()).isEqualTo(LoanStatus.REJECTED);
+    }
+    @Test
+    void rejectLoanFailsForNonExistentLoan() throws Exception {
+        long nonExistentLoanNumber = 999999L;
+
+        m.put()
+                .uri("/loans/reject/" + nonExistentLoanNumber)
+                .header("Authorization", "Bearer " + accessToken)
+                .accept(MediaType.APPLICATION_JSON)
+                .assertThat()
+                .hasStatus(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void rejectLoanFailsForAlreadyRejectedLoan() throws Exception {
+
+        m.put()
+                .uri("/loans/reject/" + rejectedLoan.getLoanNumber())
+                .header("Authorization", "Bearer " + accessToken)
+                .accept(MediaType.APPLICATION_JSON)
+                .assertThat()
+                .hasStatus(HttpStatus.BAD_REQUEST);
     }
 }

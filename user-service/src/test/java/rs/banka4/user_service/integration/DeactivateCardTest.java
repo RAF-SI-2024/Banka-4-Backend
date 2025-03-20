@@ -55,7 +55,7 @@ public class DeactivateCardTest {
         var toks = userGen.doEmployeeLogin("john.doe@example.com", "test");
         accessToken = toks.accessToken();
 
-        card = testDataSeeder.seedCard(account);
+        card = testDataSeeder.seedActiveCard(account);
     }
 
     @AfterEach

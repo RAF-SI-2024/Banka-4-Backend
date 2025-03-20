@@ -43,14 +43,16 @@ public class BlockCardTest {
     @Autowired
     private TestDataSeeder testDataSeeder;
 
-    private Card card;
+    private Card activeCard;
+    private Card deactivatedCard;
+
     private String accessToken;
 
     @BeforeEach
     void setUp() {
         Account account = testDataSeeder.seedAccount();
-        card = testDataSeeder.seedCard(account);
-
+        activeCard = testDataSeeder.seedActiveCard(account);
+        deactivatedCard = testDataSeeder.seedDeactivatedCard(account);
         userGen.createEmployee(x -> x);
         var toks = userGen.doEmployeeLogin("john.doe@example.com", "test");
         accessToken = toks.accessToken();
@@ -59,14 +61,14 @@ public class BlockCardTest {
     @Test
     void blockCardSuccessfully() throws Exception {
         m.put()
-                .uri("/cards/block/" + card.getCardNumber())
+                .uri("/cards/block/" + activeCard.getCardNumber())
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .assertThat()
                 .hasStatus(HttpStatus.OK);
 
-        Card blockedCard = cardRepository.findById(card.getId()).orElse(null);
+        Card blockedCard = cardRepository.findById(activeCard.getId()).orElse(null);
         assertThat(blockedCard).isNotNull();
         assertThat(blockedCard.getCardStatus()).isEqualTo(CardStatus.BLOCKED);
     }
