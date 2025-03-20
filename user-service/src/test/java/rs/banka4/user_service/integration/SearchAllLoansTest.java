@@ -3,7 +3,6 @@ package rs.banka4.user_service.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import rs.banka4.testlib.integration.DbEnabledTest;
 import rs.banka4.user_service.domain.account.db.Account;
-import rs.banka4.user_service.domain.loan.db.Loan;
-import rs.banka4.user_service.domain.loan.db.LoanStatus;
-import rs.banka4.user_service.domain.loan.db.LoanType;
 import rs.banka4.user_service.integration.generator.UserGenerator;
 import rs.banka4.user_service.integration.seeder.TestDataSeeder;
 import rs.banka4.user_service.utils.JwtUtil;
@@ -55,15 +51,15 @@ public class SearchAllLoansTest {
     @Test
     void searchAllLoansSuccessfully() throws Exception {
         m.get()
-                .uri("/loans/search?page=0&size=10&type=MORTGAGE&status=APPROVED")
-                .header("Authorization", "Bearer " + accessToken)
-                .accept(MediaType.APPLICATION_JSON)
-                .assertThat()
-                .hasStatusOk()
-                .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-                .bodyJson()
-                .extractingPath("content")
-                .asList()
-                .satisfies(loans -> assertThat(loans).isNotEmpty());
+            .uri("/loans/search?page=0&size=10&type=MORTGAGE&status=APPROVED")
+            .header("Authorization", "Bearer " + accessToken)
+            .accept(MediaType.APPLICATION_JSON)
+            .assertThat()
+            .hasStatusOk()
+            .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+            .bodyJson()
+            .extractingPath("content")
+            .asList()
+            .satisfies(loans -> assertThat(loans).isNotEmpty());
     }
 }

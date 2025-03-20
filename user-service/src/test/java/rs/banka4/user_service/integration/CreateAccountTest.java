@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,11 +63,18 @@ public class CreateAccountTest {
     @Test
     void createAccountSuccessfully() throws Exception {
         Currency currency = testDataSeeder.seedCurrency();
-        Client client = clientRepository.findByEmail("john.doe@example.com").get();
-        if(clientRepository.findByEmail("john.doe@example.com").isPresent()){
-            clientRepository.findByEmail("john.doe@example.com").get();
+        Client client =
+            clientRepository.findByEmail("john.doe@example.com")
+                .get();
+        if (
+            clientRepository.findByEmail("john.doe@example.com")
+                .isPresent()
+        ) {
+            clientRepository.findByEmail("john.doe@example.com")
+                .get();
         }
-        AccountClientIdDto accountClientIdDto = new AccountClientIdDto(
+        AccountClientIdDto accountClientIdDto =
+            new AccountClientIdDto(
                 client.getId(),
                 client.getFirstName(),
                 client.getLastName(),
@@ -78,29 +84,36 @@ public class CreateAccountTest {
                 client.getPhone(),
                 client.getAddress(),
                 client.getPrivileges()
-        );
-        CreateAccountDto createAccountDto = new CreateAccountDto(
+            );
+        CreateAccountDto createAccountDto =
+            new CreateAccountDto(
                 accountClientIdDto,
                 null,
                 BigDecimal.valueOf(5000),
                 currency.getCode(),
                 true
-        );
+            );
 
         String requestBody = objMapper.writeValueAsString(createAccountDto);
 
         m.post()
-                .uri("/account")
-                .header("Authorization", "Bearer " + accessToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(requestBody)
-                .assertThat()
-                .hasStatus(HttpStatus.CREATED);
+            .uri("/account")
+            .header("Authorization", "Bearer " + accessToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(requestBody)
+            .assertThat()
+            .hasStatus(HttpStatus.CREATED);
 
-        Account createdAccount = accountRepository.findAll().stream().findFirst().orElse(null);
+        Account createdAccount =
+            accountRepository.findAll()
+                .stream()
+                .findFirst()
+                .orElse(null);
         assertThat(createdAccount).isNotNull();
-        assertThat(createdAccount.getAvailableBalance()).isEqualByComparingTo(BigDecimal.valueOf(5000));
+        assertThat(createdAccount.getAvailableBalance()).isEqualByComparingTo(
+            BigDecimal.valueOf(5000)
+        );
         assertThat(createdAccount.getCurrency()).isEqualTo(currency);
     }
 }

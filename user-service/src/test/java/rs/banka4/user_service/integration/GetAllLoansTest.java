@@ -58,15 +58,15 @@ public class GetAllLoansTest {
     @Test
     void getAllLoansSuccessfully() throws Exception {
         m.get()
-                .uri("/loans/search?page=0&size=10")
-                .header("Authorization", "Bearer " + accessToken)
-                .accept(MediaType.APPLICATION_JSON)
-                .assertThat()
-                .hasStatusOk()
-                .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-                .bodyJson()
-                .extractingPath("content")
-                .asList()
-                .satisfies(loansList -> assertThat(loansList).isNotEmpty());
+            .uri("/loans/search?page=0&size=10")
+            .header("Authorization", "Bearer " + accessToken)
+            .accept(MediaType.APPLICATION_JSON)
+            .assertThat()
+            .hasStatusOk()
+            .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+            .bodyJson()
+            .extractingPath("content")
+            .asList()
+            .satisfies(loansList -> assertThat(loansList).isNotEmpty());
     }
 }

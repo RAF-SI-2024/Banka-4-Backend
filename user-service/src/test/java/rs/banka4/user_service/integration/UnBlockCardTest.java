@@ -76,37 +76,41 @@ public class UnBlockCardTest {
     @Test
     void unblockCardSuccessfully() throws Exception {
         m.put()
-                .uri("/cards/unblock/" + blockedCard.getCardNumber())
-                .header("Authorization", "Bearer " + accessToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .assertThat()
-                .hasStatus(HttpStatus.OK);
+            .uri("/cards/unblock/" + blockedCard.getCardNumber())
+            .header("Authorization", "Bearer " + accessToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .assertThat()
+            .hasStatus(HttpStatus.OK);
 
-        Card unblockedCard = cardRepository.findById(blockedCard.getId()).orElse(null);
+        Card unblockedCard =
+            cardRepository.findById(blockedCard.getId())
+                .orElse(null);
         assertThat(unblockedCard).isNotNull();
         assertThat(unblockedCard.getCardStatus()).isEqualTo(CardStatus.ACTIVATED);
     }
+
     @Test
     void unblockCardFailsForNonExistentCard() throws Exception {
         String nonExistentCardNumber = "9999999999999999";
 
         m.put()
-                .uri("/cards/unblock/" + nonExistentCardNumber)
-                .header("Authorization", "Bearer " + accessToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .assertThat()
-                .hasStatus(HttpStatus.BAD_REQUEST);
+            .uri("/cards/unblock/" + nonExistentCardNumber)
+            .header("Authorization", "Bearer " + accessToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .assertThat()
+            .hasStatus(HttpStatus.BAD_REQUEST);
     }
+
     @Test
     void unblockCardFailsForDeactivatedCard() throws Exception {
         m.put()
-                .uri("/cards/unblock/" + deactivatedCard.getCardNumber())
-                .header("Authorization", "Bearer " + accessToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .assertThat()
-                .hasStatus(HttpStatus.BAD_REQUEST);
+            .uri("/cards/unblock/" + deactivatedCard.getCardNumber())
+            .header("Authorization", "Bearer " + accessToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .assertThat()
+            .hasStatus(HttpStatus.BAD_REQUEST);
     }
 }

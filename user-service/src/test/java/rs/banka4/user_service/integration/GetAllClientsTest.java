@@ -37,15 +37,15 @@ public class GetAllClientsTest {
         userGen.createClient(x -> x);
 
         m.get()
-                .uri("/client/search?page=0&size=10")
-                .header("Authorization", "Bearer " + toks.accessToken())
-                .accept(MediaType.APPLICATION_JSON)
-                .assertThat()
-                .hasStatusOk()
-                .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-                .bodyJson()
-                .extractingPath("content")
-                .asList()
-                .satisfies(clients -> assertThat(clients).isNotEmpty());
+            .uri("/client/search?page=0&size=10")
+            .header("Authorization", "Bearer " + toks.accessToken())
+            .accept(MediaType.APPLICATION_JSON)
+            .assertThat()
+            .hasStatusOk()
+            .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+            .bodyJson()
+            .extractingPath("content")
+            .asList()
+            .satisfies(clients -> assertThat(clients).isNotEmpty());
     }
 }

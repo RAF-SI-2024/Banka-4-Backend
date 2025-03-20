@@ -82,48 +82,42 @@ public class LoginTest {
         userGen.createEmployee(x -> x);
 
         m.post()
-                .uri("/auth/employee/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content("""
+            .uri("/auth/employee/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .content("""
                 {
                   "email": "john.doe@example.com",
                   "password": "wrongpassword"
                 }
                 """)
-                .assertThat()
-                .hasStatus(HttpStatus.UNAUTHORIZED)
-                .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-                .bodyJson()
-                .extractingPath("code")
-                .asString()
-                .satisfies(
-                        message -> assertThat(message).isEqualTo("IncorrectCredentials")
-                );
+            .assertThat()
+            .hasStatus(HttpStatus.UNAUTHORIZED)
+            .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+            .bodyJson()
+            .extractingPath("code")
+            .asString()
+            .satisfies(message -> assertThat(message).isEqualTo("IncorrectCredentials"));
 
 
         m.post()
-                .uri("/auth/employee/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content("""
+            .uri("/auth/employee/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .content("""
                 {
                   "email": "nonexistent@example.com",
                   "password": "test"
                 }
                 """)
-                .assertThat()
-                .hasStatus(HttpStatus.UNAUTHORIZED)
-                .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-                .bodyJson()
-                .extractingPath("code")
-                .asString()
-                .satisfies(
-                        message -> assertThat(message).isEqualTo("IncorrectCredentials")
-                );
+            .assertThat()
+            .hasStatus(HttpStatus.UNAUTHORIZED)
+            .hasContentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+            .bodyJson()
+            .extractingPath("code")
+            .asString()
+            .satisfies(message -> assertThat(message).isEqualTo("IncorrectCredentials"));
     }
-
-
 
 
 }

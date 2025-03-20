@@ -59,13 +59,15 @@ public class ApproveLoanTest {
     @Test
     void approveLoanSuccessfully() throws Exception {
         m.put()
-                .uri("/loans/approve/" + loan.getLoanNumber())
-                .header("Authorization", "Bearer " + accessToken)
-                .accept(MediaType.APPLICATION_JSON)
-                .assertThat()
-                .hasStatus(HttpStatus.OK);
+            .uri("/loans/approve/" + loan.getLoanNumber())
+            .header("Authorization", "Bearer " + accessToken)
+            .accept(MediaType.APPLICATION_JSON)
+            .assertThat()
+            .hasStatus(HttpStatus.OK);
 
-        Loan approvedLoan = loanRepository.findByLoanNumber(loan.getLoanNumber()).orElseThrow();
+        Loan approvedLoan =
+            loanRepository.findByLoanNumber(loan.getLoanNumber())
+                .orElseThrow();
         assertThat(approvedLoan.getStatus()).isEqualTo(LoanStatus.APPROVED);
     }
 }

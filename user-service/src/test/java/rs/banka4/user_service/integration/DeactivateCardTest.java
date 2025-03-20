@@ -66,14 +66,16 @@ public class DeactivateCardTest {
     @Test
     void deactivateCardSuccessfully() throws Exception {
         m.put()
-                .uri("/cards/deactivate/" + card.getCardNumber())
-                .header("Authorization", "Bearer " + accessToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .assertThat()
-                .hasStatus(HttpStatus.OK);
+            .uri("/cards/deactivate/" + card.getCardNumber())
+            .header("Authorization", "Bearer " + accessToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .assertThat()
+            .hasStatus(HttpStatus.OK);
 
-        Card deactivatedCard = cardRepository.findById(card.getId()).orElse(null);
+        Card deactivatedCard =
+            cardRepository.findById(card.getId())
+                .orElse(null);
         assertThat(deactivatedCard).isNotNull();
         assertThat(deactivatedCard.getCardStatus()).isEqualTo(CardStatus.DEACTIVATED);
     }
@@ -83,12 +85,12 @@ public class DeactivateCardTest {
     void deactivateCardUnsuccessfullyBecauseOfNonExistentCard() throws Exception {
         String nonExistentCardNumber = "0000000000000000";
         m.put()
-                .uri("/cards/deactivate/" + nonExistentCardNumber)
-                .header("Authorization", "Bearer " + accessToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .assertThat()
-                .hasStatus(HttpStatus.BAD_REQUEST);
+            .uri("/cards/deactivate/" + nonExistentCardNumber)
+            .header("Authorization", "Bearer " + accessToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .assertThat()
+            .hasStatus(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -96,11 +98,11 @@ public class DeactivateCardTest {
         card.setCardStatus(CardStatus.DEACTIVATED);
         cardRepository.save(card);
         m.put()
-                .uri("/cards/deactivate/" + card.getCardNumber())
-                .header("Authorization", "Bearer " + accessToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .assertThat()
-                .hasStatus(HttpStatus.BAD_REQUEST);
+            .uri("/cards/deactivate/" + card.getCardNumber())
+            .header("Authorization", "Bearer " + accessToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .assertThat()
+            .hasStatus(HttpStatus.BAD_REQUEST);
     }
 }
