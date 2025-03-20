@@ -68,7 +68,8 @@ public class CardServiceTests {
     public void setUp() {
         // Create a mock Authentication with non-null credentials
         authentication = mock(Authentication.class);
-        lenient().when(authentication.getCredentials()).thenReturn("dummyTotp");
+        lenient().when(authentication.getCredentials())
+            .thenReturn("dummyTotp");
 
         // Initialize a business account (e.g., type DOO which is a business account)
         businessAccount = new Account();
@@ -104,7 +105,8 @@ public class CardServiceTests {
 
 
         authentication2 = mock(Authentication.class);
-        lenient().when(authentication2.getCredentials()).thenReturn(token);
+        lenient().when(authentication2.getCredentials())
+            .thenReturn(token);
 
         card = new Card();
         card.setCardNumber(cardNumber);
@@ -114,24 +116,29 @@ public class CardServiceTests {
     @Test
     void testBlockCard_AlreadyBlocked() {
         card.setCardStatus(CardStatus.BLOCKED);
-        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
-                .thenReturn(Optional.of(card));
+        when(cardRepository.findCardByCardNumber(card.getCardNumber())).thenReturn(
+            Optional.of(card)
+        );
 
         Card blockedCard = cardService.blockCard(card.getCardNumber(), token);
         assertNull(blockedCard);
     }
+
     @Test
     void testBlockCard_CardNotFound() {
-        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
-                .thenReturn(Optional.empty());
+        when(cardRepository.findCardByCardNumber(card.getCardNumber())).thenReturn(
+            Optional.empty()
+        );
 
         Card blockedCard = cardService.blockCard(card.getCardNumber(), token);
         assertNull(blockedCard);
     }
+
     @Test
     void testBlockCard_InvalidUser() {
-        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
-                .thenReturn(Optional.of(card));
+        when(cardRepository.findCardByCardNumber(card.getCardNumber())).thenReturn(
+            Optional.of(card)
+        );
         when(jwtUtil.extractRole(token)).thenReturn("client");
         when(jwtUtil.extractClaim(eq(token), any())).thenReturn("wrong-id");
         when(jwtUtil.extractUsername(token)).thenReturn("wrong-email");
@@ -139,10 +146,12 @@ public class CardServiceTests {
         Card blockedCard = cardService.blockCard(card.getCardNumber(), token);
         assertNull(blockedCard);
     }
+
     @Test
     void testUnblockCard_CardNotFound() {
-        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
-                .thenReturn(Optional.empty());
+        when(cardRepository.findCardByCardNumber(card.getCardNumber())).thenReturn(
+            Optional.empty()
+        );
 
         Card unblockedCard = cardService.unblockCard(card.getCardNumber(), token);
         assertNull(unblockedCard);
@@ -150,8 +159,9 @@ public class CardServiceTests {
 
     @Test
     void testUnblockCard_InvalidUser() {
-        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
-                .thenReturn(Optional.of(card));
+        when(cardRepository.findCardByCardNumber(card.getCardNumber())).thenReturn(
+            Optional.of(card)
+        );
         when(jwtUtil.extractRole(token)).thenReturn("client");
 
         Card unblockedCard = cardService.unblockCard(card.getCardNumber(), token);
@@ -161,8 +171,9 @@ public class CardServiceTests {
     @Test
     void testUnblockCard_AlreadyActive() {
         card.setCardStatus(CardStatus.ACTIVATED);
-        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
-                .thenReturn(Optional.of(card));
+        when(cardRepository.findCardByCardNumber(card.getCardNumber())).thenReturn(
+            Optional.of(card)
+        );
 
         Card unblockedCard = cardService.unblockCard(card.getCardNumber(), token);
         assertNull(unblockedCard);
@@ -170,8 +181,9 @@ public class CardServiceTests {
 
     @Test
     void testDeactivateCard_CardNotFound() {
-        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
-                .thenReturn(Optional.empty());
+        when(cardRepository.findCardByCardNumber(card.getCardNumber())).thenReturn(
+            Optional.empty()
+        );
 
         Card deactivatedCard = cardService.deactivateCard(card.getCardNumber(), token);
         assertNull(deactivatedCard);
@@ -179,8 +191,9 @@ public class CardServiceTests {
 
     @Test
     void testDeactivateCard_InvalidUser() {
-        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
-                .thenReturn(Optional.of(card));
+        when(cardRepository.findCardByCardNumber(card.getCardNumber())).thenReturn(
+            Optional.of(card)
+        );
         when(jwtUtil.extractRole(token)).thenReturn("client");
 
         Card deactivatedCard = cardService.deactivateCard(card.getCardNumber(), token);
@@ -190,8 +203,9 @@ public class CardServiceTests {
     @Test
     void testDeactivateCard_AlreadyDeactivated() {
         card.setCardStatus(CardStatus.DEACTIVATED);
-        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
-                .thenReturn(Optional.of(card));
+        when(cardRepository.findCardByCardNumber(card.getCardNumber())).thenReturn(
+            Optional.of(card)
+        );
 
         Card deactivatedCard = cardService.deactivateCard(card.getCardNumber(), token);
         assertNull(deactivatedCard);

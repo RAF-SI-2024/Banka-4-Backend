@@ -97,8 +97,7 @@ public class CardServiceImpl implements CardService {
                     || card.getAccount()
                         .getClient()
                         == null
-                    || card.getCardStatus()
-                        == CardStatus.BLOCKED
+                    || card.getCardStatus() == CardStatus.BLOCKED
             ) {
                 return null;
             }
