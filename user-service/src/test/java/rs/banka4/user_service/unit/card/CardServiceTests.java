@@ -29,8 +29,8 @@ import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.CardRepository;
 import rs.banka4.user_service.service.impl.CardServiceImpl;
 import rs.banka4.user_service.service.impl.TotpServiceImpl;
-import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.service.impl.UserService;
+import rs.banka4.user_service.utils.JwtUtil;
 
 @ExtendWith(MockitoExtension.class)
 public class CardServiceTests {
