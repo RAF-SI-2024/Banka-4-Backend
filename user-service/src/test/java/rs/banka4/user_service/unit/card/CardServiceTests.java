@@ -1,6 +1,6 @@
 package rs.banka4.user_service.unit.card;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
 import rs.banka4.user_service.domain.card.db.Card;
+import rs.banka4.user_service.domain.card.db.CardStatus;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.user_service.domain.user.Gender;
@@ -28,6 +29,7 @@ import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.CardRepository;
 import rs.banka4.user_service.service.impl.CardServiceImpl;
 import rs.banka4.user_service.service.impl.TotpServiceImpl;
+import rs.banka4.user_service.utils.JwtUtil;
 
 @ExtendWith(MockitoExtension.class)
 public class CardServiceTests {
@@ -40,6 +42,9 @@ public class CardServiceTests {
 
     @Mock
     private TotpServiceImpl totpService;
+
+    @Mock
+    private JwtUtil jwtUtil;
 
     @InjectMocks
     private CardServiceImpl cardService;
@@ -54,11 +59,16 @@ public class CardServiceTests {
 
     private Authentication authentication;
 
+    private Authentication authentication2;
+    private Card card;
+    private final String cardNumber = "1234567890123456";
+    private final String token = "mockToken";
+
     @BeforeEach
     public void setUp() {
         // Create a mock Authentication with non-null credentials
         authentication = mock(Authentication.class);
-        when(authentication.getCredentials()).thenReturn("dummyTotp");
+        lenient().when(authentication.getCredentials()).thenReturn("dummyTotp");
 
         // Initialize a business account (e.g., type DOO which is a business account)
         businessAccount = new Account();
@@ -91,6 +101,100 @@ public class CardServiceTests {
         // Create valid DTO for a personal account (authorizedUser must be null)
         validPersonalRequest =
             new CreateCardDto(personalAccount.getAccountNumber(), null, "dummyTotp");
+
+
+        authentication2 = mock(Authentication.class);
+        lenient().when(authentication2.getCredentials()).thenReturn(token);
+
+        card = new Card();
+        card.setCardNumber(cardNumber);
+        card.setCardStatus(CardStatus.ACTIVATED);
+    }
+
+    @Test
+    void testBlockCard_AlreadyBlocked() {
+        card.setCardStatus(CardStatus.BLOCKED);
+        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
+                .thenReturn(Optional.of(card));
+
+        Card blockedCard = cardService.blockCard(card.getCardNumber(), token);
+        assertNull(blockedCard);
+    }
+    @Test
+    void testBlockCard_CardNotFound() {
+        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
+                .thenReturn(Optional.empty());
+
+        Card blockedCard = cardService.blockCard(card.getCardNumber(), token);
+        assertNull(blockedCard);
+    }
+    @Test
+    void testBlockCard_InvalidUser() {
+        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
+                .thenReturn(Optional.of(card));
+        when(jwtUtil.extractRole(token)).thenReturn("client");
+        when(jwtUtil.extractClaim(eq(token), any())).thenReturn("wrong-id");
+        when(jwtUtil.extractUsername(token)).thenReturn("wrong-email");
+
+        Card blockedCard = cardService.blockCard(card.getCardNumber(), token);
+        assertNull(blockedCard);
+    }
+    @Test
+    void testUnblockCard_CardNotFound() {
+        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
+                .thenReturn(Optional.empty());
+
+        Card unblockedCard = cardService.unblockCard(card.getCardNumber(), token);
+        assertNull(unblockedCard);
+    }
+
+    @Test
+    void testUnblockCard_InvalidUser() {
+        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
+                .thenReturn(Optional.of(card));
+        when(jwtUtil.extractRole(token)).thenReturn("client");
+
+        Card unblockedCard = cardService.unblockCard(card.getCardNumber(), token);
+        assertNull(unblockedCard);
+    }
+
+    @Test
+    void testUnblockCard_AlreadyActive() {
+        card.setCardStatus(CardStatus.ACTIVATED);
+        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
+                .thenReturn(Optional.of(card));
+
+        Card unblockedCard = cardService.unblockCard(card.getCardNumber(), token);
+        assertNull(unblockedCard);
+    }
+
+    @Test
+    void testDeactivateCard_CardNotFound() {
+        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
+                .thenReturn(Optional.empty());
+
+        Card deactivatedCard = cardService.deactivateCard(card.getCardNumber(), token);
+        assertNull(deactivatedCard);
+    }
+
+    @Test
+    void testDeactivateCard_InvalidUser() {
+        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
+                .thenReturn(Optional.of(card));
+        when(jwtUtil.extractRole(token)).thenReturn("client");
+
+        Card deactivatedCard = cardService.deactivateCard(card.getCardNumber(), token);
+        assertNull(deactivatedCard);
+    }
+
+    @Test
+    void testDeactivateCard_AlreadyDeactivated() {
+        card.setCardStatus(CardStatus.DEACTIVATED);
+        when(cardRepository.findCardByCardNumber(card.getCardNumber()))
+                .thenReturn(Optional.of(card));
+
+        Card deactivatedCard = cardService.deactivateCard(card.getCardNumber(), token);
+        assertNull(deactivatedCard);
     }
 
     @Test
