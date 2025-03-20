@@ -20,6 +20,7 @@ import rs.banka4.user_service.domain.transaction.dtos.CreateTransferDto;
 import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
 import rs.banka4.user_service.exceptions.account.NotAccountOwner;
+import rs.banka4.user_service.exceptions.transaction.ClientCannotPayToOwnAccount;
 import rs.banka4.user_service.exceptions.transaction.InsufficientFunds;
 import rs.banka4.user_service.exceptions.transaction.TransactionNotFound;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
@@ -52,6 +53,13 @@ public interface TransactionApiDocumentation {
                 responseCode = "404",
                 description = "Account not found",
                 content = @Content(schema = @Schema(implementation = AccountNotFound.class))
+            ),
+            @ApiResponse(
+                responseCode = "409",
+                description = "Conflict - Cannot pay to yourself",
+                content = @Content(
+                    schema = @Schema(implementation = ClientCannotPayToOwnAccount.class)
+                )
             )
         }
     )

@@ -52,6 +52,10 @@ public class PaymentSpecification {
             : criteriaBuilder.equal(root.get("toAccount"), toAccount);
     }
 
+    public static Specification<Transaction> isNotTransfer() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.isFalse(root.get("isTransfer"));
+    }
+
     public static Specification<Transaction> isNotSpecialTransaction() {
         return (root, query, criteriaBuilder) -> {
             String[] specialPrefixes = {

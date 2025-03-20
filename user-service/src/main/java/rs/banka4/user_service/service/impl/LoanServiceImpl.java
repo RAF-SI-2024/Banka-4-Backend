@@ -41,6 +41,7 @@ import rs.banka4.user_service.exceptions.loan.InterestRateAmountNotSupported;
 import rs.banka4.user_service.exceptions.loan.InvalidLoanStatus;
 import rs.banka4.user_service.exceptions.loan.LoanNotFound;
 import rs.banka4.user_service.exceptions.loan.NoLoansOnAccount;
+import rs.banka4.user_service.exceptions.user.InvalidPhoneNumber;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.repositories.InterestRateRepository;
 import rs.banka4.user_service.repositories.LoanInstallmentRepository;
@@ -66,6 +67,7 @@ public class LoanServiceImpl implements LoanService {
     private final InterestRateRepository interestRateRepository;
     private final JwtUtil jwtUtil;
     private final LoanInstallmentRepository loanInstallmentRepository;
+    private final UserService userService;
 
     /**
      * Creates a new loan request for the given loan application.
@@ -87,6 +89,12 @@ public class LoanServiceImpl implements LoanService {
         Optional<Client> client = clientService.getClientByEmail(email);
 
         if (client.isEmpty()) throw new ClientNotFound(email);
+
+        if (!userService.isPhoneNumberValid(loanApplicationDto.contactPhone())) {
+
+            throw new InvalidPhoneNumber();
+
+        }
 
         Loan newLoan = LoanMapper.INSTANCE.toEntity(loanApplicationDto);
         newLoan.setStatus(LoanStatus.PROCESSING);

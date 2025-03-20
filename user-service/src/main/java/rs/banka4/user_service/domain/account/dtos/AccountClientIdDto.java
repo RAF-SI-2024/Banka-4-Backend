@@ -47,7 +47,7 @@ public record AccountClientIdDto(
 
     @Schema(
         description = "Client's phoneNumber number",
-        example = "+1234567890"
+        example = "+381658974125"
     ) @NotBlank(message = "Phone is required") String phone,
 
     @Schema(

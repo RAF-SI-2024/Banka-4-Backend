@@ -106,6 +106,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (userService.existsByEmail(dto.email())) {
             throw new DuplicateEmail(dto.email());
         }
+
+        if (!userService.isPhoneNumberValid(dto.phone())) {
+            throw new InvalidPhoneNumber();
+        }
+
         if (employeeRepository.existsByUsername(dto.username())) {
             throw new DuplicateUsername(dto.username());
         }
@@ -179,6 +184,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (userService.existsByEmail(updateEmployeeDto.email())) {
             throw new DuplicateEmail(updateEmployeeDto.email());
         }
+
+        if (!userService.isPhoneNumberValid(updateEmployeeDto.phoneNumber())) {
+            throw new InvalidPhoneNumber();
+        }
+
         if (employeeRepository.existsByUsername(updateEmployeeDto.username())) {
             throw new DuplicateUsername(updateEmployeeDto.username());
         }

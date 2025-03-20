@@ -39,7 +39,7 @@ public record EmployeeDto(
 
     @Schema(
         description = "Employee's phoneNumber number",
-        example = "+1234567890"
+        example = "+381610123456"
     ) String phone,
 
     @Schema(

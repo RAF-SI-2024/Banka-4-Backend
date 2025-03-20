@@ -18,10 +18,7 @@ import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.*;
 import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
 import rs.banka4.user_service.exceptions.*;
-import rs.banka4.user_service.exceptions.user.DuplicateEmail;
-import rs.banka4.user_service.exceptions.user.IncorrectCredentials;
-import rs.banka4.user_service.exceptions.user.NotAuthenticated;
-import rs.banka4.user_service.exceptions.user.NotFound;
+import rs.banka4.user_service.exceptions.user.*;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.exceptions.user.client.NonexistantSortByField;
 import rs.banka4.user_service.exceptions.user.client.NotActivated;
@@ -169,6 +166,9 @@ public class ClientServiceImpl implements ClientService {
         if (userService.existsByEmail(createClientDto.email())) {
             throw new DuplicateEmail(createClientDto.email());
         }
+        if (!userService.isPhoneNumberValid(createClientDto.phone())) {
+            throw new InvalidPhoneNumber();
+        }
         Client client = ClientMapper.INSTANCE.toEntity(createClientDto);
 
         clientRepository.save(client);
@@ -179,6 +179,10 @@ public class ClientServiceImpl implements ClientService {
     public Client createClient(AccountClientIdDto request) {
         if (userService.existsByEmail(request.email())) {
             throw new DuplicateEmail(request.email());
+        }
+
+        if (!userService.isPhoneNumberValid(request.phone())) {
+            throw new InvalidPhoneNumber();
         }
 
         Client client = ClientMapper.INSTANCE.toEntity(request);
@@ -199,6 +203,10 @@ public class ClientServiceImpl implements ClientService {
 
         if (userService.existsByEmail(updateClientDto.email())) {
             throw new DuplicateEmail(updateClientDto.email());
+        }
+
+        if (!userService.isPhoneNumberValid(updateClientDto.phoneNumber())) {
+            throw new InvalidPhoneNumber();
         }
 
         ClientMapper.INSTANCE.fromUpdate(client, updateClientDto);

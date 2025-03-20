@@ -128,6 +128,7 @@ public class CardController implements CardDocumentation {
         @RequestParam(required = false) String lastName,
         @RequestParam(required = false) String email,
         @RequestParam(required = false) String cardStatus,
+        @RequestParam(required = false) String accountNumber,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
@@ -139,6 +140,7 @@ public class CardController implements CardDocumentation {
             lastName,
             email,
             cardStatus,
+            accountNumber,
             PageRequest.of(page, size)
         );
     }

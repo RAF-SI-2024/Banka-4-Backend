@@ -195,8 +195,25 @@ public class TestDataRunner implements CommandLineRunner {
 
         Random random = new Random();
         List<Account> accounts = accountRepository.findAll();
-        var currencies = currencyRepository.findAll();
-        var loans = loanRepository.findAll();
+        List<Currency> currencies = currencyRepository.findAll();
+        List<Loan> loans = loanRepository.findAll();
+
+        List<String> purposes =
+            List.of(
+                "College",
+                "New Business",
+                "New House",
+                "Car Purchase",
+                "Medical Expenses",
+                "Home Renovation",
+                "Debt Consolidation",
+                "Travel Expenses",
+                "Wedding",
+                "Investment Opportunity"
+            );
+
+        List<String> employmentStatuses = List.of("PERMANENT", "TEMPORARY", "UNEMPLOYED");
+
         List<LoanRequest> loanRequests =
             random.ints(10, 0, 10000)
                 .mapToObj(
@@ -206,11 +223,13 @@ public class TestDataRunner implements CommandLineRunner {
                         .account(accounts.get(random.nextInt(accounts.size())))
                         .type(randomEnumValue(LoanType.class))
                         .interestType(randomEnumValue(Loan.InterestType.class))
-                        .purposeOfLoan("asdsdasd")
-                        .contactPhone("12321321")
-                        .employmentStatus("asdda")
-                        .employmentPeriod(21)
-                        .monthlyIncome(BigDecimal.valueOf(32213))
+                        .purposeOfLoan(purposes.get(random.nextInt(purposes.size())))
+                        .contactPhone("+381630124756")
+                        .employmentStatus(
+                            employmentStatuses.get(random.nextInt(employmentStatuses.size()))
+                        )
+                        .employmentPeriod(random.nextInt(40) + 1)
+                        .monthlyIncome(BigDecimal.valueOf(random.nextInt(100000) + 20000))
                         .loan(loans.get(random.nextInt(loans.size())))
                         .currency(currencies.get(random.nextInt(currencies.size())))
                         .build()
@@ -735,7 +754,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1985, 4, 12))
                     .gender(Gender.FEMALE)
                     .email("alice.johnson@bankcorp.com")
-                    .phone("3810611111111")
+                    .phone("+381615478963")
                     .address("789 Sunset Blvd")
                     .password(passwordEncoder.encode("password"))
                     .username("alicej")
@@ -751,7 +770,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1990, 7, 21))
                     .gender(Gender.MALE)
                     .email("robert.anderson@bankcorp.com")
-                    .phone("3810622222222")
+                    .phone("+381628974563")
                     .address("456 Greenway Rd")
                     .password(passwordEncoder.encode("password"))
                     .username("roberta")
@@ -767,7 +786,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1988, 10, 5))
                     .gender(Gender.FEMALE)
                     .email("samantha.miller@bankcorp.com")
-                    .phone("3810633333333")
+                    .phone("+381698745632")
                     .address("321 Oak Dr")
                     .password(passwordEncoder.encode("password"))
                     .username("samantham")
@@ -783,7 +802,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1993, 3, 15))
                     .gender(Gender.MALE)
                     .email("daniel.white@bankcorp.com")
-                    .phone("3810644444444")
+                    .phone("+381685214789")
                     .address("567 Pine Ln")
                     .password(passwordEncoder.encode("password"))
                     .username("danielw")
@@ -799,7 +818,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1991, 5, 30))
                     .gender(Gender.FEMALE)
                     .email("jessica.martinez@bankcorp.com")
-                    .phone("3810655555555")
+                    .phone("+381679632145")
                     .address("123 Cedar Ave")
                     .password(passwordEncoder.encode("password"))
                     .username("jessicam")
@@ -815,7 +834,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1987, 8, 18))
                     .gender(Gender.MALE)
                     .email("michael.thompson@bankcorp.com")
-                    .phone("3810666666666")
+                    .phone("+381661478523")
                     .address("456 Maple Rd")
                     .password(passwordEncoder.encode("password"))
                     .username("michaelt")
@@ -831,7 +850,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1994, 12, 22))
                     .gender(Gender.FEMALE)
                     .email("laura.harris@bankcorp.com")
-                    .phone("3810677777777")
+                    .phone("+381654789632")
                     .address("789 Elm St")
                     .password(passwordEncoder.encode("password"))
                     .username("laurah")
@@ -847,7 +866,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1989, 6, 9))
                     .gender(Gender.MALE)
                     .email("david.clark@bankcorp.com")
-                    .phone("3810688888888")
+                    .phone("+381648523697")
                     .address("987 Walnut St")
                     .password(passwordEncoder.encode("password"))
                     .username("davidc")
@@ -863,7 +882,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1996, 2, 14))
                     .gender(Gender.FEMALE)
                     .email("emma.lewis@bankcorp.com")
-                    .phone("3810699999999")
+                    .phone("+381632145698")
                     .address("654 Birch Rd")
                     .password(passwordEncoder.encode("password"))
                     .username("emmal")
@@ -879,7 +898,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1986, 11, 3))
                     .gender(Gender.MALE)
                     .email("chris.walker@bankcorp.com")
-                    .phone("3810700000000")
+                    .phone("+381627896541")
                     .address("321 Redwood Ave")
                     .password(passwordEncoder.encode("password"))
                     .username("chrisw")
@@ -926,7 +945,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1995, 5, 15))
                     .gender(Gender.MALE)
                     .email("johndoe95@example.com")
-                    .phone("3810612345678")
+                    .phone("+381614785236")
                     .address("123 Main St")
                     .password(passwordEncoder.encode("password"))
                     .accounts(Set.of())
@@ -939,7 +958,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1992, 8, 25))
                     .gender(Gender.FEMALE)
                     .email("janesmith92@example.com")
-                    .phone("3810629876543")
+                    .phone("+381695478321")
                     .address("789 Oak St")
                     .password(passwordEncoder.encode("password"))
                     .accounts(Set.of())
@@ -952,7 +971,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1988, 3, 10))
                     .gender(Gender.MALE)
                     .email("michaelj@example.com")
-                    .phone("3810634455667")
+                    .phone("+381682139547")
                     .address("567 Pine St")
                     .password(passwordEncoder.encode("password"))
                     .accounts(Set.of())
@@ -965,7 +984,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1990, 11, 30))
                     .gender(Gender.FEMALE)
                     .email("emilyd@example.com")
-                    .phone("3810641122334")
+                    .phone("+381674563218")
                     .address("234 Maple St")
                     .password(passwordEncoder.encode("password"))
                     .accounts(Set.of())
@@ -978,7 +997,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1985, 6, 20))
                     .gender(Gender.MALE)
                     .email("davidw@example.com")
-                    .phone("3810656677889")
+                    .phone("+381662145789")
                     .address("890 Cedar St")
                     .password(passwordEncoder.encode("password"))
                     .accounts(Set.of())
@@ -991,7 +1010,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1993, 9, 5))
                     .gender(Gender.FEMALE)
                     .email("oliviam@example.com")
-                    .phone("3810667788990")
+                    .phone("+381659874563")
                     .address("321 Birch St")
                     .password(passwordEncoder.encode("password"))
                     .accounts(Set.of())
@@ -1004,7 +1023,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1987, 4, 18))
                     .gender(Gender.MALE)
                     .email("jamesb@example.com")
-                    .phone("3810678899001")
+                    .phone("+381641237896")
                     .address("654 Willow St")
                     .password(passwordEncoder.encode("password"))
                     .accounts(Set.of())
@@ -1017,7 +1036,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1996, 12, 12))
                     .gender(Gender.FEMALE)
                     .email("sophiag@example.com")
-                    .phone("3810689900112")
+                    .phone("+381637845912")
                     .address("987 Palm St")
                     .password(passwordEncoder.encode("password"))
                     .accounts(Set.of())
@@ -1030,7 +1049,7 @@ public class TestDataRunner implements CommandLineRunner {
                     .dateOfBirth(LocalDate.of(1994, 7, 22))
                     .gender(Gender.MALE)
                     .email("danielm@example.com")
-                    .phone("3810690011223")
+                    .phone("+381620314758")
                     .address("741 Redwood St")
                     .password(passwordEncoder.encode("password"))
                     .accounts(Set.of())
@@ -1145,7 +1164,10 @@ public class TestDataRunner implements CommandLineRunner {
             if (fromAccount != null && toAccount != null && currency != null) {
                 Transaction transaction1 =
                     Transaction.builder()
-                        .transactionNumber("587135813355381")
+                        .transactionNumber(
+                            UUID.randomUUID()
+                                .toString()
+                        )
                         .fromAccount(fromAccount)
                         .toAccount(toAccount)
                         .from(new MonetaryAmount(new BigDecimal("100.00"), currency))
@@ -1161,7 +1183,10 @@ public class TestDataRunner implements CommandLineRunner {
 
                 Transaction transaction2 =
                     Transaction.builder()
-                        .transactionNumber("583135413351381")
+                        .transactionNumber(
+                            UUID.randomUUID()
+                                .toString()
+                        )
                         .fromAccount(toAccount)
                         .toAccount(fromAccount)
                         .from(new MonetaryAmount(new BigDecimal("200.00"), currency))

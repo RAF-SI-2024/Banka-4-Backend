@@ -41,7 +41,7 @@ public record CreateClientDto(
 
     @Schema(
         description = "Client's phoneNumber number",
-        example = "+1234567890"
+        example = "+381672587496"
     ) @NotBlank(message = "Phone is required") String phone,
 
     @Schema(

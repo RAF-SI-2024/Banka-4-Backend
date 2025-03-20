@@ -33,7 +33,7 @@ public record AuthorizedUserDto(
     ) String email,
     @Schema(
         description = "Phone number of the user",
-        example = "+381645555555"
+        example = "+381611234567"
     ) String phoneNumber,
     @Schema(
         description = "Address of the user",

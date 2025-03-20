@@ -38,7 +38,7 @@ public record UpdateClientDto(
 
     @Schema(
         description = "Phone number",
-        example = "123-456-7890"
+        example = "+381697841236"
     ) String phoneNumber,
 
     @Schema(

@@ -63,6 +63,7 @@ public class ClientServiceUpdateTests {
         // Arrange
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(existingClient));
         when(userService.existsByEmail(updateClientDto.email())).thenReturn(false);
+        when(userService.isPhoneNumberValid(updateClientDto.phoneNumber())).thenReturn(true);
 
         // Act
         clientService.updateClient(clientId, updateClientDto);

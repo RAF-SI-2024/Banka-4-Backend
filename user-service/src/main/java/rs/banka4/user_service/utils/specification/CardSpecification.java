@@ -69,4 +69,12 @@ public class CardSpecification {
             );
         };
     }
+
+    public static Specification<Card> hasAccountNumber(String accountNumber) {
+        return (root, query, criteriaBuilder) -> {
+            Join<Card, Account> accountJoin = root.join("account");
+            return criteriaBuilder.equal(accountJoin.get("accountNumber"), accountNumber);
+        };
+    }
+
 }

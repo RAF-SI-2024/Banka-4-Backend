@@ -19,7 +19,7 @@ public class ClientObjectMother {
             LocalDate.of(1990, 1, 1),
             Gender.MALE,
             "john.doe@example.com",
-            "1234567890",
+            "+381650312764",
             "123 Grove Street, City, Country",
             Set.of(Privilege.SEARCH)
         );
@@ -30,7 +30,7 @@ public class ClientObjectMother {
         String lastName = "Doe";
         LocalDate dateOfBirth = LocalDate.of(1990, 1, 1);
         Gender gender = Gender.MALE;
-        String phone = "123-456-7890";
+        String phone = "+381650312764";
         String address = "123 Main St";
         EnumSet<Privilege> privileges = EnumSet.noneOf(Privilege.class);
 
@@ -57,7 +57,7 @@ public class ClientObjectMother {
             LocalDate.of(1990, 1, 1),
             Gender.MALE,
             "john.doe@example.com",
-            "123-456-7890",
+            "+381680415627",
             "123 Main St",
             EnumSet.noneOf(Privilege.class),
             false
@@ -71,7 +71,7 @@ public class ClientObjectMother {
             LocalDate.of(1990, 1, 1),
             Gender.MALE,
             "john.doe@example.com",
-            "1234567890",
+            "+381691023547",
             "123 Grove Street, City, Country",
             Set.of(Privilege.SEARCH)
         );
@@ -85,7 +85,7 @@ public class ClientObjectMother {
             .dateOfBirth(LocalDate.of(1990, 1, 1))
             .gender(Gender.MALE)
             .email(email)
-            .phone("123-456-7890")
+            .phone("+381610325476")
             .address("123 Main St")
             .build();
     }

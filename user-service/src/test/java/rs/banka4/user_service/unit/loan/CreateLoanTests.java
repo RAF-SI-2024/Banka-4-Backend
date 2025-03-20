@@ -31,6 +31,7 @@ import rs.banka4.user_service.repositories.LoanRequestRepository;
 import rs.banka4.user_service.service.abstraction.AccountService;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.impl.LoanServiceImpl;
+import rs.banka4.user_service.service.impl.UserService;
 import rs.banka4.user_service.utils.JwtUtil;
 import rs.banka4.user_service.utils.loans.LoanRateUtil;
 
@@ -59,6 +60,9 @@ public class CreateLoanTests {
 
     @InjectMocks
     private LoanServiceImpl loanService;
+
+    @Mock
+    private UserService userService;
 
     private LoanApplicationDto loanApplicationDto;
     private Client client;
@@ -92,6 +96,7 @@ public class CreateLoanTests {
         when(
             interestRateRepository.findByAmountAndDate(BigDecimal.valueOf(1000.0), LocalDate.now())
         ).thenReturn(Optional.of(new InterestRate()));
+        when(userService.isPhoneNumberValid(anyString())).thenReturn(true);
 
 
         assertDoesNotThrow(
@@ -117,6 +122,8 @@ public class CreateLoanTests {
         when(accountService.getAccountByAccountNumber("444394438340549")).thenThrow(
             new AccountNotFound()
         );
+        when(userService.isPhoneNumberValid(anyString())).thenReturn(true);
+
 
         assertThrows(
             AccountNotFound.class,
@@ -130,6 +137,8 @@ public class CreateLoanTests {
         when(clientService.getClientByEmail("test@example.com")).thenReturn(Optional.of(client));
 
         when(accountService.getAccountByAccountNumber("444394438340549")).thenReturn(account);
+        when(userService.isPhoneNumberValid(anyString())).thenReturn(true);
+
 
         account.setActive(false);
 
@@ -145,6 +154,8 @@ public class CreateLoanTests {
         when(clientService.getClientByEmail("test@example.com")).thenReturn(Optional.of(client));
 
         when(accountService.getAccountByAccountNumber("444394438340549")).thenReturn(account);
+        when(userService.isPhoneNumberValid(anyString())).thenReturn(true);
+
 
         when(
             interestRateRepository.findByAmountAndDate(BigDecimal.valueOf(1000.0), LocalDate.now())
@@ -174,6 +185,7 @@ public class CreateLoanTests {
         when(clientService.getClientByEmail("test@example.com")).thenReturn(Optional.of(client));
 
         when(accountService.getAccountByAccountNumber("444394438340549")).thenReturn(account);
+        when(userService.isPhoneNumberValid(anyString())).thenReturn(true);
 
         account.getClient()
             .setEmail("aaaa@example.com");
@@ -190,6 +202,7 @@ public class CreateLoanTests {
         when(clientService.getClientByEmail("test@example.com")).thenReturn(Optional.of(client));
 
         when(accountService.getAccountByAccountNumber("444394438340549")).thenReturn(account);
+        when(userService.isPhoneNumberValid(anyString())).thenReturn(true);
 
         when(
             interestRateRepository.findByAmountAndDate(BigDecimal.valueOf(1000.0), LocalDate.now())
@@ -214,7 +227,7 @@ public class CreateLoanTests {
         when(clientService.getClientByEmail("test@example.com")).thenReturn(Optional.of(client));
 
         when(accountService.getAccountByAccountNumber("444394438340549")).thenReturn(account);
-
+        when(userService.isPhoneNumberValid(anyString())).thenReturn(true);
 
         Loan loan = new Loan();
         when(loanRepository.save(any(Loan.class))).thenThrow(

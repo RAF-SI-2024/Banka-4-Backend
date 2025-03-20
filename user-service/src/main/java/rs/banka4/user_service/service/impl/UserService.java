@@ -1,5 +1,7 @@
 package rs.banka4.user_service.service.impl;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,18 @@ public class UserService {
 
     public boolean existsByEmail(String email) {
         return employeeRepository.existsByEmail(email) || clientRepository.existsByEmail(email);
+    }
+
+    public boolean isPhoneNumberValid(String phoneNumber) {
+
+        String regex = "^(\\+3816|06)(\\d{7,8}|(77|78)\\d{5,6})$";
+
+        Pattern pattern = Pattern.compile(regex);
+
+        Matcher matcher = pattern.matcher(phoneNumber);
+
+        return matcher.matches();
+
     }
 
     public void sendVerificationEmail(String firstName, String email) {

@@ -46,7 +46,7 @@ public record CreateEmployeeDto(
 
     @Schema(
         description = "Employee's phoneNumber number",
-        example = "+1234567890"
+        example = "+381643698521"
     ) @NotBlank(message = "Phone is required") String phone,
 
     @Schema(

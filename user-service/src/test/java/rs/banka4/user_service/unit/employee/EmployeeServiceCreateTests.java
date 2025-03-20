@@ -45,6 +45,7 @@ public class EmployeeServiceCreateTests {
         when(employeeRepository.existsByUsername(dto.username())).thenReturn(false);
         when(employeeMapper.toEntity(dto)).thenReturn(employee);
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
+        when(userService.isPhoneNumberValid(dto.phone())).thenReturn(true);
 
         // Act
         employeeService.createEmployee(dto);
@@ -80,6 +81,7 @@ public class EmployeeServiceCreateTests {
         // Arrange
         CreateEmployeeDto dto = EmployeeObjectMother.generateBasicCreateEmployeeDto();
         when(employeeRepository.existsByUsername(dto.username())).thenReturn(true);
+        when(userService.isPhoneNumberValid(dto.phone())).thenReturn(true);
 
         // Act & Assert
         assertThrows(DuplicateUsername.class, () -> employeeService.createEmployee(dto));

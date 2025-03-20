@@ -23,7 +23,7 @@ public class EmployeeObjectMother {
             LocalDate.of(1990, 1, 1),
             Gender.MALE,
             "john.doe@example.com",
-            "+1234567890",
+            "+381634567890",
             "123 Main St",
             Set.of(Privilege.SEARCH),
             "Developer",
@@ -61,7 +61,7 @@ public class EmployeeObjectMother {
             Gender.MALE,
             "john.doe@example.com",
             "johndoe",
-            "+1234567890",
+            "+381623456789",
             "123 Main St",
             Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS),
             "Developer",
@@ -78,7 +78,7 @@ public class EmployeeObjectMother {
             Gender.MALE,
             "duplicate.email@example.com",
             "johndoe",
-            "+1234567890",
+            "+381652147896",
             "123 Main St",
             Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS),
             "Developer",
@@ -95,7 +95,7 @@ public class EmployeeObjectMother {
             Gender.MALE,
             "john.doe@example.com",
             "duplicateusername",
-            "+1234567890",
+            "+381649632587",
             "123 Main St",
             Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS),
             "Developer",
@@ -112,7 +112,7 @@ public class EmployeeObjectMother {
             Gender.MALE,
             "nonexistent@example.com",
             "nonexistentuser",
-            "+1234567890",
+            "+381638745230",
             "123 Main St",
             Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS),
             "Developer",
@@ -130,7 +130,7 @@ public class EmployeeObjectMother {
         employee.setGender(Gender.MALE);
         employee.setEmail("john.doe@example.com");
         employee.setUsername("johndoe");
-        employee.setPhone("+1234567890");
+        employee.setPhone("+381626598741");
         employee.setAddress("123 Main St");
         employee.setPrivileges(Set.of(Privilege.TRADE_STOCKS, Privilege.CONTRACTS));
         employee.setPosition("Developer");
@@ -147,7 +147,7 @@ public class EmployeeObjectMother {
             LocalDate.of(1990, 1, 1),
             Gender.MALE,
             "john.doe@example.com",
-            "+1234567890",
+            "+381619854763",
             "123 Main St",
             "johndoe",
             "Developer",
@@ -164,7 +164,7 @@ public class EmployeeObjectMother {
             LocalDate.of(1990, 1, 1),
             Gender.MALE,
             "john.doe@example.com",
-            "+1234567890",
+            "+381693258741",
             "123 Main St",
             "johndoe",
             "Developer",

@@ -31,6 +31,7 @@ import rs.banka4.user_service.exceptions.card.AuthorizedUserNotAllowed;
 import rs.banka4.user_service.exceptions.card.CardLimitExceededException;
 import rs.banka4.user_service.exceptions.card.DuplicateAuthorizationException;
 import rs.banka4.user_service.exceptions.card.NotValidCardStatus;
+import rs.banka4.user_service.exceptions.user.InvalidPhoneNumber;
 import rs.banka4.user_service.exceptions.user.NotAuthenticated;
 import rs.banka4.user_service.exceptions.user.client.ClientNotFound;
 import rs.banka4.user_service.repositories.AccountRepository;
@@ -51,6 +52,8 @@ public class CardServiceImpl implements CardService {
     private final TotpService totpService;
     private final JwtUtil jwtUtil;
     private final ClientRepository clientRepository;
+    private final UserService userService;
+
 
     @Transactional
     public void createAuthorizedCard(Authentication auth, CreateCardDto dto) {
@@ -62,6 +65,18 @@ public class CardServiceImpl implements CardService {
             )
         ) {
             throw new NotValidTotpException();
+        }
+
+        if (
+            dto.authorizedUser() != null
+                && !userService.isPhoneNumberValid(
+                    dto.authorizedUser()
+                        .phoneNumber()
+                )
+        ) {
+
+            throw new InvalidPhoneNumber();
+
         }
 
         Account account =
@@ -206,6 +221,7 @@ public class CardServiceImpl implements CardService {
         return ResponseEntity.ok(pagedClientCards);
     }
 
+    // Private functions
     @Override
     public ResponseEntity<Page<CardDto>> employeeSearchCards(
         String token,
@@ -214,6 +230,7 @@ public class CardServiceImpl implements CardService {
         String lastName,
         String email,
         String cardStatus,
+        String accountNumber,
         Pageable pageable
     ) {
 
@@ -251,6 +268,10 @@ public class CardServiceImpl implements CardService {
             } catch (IllegalArgumentException e) {
                 throw new NotValidCardStatus();
             }
+        }
+
+        if (accountNumber != null && !accountNumber.isEmpty()) {
+            combinator.and(CardSpecification.hasAccountNumber(accountNumber));
         }
 
         Page<Card> cards = cardRepository.findAll(combinator.build(), pageable);

@@ -30,6 +30,7 @@ import rs.banka4.user_service.repositories.CardRepository;
 import rs.banka4.user_service.service.impl.CardServiceImpl;
 import rs.banka4.user_service.service.impl.TotpServiceImpl;
 import rs.banka4.user_service.utils.JwtUtil;
+import rs.banka4.user_service.service.impl.UserService;
 
 @ExtendWith(MockitoExtension.class)
 public class CardServiceTests {
@@ -48,6 +49,9 @@ public class CardServiceTests {
 
     @InjectMocks
     private CardServiceImpl cardService;
+
+    @Mock
+    private UserService userService;
 
     // Sample DTOs for testing different account types
     private CreateCardDto validBusinessRequestWithAuthorizedUser;
@@ -227,6 +231,8 @@ public class CardServiceTests {
         ).thenReturn(false);
         when(cardRepository.existsByCardNumber(anyString())).thenReturn(false);
 
+        when(userService.isPhoneNumberValid(any())).thenReturn(true);
+
         cardService.createAuthorizedCard(authentication, validBusinessRequestWithAuthorizedUser);
 
         verify(cardRepository).save(any(Card.class));
@@ -264,6 +270,8 @@ public class CardServiceTests {
             )
         ).thenReturn(true);
 
+        when(userService.isPhoneNumberValid(any())).thenReturn(true);
+
         assertThrows(DuplicateAuthorizationException.class, () -> {
             cardService.createAuthorizedCard(
                 authentication,
@@ -299,7 +307,7 @@ public class CardServiceTests {
                     LocalDate.of(1990, 1, 1),
                     Gender.FEMALE,
                     "jane.doe@example.com",
-                    "987654321",
+                    "+381664203512",
                     "123 Personal St"
                 ),
                 "dummyTotp"
@@ -307,9 +315,9 @@ public class CardServiceTests {
         when(totpService.validate("dummyTotp", requestWithAuthorizedUser.otpCode())).thenReturn(
             true
         );
+        when(userService.isPhoneNumberValid(any())).thenReturn(true);
         when(accountRepository.findAccountByAccountNumber(personalAccount.getAccountNumber()))
             .thenReturn(Optional.of(personalAccount));
-
         assertThrows(AuthorizedUserNotAllowed.class, () -> {
             cardService.createAuthorizedCard(authentication, requestWithAuthorizedUser);
         });

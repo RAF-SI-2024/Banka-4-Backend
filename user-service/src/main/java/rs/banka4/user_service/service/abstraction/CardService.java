@@ -144,6 +144,7 @@ public interface CardService {
         String lastName,
         String email,
         String cardStatus,
+        String accountNumber,
         Pageable pageable
     );
 

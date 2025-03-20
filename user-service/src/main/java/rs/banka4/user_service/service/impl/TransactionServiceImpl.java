@@ -29,10 +29,7 @@ import rs.banka4.user_service.exceptions.account.AccountNotActive;
 import rs.banka4.user_service.exceptions.account.AccountNotFound;
 import rs.banka4.user_service.exceptions.account.NotAccountOwner;
 import rs.banka4.user_service.exceptions.authenticator.NotValidTotpException;
-import rs.banka4.user_service.exceptions.transaction.ExceededDailyLimit;
-import rs.banka4.user_service.exceptions.transaction.ExceededMonthlyLimit;
-import rs.banka4.user_service.exceptions.transaction.InsufficientFunds;
-import rs.banka4.user_service.exceptions.transaction.TransactionNotFound;
+import rs.banka4.user_service.exceptions.transaction.*;
 import rs.banka4.user_service.exceptions.user.UserNotFound;
 import rs.banka4.user_service.repositories.AccountRepository;
 import rs.banka4.user_service.repositories.ClientContactRepository;
@@ -71,6 +68,13 @@ public class TransactionServiceImpl implements TransactionService {
 
         Account fromAccount = getAccount(createPaymentDto.fromAccount());
         Account toAccount = getAccount(createPaymentDto.toAccount());
+
+        if (
+            fromAccount.getClient()
+                .equals(toAccount.getClient())
+        ) {
+            throw new ClientCannotPayToOwnAccount();
+        }
 
         validateAccountActive(fromAccount);
         validateClientAccountOwnership(client, fromAccount);
@@ -118,6 +122,8 @@ public class TransactionServiceImpl implements TransactionService {
         Account fromAccount = getAccount(createTransferDto.fromAccount());
         Account toAccount = getAccount(createTransferDto.toAccount());
 
+        if (fromAccount.equals(toAccount)) throw new ClientCannotTransferToSameAccount();
+
         validateAccountActive(fromAccount);
         validateClientAccountOwnership(client, fromAccount, toAccount);
         validateSufficientFunds(fromAccount, createTransferDto.fromAmount());
@@ -158,6 +164,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         combinator.and(PaymentSpecification.isNotSpecialTransaction());
+        combinator.and(PaymentSpecification.isNotTransfer());
 
         Page<Transaction> transactions =
             transactionRepository.findAll(combinator.build(), pageRequest);
@@ -195,6 +202,10 @@ public class TransactionServiceImpl implements TransactionService {
                             .startsWith("TRF-")
                         && !transaction.getReferenceNumber()
                             .startsWith("FEE-")
+                )
+                .sorted(
+                    (t1, t2) -> t2.getPaymentDateTime()
+                        .compareTo(t1.getPaymentDateTime())
                 )
                 .collect(Collectors.toList());
 

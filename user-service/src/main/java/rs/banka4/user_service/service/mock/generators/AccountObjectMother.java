@@ -29,7 +29,7 @@ public class AccountObjectMother {
                 LocalDate.of(1990, 1, 1),
                 Gender.MALE,
                 "john.doe@example.com",
-                "+1234567890",
+                "+381667891125",
                 "123 Grove Street, City, Country",
                 EnumSet.noneOf(Privilege.class)
             ),
@@ -66,7 +66,7 @@ public class AccountObjectMother {
                 LocalDate.of(1990, 1, 1),
                 Gender.MALE,
                 "mehmedalija.doe@example.com",
-                "+1234567890",
+                "+381656789012",
                 "123 Main St",
                 "Mahd",
                 "Developer",
@@ -80,7 +80,7 @@ public class AccountObjectMother {
                 LocalDate.of(1990, 1, 1),
                 Gender.FEMALE,
                 "jane.doe@example.com",
-                "+1234567890",
+                "+381645678901",
                 "123 Main St",
                 EnumSet.noneOf(Privilege.class),
                 false

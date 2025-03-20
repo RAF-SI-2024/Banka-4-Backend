@@ -46,6 +46,7 @@ public class EmployeeServiceUpdateTests {
 
         when(employeeRepository.findById(employeeId)).thenReturn(Optional.of(employee));
         when(userService.existsByEmail(updateEmployeeDto.email())).thenReturn(false);
+        when(userService.isPhoneNumberValid(updateEmployeeDto.phoneNumber())).thenReturn(true);
         when(employeeRepository.existsByUsername(updateEmployeeDto.username())).thenReturn(false);
         doNothing().when(employeeMapper)
             .fromUpdate(employee, updateEmployeeDto);
@@ -95,6 +96,7 @@ public class EmployeeServiceUpdateTests {
 
         when(employeeRepository.findById(employeeId)).thenReturn(Optional.of(employee));
         when(employeeRepository.existsByUsername(updateEmployeeDto.username())).thenReturn(true);
+        when(userService.isPhoneNumberValid(updateEmployeeDto.phoneNumber())).thenReturn(true);
 
         // Act & Assert
         assertThrows(

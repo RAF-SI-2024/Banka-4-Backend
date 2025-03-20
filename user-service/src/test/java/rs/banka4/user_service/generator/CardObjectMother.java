@@ -24,7 +24,7 @@ public class CardObjectMother {
                 .minusYears(20),
             Gender.FEMALE,
             "kruska@gmail.com",
-            "+38153513591",
+            "+38161234567",
             "Groove St 5"
         );
     }
@@ -56,7 +56,7 @@ public class CardObjectMother {
                 LocalDate.parse("1995-05-05"),
                 Gender.MALE,
                 "mehmedalija@banka4.rs",
-                "+38766111222",
+                "+381677123456",
                 "Bankarska 4"
             ),
             "123456"

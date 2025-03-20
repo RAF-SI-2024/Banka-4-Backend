@@ -53,11 +53,11 @@ public class ClientServiceGetTests {
 
     private static Stream<Arguments> provideFilters() {
         return Stream.of(
-            Arguments.of("John", "Doe", "john.doe@example.com", "123-456-7890", "default"),
+            Arguments.of("John", "Doe", "john.doe@example.com", "+381631025846", "default"),
             Arguments.of("John", "", "", "", "firstName"),
             Arguments.of("", "Doe", "", "", "lastName"),
             Arguments.of("", "", "john.doe@example.com", "", "email"),
-            Arguments.of("", "", "", "123-456-7890", "default"),
+            Arguments.of("", "", "", "+381640521698", "default"),
             Arguments.of(null, null, null, null, "default")
         );
     }

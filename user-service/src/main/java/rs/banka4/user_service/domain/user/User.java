@@ -2,6 +2,7 @@ package rs.banka4.user_service.domain.user;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Stream;
@@ -42,6 +43,7 @@ public abstract class User {
     public String email;
 
     @Column(nullable = false)
+    @Pattern(regexp = "^(\\+3816|06)(\\d{7,8}|(77|78)\\d{5,6})$")
     public String phone;
 
     @Column(nullable = false)

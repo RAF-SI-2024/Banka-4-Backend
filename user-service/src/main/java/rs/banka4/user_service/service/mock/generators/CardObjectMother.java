@@ -21,7 +21,7 @@ public class CardObjectMother {
                 .minusYears(20),
             Gender.FEMALE,
             "kruska@gmail.com",
-            "+38153513591",
+            "0611234567",
             "Groove St 5"
         );
     }

@@ -41,7 +41,7 @@ public record EmployeeResponseDto(
 
     @Schema(
         description = "Phone number",
-        example = "123-456-7890"
+        example = "+381671452369"
     ) String phone,
 
     @Schema(

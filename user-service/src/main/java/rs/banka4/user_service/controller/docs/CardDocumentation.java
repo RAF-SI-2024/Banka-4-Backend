@@ -141,9 +141,9 @@ public interface CardDocumentation {
 
     @Operation(
         summary = "This endpoint is used to return all cards for specific cardNumber, firstName,"
-            + "lastName, email and cardStatus filter",
+            + "lastName, email, accountNumber and cardStatus filter",
         description = "This endpoint is used to return all cards for specific cardNumber, firstName,"
-            + "lastName, email and cardStatus filter"
+            + "lastName, email, accountNumber and cardStatus filter"
             + "Employee uses this endpoint on all cards. The response is pageable.",
         responses = {
             @ApiResponse(
@@ -175,6 +175,7 @@ public interface CardDocumentation {
         String lastName,
         String email,
         String cardStatus,
+        String accountNumber,
         int page,
         int size
     );

@@ -58,6 +58,15 @@ public class TransactionObjectMother {
         );
     }
 
+    public static CreateTransferDto generateSameAccountCreateTransferDto() {
+        return new CreateTransferDto(
+            "444394438340549",
+            "444394438340549",
+            BigDecimal.valueOf(1.0),
+            "123123"
+        );
+    }
+
     public static Transaction generateBasicTransaction(Account fromAccount, Account toAccount) {
         return Transaction.builder()
             .id(UUID.fromString("8b14aa1d-0633-44d3-a74a-e699b35909d2"))
