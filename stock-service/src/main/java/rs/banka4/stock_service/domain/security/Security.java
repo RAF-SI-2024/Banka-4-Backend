@@ -19,7 +19,6 @@ public abstract class Security {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     public UUID id;
-    // Maybe delete this
 
     @Column
     private String name;
