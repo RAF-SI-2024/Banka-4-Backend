@@ -70,4 +70,26 @@ public class BlockCardTest {
         assertThat(blockedCard).isNotNull();
         assertThat(blockedCard.getCardStatus()).isEqualTo(CardStatus.BLOCKED);
     }
+    @Test
+    void blockCardFailsForNonExistentCard() throws Exception {
+        String nonExistentCardNumber = "9999999999999999";
+
+        m.put()
+                .uri("/cards/block/" + nonExistentCardNumber)
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .assertThat()
+                .hasStatus(HttpStatus.NOT_FOUND);
+    }
+    @Test
+    void blockCardFailsForDeactivatedCard() throws Exception {
+        m.put()
+                .uri("/cards/block/" + deactivatedCard.getCardNumber())
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .assertThat()
+                .hasStatus(HttpStatus.BAD_REQUEST);
+    }
 }

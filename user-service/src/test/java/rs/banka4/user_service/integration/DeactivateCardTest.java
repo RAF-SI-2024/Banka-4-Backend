@@ -77,4 +77,30 @@ public class DeactivateCardTest {
         assertThat(deactivatedCard).isNotNull();
         assertThat(deactivatedCard.getCardStatus()).isEqualTo(CardStatus.DEACTIVATED);
     }
+
+
+    @Test
+    void deactivateCardUnsuccessfullyBecauseOfNonExistentCard() throws Exception {
+        String nonExistentCardNumber = "0000000000000000";
+        m.put()
+                .uri("/cards/deactivate/" + nonExistentCardNumber)
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .assertThat()
+                .hasStatus(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void deactivateCardUnsuccessfullyBecauseItIsAlreadyDeactivated() throws Exception {
+        card.setCardStatus(CardStatus.DEACTIVATED);
+        cardRepository.save(card);
+        m.put()
+                .uri("/cards/deactivate/" + card.getCardNumber())
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .assertThat()
+                .hasStatus(HttpStatus.BAD_REQUEST);
+    }
 }
