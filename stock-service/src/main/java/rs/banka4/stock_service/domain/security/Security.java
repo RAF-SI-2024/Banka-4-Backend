@@ -21,8 +21,10 @@ public abstract class Security {
     public UUID id;
     // Maybe delete this
 
+    @Column
     private String name;
 
+    @Transient
     private BigDecimal price;
 
     @Override

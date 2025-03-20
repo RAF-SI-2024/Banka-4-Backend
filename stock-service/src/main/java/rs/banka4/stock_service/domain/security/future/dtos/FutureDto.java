@@ -21,7 +21,7 @@ public record FutureDto(
     @Schema(
         description = "Size of the future contract",
         example = "1000"
-    ) int contractSize,
+    ) long contractSize,
 
     @Schema(
         description = "Unit of the contract size",

@@ -18,8 +18,9 @@ import rs.banka4.stock_service.domain.security.Security;
 public class Future extends Security {
 
     @Column(nullable = false)
-    private int contractSize;
+    private long contractSize;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UnitName contractUnit;
 

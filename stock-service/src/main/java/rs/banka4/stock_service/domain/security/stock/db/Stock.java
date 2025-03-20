@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.Objects;
+
+import jakarta.persistence.Transient;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.proxy.HibernateProxy;
@@ -19,7 +21,7 @@ import rs.banka4.stock_service.domain.security.Security;
 public class Stock extends Security {
 
     @Column(nullable = false)
-    private int outstandingShares;
+    private long outstandingShares;
 
     @Column(nullable = false)
     private BigDecimal dividendYield;
@@ -27,6 +29,7 @@ public class Stock extends Security {
     @Builder.Default
     private OffsetDateTime createdAt = OffsetDateTime.now();
 
+    @Transient
     private BigDecimal marketCap;
 
     @Override

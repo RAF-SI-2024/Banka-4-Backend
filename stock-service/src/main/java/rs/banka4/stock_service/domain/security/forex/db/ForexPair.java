@@ -3,6 +3,9 @@ package rs.banka4.stock_service.domain.security.forex.db;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import java.util.Objects;
+
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.proxy.HibernateProxy;
@@ -15,13 +18,15 @@ import rs.banka4.stock_service.domain.security.Security;
 @RequiredArgsConstructor
 @SuperBuilder
 public class ForexPair extends Security {
-
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CurrencyCode baseCurrency;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CurrencyCode quoteCurrency;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ForexLiquidity liquidity;
 

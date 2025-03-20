@@ -18,7 +18,7 @@ public record StockDto(
     @Schema(
         description = "Number of outstanding shares",
         example = "1000000"
-    ) int outstandingShares,
+    ) long outstandingShares,
 
     @Schema(
         description = "Dividend yield of the stock",
