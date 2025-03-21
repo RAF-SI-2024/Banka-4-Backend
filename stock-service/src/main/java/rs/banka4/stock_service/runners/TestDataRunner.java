@@ -39,6 +39,7 @@ public class TestDataRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        // added comment to trigger style check on git after it crashed
         if (stockRepository.count() == 0) {
             stocksSeeder();
         } else {
