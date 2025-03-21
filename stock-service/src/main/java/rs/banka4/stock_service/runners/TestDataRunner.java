@@ -39,10 +39,29 @@ public class TestDataRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        stocksSeeder();
-        forexPairsSeeder();
-        futuresSeeder();
-        exchangesSeeder();
+        if (stockRepository.count() == 0) {
+            stocksSeeder();
+        } else {
+            LOGGER.info("Not reseeding stockRepository, data already exists");
+        }
+
+        if (forexPairRepository.count() == 0) {
+            forexPairsSeeder();
+        } else {
+            LOGGER.info("Not reseeding forexPairRepository, data already exists");
+        }
+
+        if (futureRepository.count() == 0) {
+            futuresSeeder();
+        } else {
+            LOGGER.info("Not reseeding futureRepository, data already exists");
+        }
+
+        if (exchangeRepository.count() == 0) {
+            exchangesSeeder();
+        } else {
+            LOGGER.info("Not reseeding exchangeRepository, data already exists");
+        }
     }
 
     private void forexPairsSeeder() {
@@ -60,7 +79,7 @@ public class TestDataRunner implements CommandLineRunner {
                         .baseCurrency(currencyCode1)
                         .quoteCurrency(currencyCode2)
                         .liquidity(forexLiquidities[i++])
-                        .name(currencyCode1.toString() + "/" + currencyCode2.toString())
+                        .name(currencyCode1 + "/" + currencyCode2)
                         .build()
                 );
                 i = i % 3;
