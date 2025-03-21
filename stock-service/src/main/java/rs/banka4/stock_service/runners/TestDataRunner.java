@@ -51,6 +51,10 @@ public class TestDataRunner implements CommandLineRunner {
         List<ForexPair> forexPairs = new ArrayList<>();
         for (CurrencyCode currencyCode1 : CurrencyCode.values()) {
             for (CurrencyCode currencyCode2 : CurrencyCode.values()) {
+                if (currencyCode1.equals(currencyCode2)) {
+                    continue;
+                }
+
                 forexPairs.add(
                     ForexPair.builder()
                         .baseCurrency(currencyCode1)
