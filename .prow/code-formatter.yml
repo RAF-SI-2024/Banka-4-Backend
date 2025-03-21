@@ -1,7 +1,7 @@
 # Run a spotless code-style check
 presubmits:
   - name: pull-banka-4-backend-style-check
-    always_run: true # Not ideal.  Don't care.
+    always_run: true
     decorate: true
     spec:
       containers:
@@ -14,14 +14,12 @@ presubmits:
               set -eux
               rm -f /tmp/STYLE_CHECK_WHEW
 
-              git worktree add --detach /tmp/STYLE_CHECK_SRC_1
-              cd /tmp/STYLE_CHECK_SRC_1
-              git rebase --exec "\
-                fail() { echo E''R''R''O''R: commit above failed; \
-                         touch /tmp/STYLE_CHECK_WHEW; }; \
-                [ -e .prow/code-formatter.yml ] || exit 0; \
-                git --no-pager show --no-patch; \
-                SKIP=spotless-apply pre-commit run -a --show-diff-on-failure || fail; \
-                gradle spotlessCheck || fail; \
-              " "${PULL_BASE_SHA}"
+              fail() {
+                echo E''R''R''O''R: style check failed
+                touch /tmp/STYLE_CHECK_WHEW
+              }
+
+              SKIP=spotless-apply pre-commit run -a --show-diff-on-failure || fail
+              gradle spotlessCheck || fail
+
               [[ ! -e /tmp/STYLE_CHECK_WHEW ]]
