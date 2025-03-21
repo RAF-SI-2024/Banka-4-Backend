@@ -2,10 +2,9 @@ package rs.banka4.stock_service.domain.security.forex.db;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import java.util.Objects;
-
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import java.util.Objects;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.proxy.HibernateProxy;

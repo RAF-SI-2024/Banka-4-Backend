@@ -6,9 +6,7 @@ import org.mapstruct.factory.Mappers;
 import rs.banka4.stock_service.domain.security.forex.db.ForexPair;
 import rs.banka4.stock_service.domain.security.forex.dtos.ForexPairDto;
 
-@Mapper(
-        unmappedTargetPolicy = ReportingPolicy.IGNORE
-)
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ForexPairMapper {
 
     ForexPairMapper INSTANCE = Mappers.getMapper(ForexPairMapper.class);
