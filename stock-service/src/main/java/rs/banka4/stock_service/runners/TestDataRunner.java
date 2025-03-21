@@ -60,7 +60,7 @@ public class TestDataRunner implements CommandLineRunner {
                         .baseCurrency(currencyCode1)
                         .quoteCurrency(currencyCode2)
                         .liquidity(forexLiquidities[i++])
-                        .name(currencyCode1.toString() + "/" + currencyCode2.toString())
+                        .name(currencyCode1 + "/" + currencyCode2)
                         .build()
                 );
                 i = i % 3;
