@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import rs.banka4.stock_service.config.retrofit.AlphaVantageService;
 import rs.banka4.stock_service.domain.exchanges.db.Exchange;
 import rs.banka4.stock_service.domain.listing.db.Listing;
 import rs.banka4.stock_service.domain.listing.db.ListingDailyPriceInfo;
@@ -29,6 +30,7 @@ import rs.banka4.stock_service.domain.security.forex.db.CurrencyCode;
 import rs.banka4.stock_service.domain.security.forex.db.CurrencyMapper;
 import rs.banka4.stock_service.domain.security.forex.db.ForexLiquidity;
 import rs.banka4.stock_service.domain.security.forex.db.ForexPair;
+import rs.banka4.stock_service.domain.security.forex.dtos.ForexPairApiDto;
 import rs.banka4.stock_service.domain.security.future.db.Future;
 import rs.banka4.stock_service.domain.security.future.db.UnitName;
 import rs.banka4.stock_service.domain.security.stock.db.Stock;
@@ -49,6 +51,7 @@ public class TestDataRunner implements CommandLineRunner {
     private final ListingDailyPriceInfoRepository listingDailyPriceInfoRepository;
     private final OptionsRepository optionsRepository;
     private final OkHttpClient stockHttpClient;
+    private final AlphaVantageService alphaRetrofit;
 
     private Exchange srbForexExchange = null;
     private Exchange srbFutureExchange = null;
@@ -553,79 +556,35 @@ public class TestDataRunner implements CommandLineRunner {
                 if (i == j) continue;
 
                 // FETCHING THE FOREX PAIRS
-//                String url =
-//                    "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency="
-//                        + CurrencyCode.values()[i]
-//                        + "&to_currency="
-//                        + CurrencyCode.values()[j]
-//                        + "&apikey="
-//                        + vantageKey;
+                retrofit2.Call<ForexPairApiDto> call =
+                    alphaRetrofit.getForexPair(
+                        "CURRENCY_EXCHANGE_RATE",
+                        CurrencyCode.values()[i].name(),
+                        CurrencyCode.values()[j].name(),
+                        vantageKey
+                    );
 
-                HttpUrl.Builder urlBuilder =
-                    HttpUrl.parse("https://test.com/query?")
-                        .newBuilder()
-                        .addQueryParameter("function", "CURRENCY_EXCHANGE_RATE")
-                        .addQueryParameter("from_currency", CurrencyCode.values()[i].name())
-                        .addQueryParameter("to_currency", CurrencyCode.values()[j].name())
-                        .addQueryParameter("apikey", vantageKey);
-
-                String url =
-                    urlBuilder.build()
-                        .toString();
-
-                Request request =
-                    new Request.Builder().url(url)
-                        .addHeader("Content-Type", "application/json")
-                        .build();
                 try {
-                    Response response =
-                        stockHttpClient.newCall(request)
-                            .execute();
-                    String jsonResponse =
-                        response.body()
-                            .string();
-                    forexPairs.add(jsonResponse);
+                    retrofit2.Response<ForexPairApiDto> response2 = call.execute();
+
+                    ForexPairApiDto forexPairApiDto = response2.body();
+
+                    ForexPair forexPair = ForexPair
+                        .builder()
+                        .baseCurrency(forexPairApiDto.realTimeCurrencyExchangeRate().baseCurrency())
+                        .quoteCurrency(forexPairApiDto.realTimeCurrencyExchangeRate().quoteCurrency())
+                        .liquidity(ForexLiquidity.LOW)
+                        .exchangeRate(forexPairApiDto.realTimeCurrencyExchangeRate().exchangeRate())
+                        .build();
+
+                    forexPairRepository.saveAndFlush(forexPair);
                     Thread.sleep(200);
                 } catch (Exception e) {
-                    LOGGER.error(e.getMessage());
+                    LOGGER.error("Forex pair seeder failed: " +e.getMessage());
                 }
             }
         }
 
-        for (String s : forexPairs) {
-            try {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode root = objectMapper.readTree(s);
-                JsonNode stockJson = root.path("Realtime Currency Exchange Rate");
-
-                String fromCode =
-                    stockJson.path("1. From_Currency Code")
-                        .asText("N/A");
-                String toCode =
-                    stockJson.path("3. To_Currency Code")
-                        .asText("N/A");
-                String ticker = fromCode + "/" + toCode;
-                String exchangeRate =
-                    stockJson.path("5. Exchange Rate")
-                        .asText("N/A");
-
-                if (fromCode.equals("N/A")) continue;
-
-                ForexPair forexPair =
-                    ForexPair.builder()
-                        .baseCurrency(CurrencyCode.valueOf(fromCode.toUpperCase()))
-                        .quoteCurrency(CurrencyCode.valueOf(toCode.toUpperCase()))
-                        .exchangeRate(new BigDecimal(exchangeRate))
-                        .liquidity(ForexLiquidity.LOW)
-                        .ticker(ticker.toUpperCase())
-                        .name(ticker)
-                        .build();
-
-                forexPairRepository.saveAndFlush(forexPair);
-            } catch (Exception e) {
-                LOGGER.error("Forex pair seeder failed {}", e.getMessage());
-            }
-        }
         LOGGER.info("forex pairs seeded successfully");
     }
 
