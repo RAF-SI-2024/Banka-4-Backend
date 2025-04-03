@@ -34,6 +34,11 @@ spring:
               action: create
               create-target: /dev/stderr
 
+  config:
+    import: classpath:env.properties
+  alphavantage:
+    api_key: ${ALPHAVANTAGE_API_KEY}
+    exchange_key: ${EXCHANGERATE_API_KEY}
 server:
   servlet:
     context-path: /stock
