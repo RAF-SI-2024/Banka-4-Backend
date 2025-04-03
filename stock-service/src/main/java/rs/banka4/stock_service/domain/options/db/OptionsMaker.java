@@ -8,7 +8,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.math3.distribution.NormalDistribution;
 import org.springframework.stereotype.Component;
 import rs.banka4.stock_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.stock_service.domain.security.forex.db.CurrencyCode;
@@ -17,53 +16,7 @@ import rs.banka4.stock_service.domain.security.stock.db.Stock;
 
 @Component
 @RequiredArgsConstructor
-public class BlackHolesOptionMaker {
-
-    private static final NormalDistribution N = new NormalDistribution();
-
-    public static double calculateOptionPrice(
-        double S, // current stock price
-        double K, // strike price
-        double T, // time to expiration (in years)
-        double r, // risk-free rate (annualized)
-        double sigma, // implied volatility (annualized)
-        OptionType type // CALL or PUT
-    ) {
-        double d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
-        double d2 = d1 - sigma * Math.sqrt(T);
-
-        if (type == OptionType.CALL) {
-            return S * N.cumulativeProbability(d1)
-                - K * Math.exp(-r * T) * N.cumulativeProbability(d2);
-        } else {
-            return K * Math.exp(-r * T) * N.cumulativeProbability(-d2)
-                - S * N.cumulativeProbability(-d1);
-        }
-    }
-
-    public static double calculateOptionPriceFromOption(Option option, double currentStockPrice) {
-        double riskFreeRate = 0.02;
-        double S = currentStockPrice;
-        double K =
-            option.getStrikePrice()
-                .getAmount()
-                .doubleValue();
-
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        double T =
-            ChronoUnit.SECONDS.between(now, option.getSettlementDate()) / (365.25 * 24 * 60 * 60);
-
-        if (T <= 0) {
-            return 0.0;
-        }
-
-        double r = riskFreeRate;
-        double sigma = option.getImpliedVolatility();
-        OptionType type = option.getOptionType();
-
-        return calculateOptionPrice(S, K, T, r, sigma, type);
-    }
-
+public class OptionsMaker {
 
     public static String makeOptionTicker(
         OffsetDateTime expiry,

@@ -1,9 +1,8 @@
 package rs.banka4.stock_service.runners;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
@@ -14,8 +13,6 @@ import java.time.*;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import okhttp3.*;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,8 +21,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import rs.banka4.stock_service.domain.exchanges.db.Exchange;
 import rs.banka4.stock_service.domain.listing.db.Listing;
-import rs.banka4.stock_service.domain.options.db.BlackHolesOptionMaker;
+import rs.banka4.stock_service.domain.listing.db.ListingDailyPriceInfo;
 import rs.banka4.stock_service.domain.options.db.Option;
+import rs.banka4.stock_service.domain.options.db.OptionsMaker;
 import rs.banka4.stock_service.domain.security.Security;
 import rs.banka4.stock_service.domain.security.forex.db.CurrencyCode;
 import rs.banka4.stock_service.domain.security.forex.db.CurrencyMapper;
@@ -81,8 +79,7 @@ public class TestDataRunner implements CommandLineRunner {
         }
 
         if (forexPairRepository.count() == 0) {
-            // seedProductionForexPairs();
-            seedForexPairs();
+            seedProductionForexPairs();
         } else {
             LOGGER.info("Not reseeding forexPairRepository, data already exists");
         }
@@ -111,12 +108,74 @@ public class TestDataRunner implements CommandLineRunner {
             LOGGER.info("Not reseeding options, data already exists");
         }
 
+        if (listingDailyPriceInfoRepository.count() == 0) {
+            seedProductionListingDailyPriceInfo();
+        } else {
+            LOGGER.info("Not reseeding listing daily price info, data already exists");
+        }
+
         LOGGER.info("Seeding prod finished, starting...");
+    }
+
+    private void seedProductionListingDailyPriceInfo() {
+        try {
+            List<ListingDailyPriceInfo> listingDailyPriceInfos = new ArrayList<>();
+            BigDecimal change = BigDecimal.ZERO;
+
+            for (Listing listing : listingRepository.findAll()) {
+                change = change.add(BigDecimal.valueOf(0.25));
+                if (change.compareTo(BigDecimal.valueOf(1.0)) > 0) {
+                    change = BigDecimal.valueOf(-1.0);
+                }
+
+                BigDecimal baseBid = listing.getBid();
+                BigDecimal baseAsk = listing.getAsk();
+                BigDecimal bid = baseBid.subtract(change);
+                BigDecimal ask = baseAsk.subtract(change);
+                BigDecimal lastPrice =
+                    ask.add(bid)
+                        .divide(BigDecimal.valueOf(2), 6, RoundingMode.HALF_UP);
+
+                ListingDailyPriceInfo info =
+                    ListingDailyPriceInfo.builder()
+                        .security(listing.getSecurity())
+                        .exchange(listing.getExchange())
+                        .date(
+                            OffsetDateTime.of(
+                                LocalDate.of(
+                                    OffsetDateTime.now()
+                                        .getYear(),
+                                    4,
+                                    1
+                                ),
+                                LocalTime.MIDNIGHT,
+                                ZoneOffset.UTC
+                            )
+                        )
+                        .lastPrice(lastPrice)
+                        .askHigh(ask)
+                        .bigLow(bid)
+                        .change(change)
+                        .volume(1000)
+                        .build();
+
+                listingDailyPriceInfos.add(info);
+            }
+
+            listingDailyPriceInfoRepository.saveAllAndFlush(listingDailyPriceInfos);
+            LOGGER.info("Production ListingDailyPriceInfo seeded successfully.");
+        } catch (Exception e) {
+            LOGGER.error(
+                "Error occurred while seeding ListingDailyPriceInfo: {}",
+                e.getMessage(),
+                e
+            );
+        }
     }
 
     private void seedProductionOptions() {
         try {
-            BlackHolesOptionMaker blackHolesOptionMaker = new BlackHolesOptionMaker();
+            OptionsMaker optionsMaker = new OptionsMaker();
             List<Option> options = new ArrayList<>();
 
             for (Listing listing : listingRepository.findAll()) {
@@ -129,7 +188,7 @@ public class TestDataRunner implements CommandLineRunner {
                     listing.getAsk()
                         .add(listing.getBid())
                         .divide(BigDecimal.valueOf(2), 6, RoundingMode.HALF_UP);
-                List<Option> lOptions = blackHolesOptionMaker.generateOptions(stock, price);
+                List<Option> lOptions = optionsMaker.generateOptions(stock, price);
                 options.addAll(lOptions);
             }
 
@@ -137,7 +196,6 @@ public class TestDataRunner implements CommandLineRunner {
             LOGGER.info("Production options seeded successfully.");
         } catch (Exception e) {
             LOGGER.error("Error occurred while seeding prod options: {}", e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -170,11 +228,22 @@ public class TestDataRunner implements CommandLineRunner {
             response.body()
                 .string();
 
-        JSONObject listingJson = new JSONObject(jsonResponse).getJSONObject("Global Quote");
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode listingJson =
+            objectMapper.readTree(jsonResponse)
+                .path("Global Quote");
 
-        double price = Double.parseDouble(listingJson.optString("05. price", "N/A"));
-        long fakeContractSize = Long.parseLong(listingJson.optString("06. volume", "N/A")) / 1000L;
+        String priceStr =
+            listingJson.path("05. price")
+                .asText("N/A");
+        String volumeStr =
+            listingJson.path("06. volume")
+                .asText("N/A");
+
+        double price = Double.parseDouble(priceStr);
+        long fakeContractSize = Long.parseLong(volumeStr) / 1000L;
         fakeContractSize = Long.max(1L, fakeContractSize);
+
         double fakeBid = price * 0.993;
         double fakeAsk = price * 1.007;
         /*
@@ -217,7 +286,7 @@ public class TestDataRunner implements CommandLineRunner {
             List<String[]> records = new ArrayList<>();
             InputStream is =
                 TestDataRunner.class.getClassLoader()
-                    .getResourceAsStream("data/ticker_exchange.csv");
+                    .getResourceAsStream("seeder_data/ticker_exchange.csv");
             if (is == null) {
                 throw new IllegalArgumentException("File not found!");
             }
@@ -235,7 +304,6 @@ public class TestDataRunner implements CommandLineRunner {
             }
 
             long id = 11111111;
-            long ms_id = 0;
             for (String[] record : records) {
                 String ticker = record[0];
                 String exchange = record[1];
@@ -248,6 +316,7 @@ public class TestDataRunner implements CommandLineRunner {
 
             for (ForexPair fp : forexPairRepository.findAll()) {
                 Listing.builder()
+                    .id(new UUID(0L, id++))
                     .ask(fp.getExchangeRate())
                     .bid(fp.getExchangeRate())
                     .exchange(srbForexExchange)
@@ -260,6 +329,7 @@ public class TestDataRunner implements CommandLineRunner {
 
             for (Future f : futureRepository.findAll()) {
                 Listing.builder()
+                    .id(new UUID(0L, id++))
                     .ask(new BigDecimal(1000100))
                     .bid(new BigDecimal(1000000))
                     .exchange(srbFutureExchange)
@@ -274,7 +344,6 @@ public class TestDataRunner implements CommandLineRunner {
             LOGGER.info("Production listings seeded successfully.");
         } catch (Exception e) {
             LOGGER.error("Error occurred while seeding prod listings: {}", e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -295,11 +364,22 @@ public class TestDataRunner implements CommandLineRunner {
         String jsonResponse =
             response.body()
                 .string();
-        JSONObject stockJson = new JSONObject(jsonResponse);
-        String name = stockJson.optString("Name", "N/A");
-        String dividendYield = stockJson.optString("DividendYield", "N/A");
-        String outstandingShares = stockJson.optString("SharesOutstanding", "N/A");
-        String marketCap = stockJson.optString("MarketCapitalization", "N/A");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode stockJson = objectMapper.readTree(jsonResponse);
+
+        String name =
+            stockJson.path("Name")
+                .asText("N/A");
+        String dividendYield =
+            stockJson.path("DividendYield")
+                .asText("N/A");
+        String outstandingShares =
+            stockJson.path("SharesOutstanding")
+                .asText("N/A");
+        String marketCap =
+            stockJson.path("MarketCapitalization")
+                .asText("N/A");
 
         /*
          * System.out.println("divident yield: " + dividendYield);
@@ -337,7 +417,7 @@ public class TestDataRunner implements CommandLineRunner {
             List<String> tickers = new ArrayList<>();
             InputStream is =
                 TestDataRunner.class.getClassLoader()
-                    .getResourceAsStream("data/ticker_exchange.csv");
+                    .getResourceAsStream("seeder_data/ticker_exchange.csv");
             if (is == null) {
                 throw new IllegalArgumentException("File not found!");
             }
@@ -355,9 +435,7 @@ public class TestDataRunner implements CommandLineRunner {
                 tickers.add(t);
             }
 
-            int i = 1;
             long id = 545353;
-            long ms_id = 0;
             for (String ticker : tickers) {
                 Stock stock = fetchStockInfo(ticker, id++);
                 if (stock == null) {
@@ -370,16 +448,13 @@ public class TestDataRunner implements CommandLineRunner {
             LOGGER.info("Production stocks seeded successfully.");
         } catch (Exception e) {
             LOGGER.error("Error occurred while seeding prod stocks: {}", e.getMessage());
-            e.printStackTrace();
         }
     }
 
     private void seedDevStocks() {
     }
 
-    private JSONObject fetchExchangeRateData() throws JSONException,
-        IOException,
-        InterruptedException {
+    private JsonNode fetchExchangeRateData() throws IOException, InterruptedException {
         Thread.sleep(10 * 1000);
         HttpClient client = HttpClient.newHttpClient();
 
@@ -391,27 +466,27 @@ public class TestDataRunner implements CommandLineRunner {
                 .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        // System.out.println(response.body());
-        JSONObject exchangeData = new JSONObject(response.body());
-        return exchangeData;
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readTree(response.body());
     }
 
-    private double getCurrencyValue(String currencyCode, JSONObject exchangeData)
-        throws JSONException {
+    private double getCurrencyValue(String currencyCode, JsonNode exchangeData) {
         if (currencyCode.equals("RSD")) {
             return 1.0;
         }
-        JSONObject rate =
-            exchangeData.getJSONObject("exchanges")
-                .getJSONObject(currencyCode);
-        return rate.getDouble("Neutral");
+        JsonNode rate =
+            exchangeData.path("exchanges")
+                .path(currencyCode);
+        return rate.path("Neutral")
+            .asDouble();
     }
 
-    private void seedProductionForexPairs() {
-        JSONObject exchangeData = null;
+
+    private void seedForexPairs() {
+        JsonNode exchangeData = null;
         try {
             exchangeData = fetchExchangeRateData();
-        } catch (IOException | InterruptedException | JSONException e) {
+        } catch (IOException | InterruptedException e) {
             LOGGER.error(
                 "Fetch error. Forex prod seeder failed to fetch exchange office. {}",
                 e.getMessage()
@@ -430,7 +505,6 @@ public class TestDataRunner implements CommandLineRunner {
                 }
 
                 String ticker = currencyCode1.name() + "/" + currencyCode2.name();
-
                 double val = -1.0;
                 try {
                     double v1 =
@@ -446,7 +520,7 @@ public class TestDataRunner implements CommandLineRunner {
                             exchangeData
                         );
                     val = v1 / v2;
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     LOGGER.error("Json exception in calculating forex pair value");
                 }
 
@@ -469,60 +543,76 @@ public class TestDataRunner implements CommandLineRunner {
     }
 
 
-    private void seedForexPairs() {
+    private void seedProductionForexPairs() {
         List<String> forexPairs = new ArrayList<>();
         for (int i = 0; i < CurrencyCode.values().length; i++) {
             for (int j = 0; j < CurrencyCode.values().length; j++) {
                 if (i == j) continue;
 
                 // FETCHING THE FOREX PAIRS
+//                String url =
+//                    "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency="
+//                        + CurrencyCode.values()[i]
+//                        + "&to_currency="
+//                        + CurrencyCode.values()[j]
+//                        + "&apikey="
+//                        + vantageKey;
+
+                HttpUrl.Builder urlBuilder =
+                    HttpUrl.parse("https://test.com/query?")
+                        .newBuilder()
+                        .addQueryParameter("function", "CURRENCY_EXCHANGE_RATE")
+                        .addQueryParameter("from_currency", CurrencyCode.values()[i].name())
+                        .addQueryParameter("to_currency", CurrencyCode.values()[j].name())
+                        .addQueryParameter("apikey", vantageKey);
+
                 String url =
-                    "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency="
-                        + CurrencyCode.values()[i]
-                        + "&to_currency="
-                        + CurrencyCode.values()[j]
-                        + "&apikey="
-                        + vantageKey;
+                    urlBuilder.build()
+                        .toString();
+
                 Request request =
                     new Request.Builder().url(url)
                         .addHeader("Content-Type", "application/json")
-                        .addHeader("Authorization", vantageKey)
                         .build();
                 try {
                     Response response =
                         stockHttpClient.newCall(request)
                             .execute();
-                    assert response.body() != null;
                     String jsonResponse =
                         response.body()
                             .string();
                     forexPairs.add(jsonResponse);
                     Thread.sleep(200);
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    LOGGER.error(e.getMessage());
                 }
             }
         }
 
         for (String s : forexPairs) {
             try {
-                JSONObject stockJson =
-                    new JSONObject(s).getJSONObject("Realtime Currency Exchange Rate");
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode root = objectMapper.readTree(s);
+                JsonNode stockJson = root.path("Realtime Currency Exchange Rate");
 
-                String ticker =
-                    stockJson.optString("1. From_Currency Code")
-                        + "/"
-                        + stockJson.optString("3. To_Currency Code");
+                String fromCode =
+                    stockJson.path("1. From_Currency Code")
+                        .asText("N/A");
+                String toCode =
+                    stockJson.path("3. To_Currency Code")
+                        .asText("N/A");
+                String ticker = fromCode + "/" + toCode;
+                String exchangeRate =
+                    stockJson.path("5. Exchange Rate")
+                        .asText("N/A");
+
+                if (fromCode.equals("N/A")) continue;
 
                 ForexPair forexPair =
                     ForexPair.builder()
-                        .baseCurrency(
-                            CurrencyCode.valueOf(stockJson.optString("1. From_Currency Code"))
-                        )
-                        .quoteCurrency(
-                            CurrencyCode.valueOf(stockJson.optString("3. To_Currency Code"))
-                        )
-                        .exchangeRate(new BigDecimal(stockJson.optString("5. Exchange Rate")))
+                        .baseCurrency(CurrencyCode.valueOf(fromCode.toUpperCase()))
+                        .quoteCurrency(CurrencyCode.valueOf(toCode.toUpperCase()))
+                        .exchangeRate(new BigDecimal(exchangeRate))
                         .liquidity(ForexLiquidity.LOW)
                         .ticker(ticker.toUpperCase())
                         .name(ticker)
@@ -530,10 +620,10 @@ public class TestDataRunner implements CommandLineRunner {
 
                 forexPairRepository.saveAndFlush(forexPair);
             } catch (Exception e) {
-                System.out.println("Wrong forex pair, error message: " + e.getMessage());
+                LOGGER.error("Forex pair seeder failed {}", e.getMessage());
             }
         }
-
+        LOGGER.info("forex pairs seeded successfully");
     }
 
     private void seedDevForexPairs() {
@@ -606,7 +696,7 @@ public class TestDataRunner implements CommandLineRunner {
             List<String[]> records = new ArrayList<>();
             InputStream is =
                 TestDataRunner.class.getClassLoader()
-                    .getResourceAsStream("data/future_data.csv");
+                    .getResourceAsStream("seeder_data/future_data.csv");
             if (is == null) {
                 throw new IllegalArgumentException("File not found!");
             }
@@ -672,7 +762,7 @@ public class TestDataRunner implements CommandLineRunner {
             List<Exchange> exchanges = new ArrayList<>();
             InputStream is =
                 TestDataRunner.class.getClassLoader()
-                    .getResourceAsStream("data/exchanges.csv");
+                    .getResourceAsStream("seeder_data/exchanges.csv");
             if (is == null) {
                 throw new IllegalArgumentException("Exchange CSV file not found!");
             }
@@ -744,8 +834,8 @@ public class TestDataRunner implements CommandLineRunner {
 
             String timeZone = "Europe/Belgrade";
 
-            LocalTime openTime = LocalTime.parse("00:00");
-            LocalTime closeTime = LocalTime.parse("23:59");
+            LocalTime openTime = LocalTime.of(0, 0);
+            LocalTime closeTime = LocalTime.of(23, 59);
 
             LocalDate fixedDate = LocalDate.of(2000, 1, 1);
             LocalDateTime openDateTimeLocal = LocalDateTime.of(fixedDate, openTime);
