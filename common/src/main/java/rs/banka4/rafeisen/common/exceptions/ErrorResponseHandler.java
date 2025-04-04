@@ -2,6 +2,8 @@ package rs.banka4.rafeisen.common.exceptions;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -61,5 +63,32 @@ public class ErrorResponseHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(response);
+    }
+
+    /**
+     * Raised when Spring cannot convert between types (e.g. we receive a poorly formed UUID or
+     * such).
+     */
+    @ExceptionHandler(TypeMismatchException.class)
+    public Map<String, ?> handleTypeMismatchException(TypeMismatchException e) {
+        return Map.ofEntries(
+            Map.entry("failed", true),
+            Map.entry("code", "TypeMismatch"),
+            Map.entry(
+                "extra",
+                Map.ofEntries(
+                    Map.entry("errorCode", e.getErrorCode()),
+                    Map.entry("propertyName", e.getPropertyName()),
+                    Map.entry(
+                        /* Nullable. lmao. */
+                        "expectedType",
+                        Optional.ofNullable(e.getRequiredType())
+                            .map(Class::getSimpleName)
+                            .orElse(null)
+                    ),
+                    Map.entry("badValue", e.getValue())
+                )
+            )
+        );
     }
 }
