@@ -12,7 +12,6 @@ import java.net.http.HttpResponse;
 import java.time.*;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
-import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +51,6 @@ public class TestDataRunner implements CommandLineRunner {
     private final ExchangeRepository exchangeRepository;
     private final ListingDailyPriceInfoRepository listingDailyPriceInfoRepository;
     private final OptionsRepository optionsRepository;
-    private final OkHttpClient stockHttpClient;
     private final AlphaVantageService alphaRetrofit;
 
     private Exchange srbForexExchange = null;
