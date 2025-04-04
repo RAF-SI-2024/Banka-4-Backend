@@ -1,5 +1,6 @@
 package rs.banka4.rafeisen.common.exceptions;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -14,32 +15,41 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ErrorResponseHandler {
+    /**
+     * Generate an error response body based on a class name. Uses the class simple name.
+     *
+     * @param errClass Class whose name represents the error code.
+     * @param extra Extra error date. If null, field will be omitted.
+     * @see Class#getSimpleName()
+     */
+    private Map<String, ?> formatErrorBody(Class<?> errClass, Map<String, ?> extra) {
+        return formatErrorBody(errClass.getSimpleName(), extra);
+    }
+
+    /**
+     * Generate an error response body.
+     *
+     * @param code Error code.
+     * @param extra Extra error date. If null, field will be omitted.
+     */
+    private Map<String, ?> formatErrorBody(String code, Map<String, ?> extra) {
+        final var result = new HashMap<String, Object>();
+        result.put("failed", true);
+        result.put("code", code);
+        if (extra != null) result.put("extra", extra);
+        return Collections.unmodifiableMap(result);
+    }
 
     @ExceptionHandler(BaseApiException.class)
-    public ResponseEntity<Map<String, Object>> handleErrorResponse(BaseApiException ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("failed", true);
-        response.put(
-            "code",
-            ex.getClass()
-                .getSimpleName()
-        );
-
-        if (ex.getExtra() != null) {
-            response.put("extra", ex.getExtra());
-        }
-
-        return new ResponseEntity<>(response, ex.getStatus());
+    public ResponseEntity<Map<String, ?>> handleErrorResponse(BaseApiException ex) {
+        return ResponseEntity.status(ex.getStatus())
+            .body(formatErrorBody(ex.getClass(), ex.getExtra()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationErrorResponse(
+    public ResponseEntity<Map<String, ?>> handleValidationErrorResponse(
         MethodArgumentNotValidException ex
     ) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("failed", true);
-        response.put("code", InvalidData.class.getSimpleName());
-
         Map<String, Object> errors = new HashMap<>();
         for (
             FieldError error : ex.getBindingResult()
@@ -47,22 +57,14 @@ public class ErrorResponseHandler {
         ) {
             errors.put(error.getField(), error.getDefaultMessage());
         }
-        response.put("extra", errors);
         return ResponseEntity.badRequest()
-            .body(response);
+            .body(formatErrorBody(ex.getClass(), errors));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, Object>> handleJsonParseError(
-        HttpMessageNotReadableException ex
-    ) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("failed", true);
-        response.put("code", "InvalidJsonInput");
-        response.put("message", ex.getMessage());
-
+    public ResponseEntity<Map<String, ?>> handleJsonParseError(HttpMessageNotReadableException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(response);
+            .body(formatErrorBody("InvalidJsonInput", Map.of("message", ex.getMessage())));
     }
 
     /**
@@ -70,25 +72,24 @@ public class ErrorResponseHandler {
      * such).
      */
     @ExceptionHandler(TypeMismatchException.class)
-    public Map<String, ?> handleTypeMismatchException(TypeMismatchException e) {
-        return Map.ofEntries(
-            Map.entry("failed", true),
-            Map.entry("code", "TypeMismatch"),
-            Map.entry(
-                "extra",
-                Map.ofEntries(
-                    Map.entry("errorCode", e.getErrorCode()),
-                    Map.entry("propertyName", e.getPropertyName()),
-                    Map.entry(
-                        /* Nullable. lmao. */
-                        "expectedType",
-                        Optional.ofNullable(e.getRequiredType())
-                            .map(Class::getSimpleName)
-                            .orElse(null)
-                    ),
-                    Map.entry("badValue", e.getValue())
+    public ResponseEntity<Map<String, ?>> handleTypeMismatchException(TypeMismatchException e) {
+        return ResponseEntity.badRequest()
+            .body(
+                formatErrorBody(
+                    "TypeMismatch",
+                    Map.ofEntries(
+                        Map.entry("errorCode", e.getErrorCode()),
+                        Map.entry("propertyName", e.getPropertyName()),
+                        Map.entry(
+                            /* Nullable. lmao. */
+                            "expectedType",
+                            Optional.ofNullable(e.getRequiredType())
+                                .map(Class::getSimpleName)
+                                .orElse(null)
+                        ),
+                        Map.entry("badValue", e.getValue())
+                    )
                 )
-            )
-        );
+            );
     }
 }
