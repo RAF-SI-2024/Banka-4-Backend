@@ -1,4 +1,4 @@
-package rs.banka4.user_service.exceptions;
+package rs.banka4.rafeisen.common.exceptions;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,10 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class ErrorResponseHandler {
 
     @ExceptionHandler(BaseApiException.class)

@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import rs.banka4.user_service.exceptions.RateLimitExceeded;
+import rs.banka4.rafeisen.common.exceptions.RateLimitExceeded;
 
 /**
  * Filter that applies rate limiting to incoming requests based on the client's IP address. This

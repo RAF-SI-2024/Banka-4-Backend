@@ -10,8 +10,8 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import rs.banka4.user_service.exceptions.BaseApiException;
-import rs.banka4.user_service.exceptions.ErrorResponseHandler;
+import rs.banka4.rafeisen.common.exceptions.BaseApiException;
+import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 
 /**
  * Filter that handles exceptions thrown during the request processing by other filters.

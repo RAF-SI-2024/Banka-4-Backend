@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 import rs.banka4.user_service.config.filters.JwtAuthenticationFilter;
 import rs.banka4.user_service.controller.AccountController;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
@@ -105,6 +106,11 @@ public class AccountControllerTests {
         @Bean
         public JwtAuthenticationFilter jwtAuthenticationFilter() {
             return new NoopJwtAuthenticationFilter();
+        }
+
+        @Bean
+        public ErrorResponseHandler errorResponseHandler() {
+            return new ErrorResponseHandler();
         }
     }
 

@@ -23,6 +23,7 @@ dependencies {
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	api("org.springframework.security:spring-security-core")
+	api("org.springframework:spring-web")
 
 
 	val jjwtVer = "0.12.6"

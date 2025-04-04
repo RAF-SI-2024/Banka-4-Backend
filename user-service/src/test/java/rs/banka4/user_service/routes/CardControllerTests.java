@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 import rs.banka4.user_service.config.filters.JwtAuthenticationFilter;
 import rs.banka4.user_service.controller.CardController;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
@@ -115,6 +116,11 @@ public class CardControllerTests {
         @Bean
         public JwtAuthenticationFilter jwtAuthenticationFilter() {
             return new NoopJwtAuthenticationFilter();
+        }
+
+        @Bean
+        public ErrorResponseHandler errorResponseHandler() {
+            return new ErrorResponseHandler();
         }
     }
 }

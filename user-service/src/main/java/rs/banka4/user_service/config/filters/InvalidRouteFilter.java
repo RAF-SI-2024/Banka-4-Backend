@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerMapping;
+import rs.banka4.rafeisen.common.exceptions.RouteNotFound;
 import rs.banka4.user_service.config.WhiteListConfig;
-import rs.banka4.user_service.exceptions.RouteNotFound;
 
 /**
  * Filter that checks if the incoming request is for a valid route.
