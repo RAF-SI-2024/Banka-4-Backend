@@ -2,10 +2,9 @@ package rs.banka4.stock_service.domain.security.forex.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
 import rs.banka4.stock_service.domain.security.forex.db.CurrencyCode;
 import rs.banka4.stock_service.domain.security.forex.db.ForexLiquidity;
-
-import java.math.BigDecimal;
 
 public record RealTimeCurrencyExchangeRate(
     @JsonProperty("1. From_Currency Code")
@@ -29,8 +28,7 @@ public record RealTimeCurrencyExchangeRate(
     @Schema(
         description = "Exchange rate of the forex pair",
         example = "146.0"
-    )
-    BigDecimal exchangeRate
+    ) BigDecimal exchangeRate
 ) {
 
 }

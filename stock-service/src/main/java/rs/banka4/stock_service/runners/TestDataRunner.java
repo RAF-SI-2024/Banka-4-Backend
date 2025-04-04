@@ -23,6 +23,7 @@ import rs.banka4.stock_service.config.retrofit.AlphaVantageService;
 import rs.banka4.stock_service.domain.exchanges.db.Exchange;
 import rs.banka4.stock_service.domain.listing.db.Listing;
 import rs.banka4.stock_service.domain.listing.db.ListingDailyPriceInfo;
+import rs.banka4.stock_service.domain.listing.dtos.ListingApiDto;
 import rs.banka4.stock_service.domain.options.db.Option;
 import rs.banka4.stock_service.domain.options.db.OptionsMaker;
 import rs.banka4.stock_service.domain.security.Security;
@@ -34,6 +35,7 @@ import rs.banka4.stock_service.domain.security.forex.dtos.ForexPairApiDto;
 import rs.banka4.stock_service.domain.security.future.db.Future;
 import rs.banka4.stock_service.domain.security.future.db.UnitName;
 import rs.banka4.stock_service.domain.security.stock.db.Stock;
+import rs.banka4.stock_service.domain.security.stock.dtos.StockInfoDto;
 import rs.banka4.stock_service.repositories.*;
 
 
@@ -218,40 +220,31 @@ public class TestDataRunner implements CommandLineRunner {
         // https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=AAPL&apikey=7P4ANAS869M38S3B
         // koristi isti api za daily listings history
 
-        StringBuilder sb = new StringBuilder();
-        String url =
-            sb.append("https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=")
-                .append(ticker)
-                .append("&apikey=")
-                .append(vantageKey)
-                .toString();
+        retrofit2.Call<ListingApiDto> call =
+            alphaRetrofit.getListingInfo("GLOBAL_QUOTE", ticker, vantageKey);
 
-        Request request =
-            new Request.Builder().url(url)
-                .addHeader("Content-Type", "application/json")
-                .build();
-        Response response =
-            stockHttpClient.newCall(request)
-                .execute();
-        String jsonResponse =
-            response.body()
-                .string();
+        ListingApiDto listingApiDto =
+            call.execute()
+                .body();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode listingJson =
-            objectMapper.readTree(jsonResponse)
-                .path("Global Quote");
 
-        String priceStr =
-            listingJson.path("05. price")
-                .asText("N/A");
-        String volumeStr =
-            listingJson.path("06. volume")
-                .asText("N/A");
-
-        double price = Double.parseDouble(priceStr);
-        long fakeContractSize = Long.parseLong(volumeStr) / 1000L;
-        fakeContractSize = Long.max(1L, fakeContractSize);
+        double price = 0.0;
+        long fakeContractSize = 0L;
+        try {
+            price =
+                Double.parseDouble(
+                    listingApiDto.globalQuoteDto()
+                        .priceStr()
+                );
+            fakeContractSize =
+                Long.parseLong(
+                    listingApiDto.globalQuoteDto()
+                        .volumeStr()
+                ) / 1000L;
+            fakeContractSize = Long.max(1L, fakeContractSize);
+        } catch (Exception e) {
+            LOGGER.error("{}", e.getMessage());
+        }
 
         double fakeBid = price * 0.993;
         double fakeAsk = price * 1.007;
@@ -357,37 +350,13 @@ public class TestDataRunner implements CommandLineRunner {
 
     private Stock fetchStockInfo(String ticker, long id) throws IOException {
         // https://www.alphavantage.co/query?function=OVERVIEW&symbol=IBM&apikey=demo
-        String url =
-            "https://www.alphavantage.co/query?function=OVERVIEW&symbol="
-                + ticker
-                + "&apikey="
-                + vantageKey;
-        Request request =
-            new Request.Builder().url(url)
-                .addHeader("Content-Type", "application/json")
-                .build();
-        Response response =
-            stockHttpClient.newCall(request)
-                .execute();
-        String jsonResponse =
-            response.body()
-                .string();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode stockJson = objectMapper.readTree(jsonResponse);
+        retrofit2.Call<StockInfoDto> call =
+            alphaRetrofit.getStockInfo("OVERVIEW", ticker, vantageKey);
 
-        String name =
-            stockJson.path("Name")
-                .asText("N/A");
-        String dividendYield =
-            stockJson.path("DividendYield")
-                .asText("N/A");
-        String outstandingShares =
-            stockJson.path("SharesOutstanding")
-                .asText("N/A");
-        String marketCap =
-            stockJson.path("MarketCapitalization")
-                .asText("N/A");
+        StockInfoDto stockInfoDto =
+            call.execute()
+                .body();
 
         /*
          * System.out.println("divident yield: " + dividendYield);
@@ -395,26 +364,27 @@ public class TestDataRunner implements CommandLineRunner {
          * System.out.println(name); System.out.println("--------------");
          */
 
+
         BigDecimal divYield = new BigDecimal(0.0);
         try {
-            divYield = new BigDecimal(dividendYield);
+            divYield = new BigDecimal(stockInfoDto.dividendYield());
         } catch (Exception e) {
         }
 
         long outstandingSharesLong;
         try {
-            outstandingSharesLong = Long.parseLong(outstandingShares);
+            outstandingSharesLong = Long.parseLong(stockInfoDto.outstandingShares());
         } catch (Exception e) {
             return null;
         }
 
         return Stock.builder()
             .id(new UUID(0L, id))
-            .name(name)
+            .name(stockInfoDto.name())
             .dividendYield(divYield)
             .outstandingShares(outstandingSharesLong)
             .createdAt(OffsetDateTime.now())
-            .marketCap(new BigDecimal(marketCap))
+            .marketCap(new BigDecimal(stockInfoDto.marketCap()))
             .ticker(ticker)
             .build();
     }
@@ -550,7 +520,6 @@ public class TestDataRunner implements CommandLineRunner {
 
 
     private void seedProductionForexPairs() {
-        List<String> forexPairs = new ArrayList<>();
         for (int i = 0; i < CurrencyCode.values().length; i++) {
             for (int j = 0; j < CurrencyCode.values().length; j++) {
                 if (i == j) continue;
@@ -569,18 +538,29 @@ public class TestDataRunner implements CommandLineRunner {
 
                     ForexPairApiDto forexPairApiDto = response2.body();
 
-                    ForexPair forexPair = ForexPair
-                        .builder()
-                        .baseCurrency(forexPairApiDto.realTimeCurrencyExchangeRate().baseCurrency())
-                        .quoteCurrency(forexPairApiDto.realTimeCurrencyExchangeRate().quoteCurrency())
-                        .liquidity(ForexLiquidity.LOW)
-                        .exchangeRate(forexPairApiDto.realTimeCurrencyExchangeRate().exchangeRate())
-                        .build();
+                    if (null == forexPairApiDto.realTimeCurrencyExchangeRate()) continue;
+
+                    ForexPair forexPair =
+                        ForexPair.builder()
+                            .baseCurrency(
+                                forexPairApiDto.realTimeCurrencyExchangeRate()
+                                    .baseCurrency()
+                            )
+                            .quoteCurrency(
+                                forexPairApiDto.realTimeCurrencyExchangeRate()
+                                    .quoteCurrency()
+                            )
+                            .liquidity(ForexLiquidity.LOW)
+                            .exchangeRate(
+                                forexPairApiDto.realTimeCurrencyExchangeRate()
+                                    .exchangeRate()
+                            )
+                            .build();
 
                     forexPairRepository.saveAndFlush(forexPair);
                     Thread.sleep(200);
                 } catch (Exception e) {
-                    LOGGER.error("Forex pair seeder failed: " +e.getMessage());
+                    LOGGER.error("Forex pair seeder failed: " + e.getMessage());
                 }
             }
         }
