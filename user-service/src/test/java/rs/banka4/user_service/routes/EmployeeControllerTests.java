@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 import rs.banka4.user_service.config.filters.JwtAuthenticationFilter;
 import rs.banka4.user_service.controller.EmployeeController;
 import rs.banka4.user_service.domain.user.PrivilegesDto;
@@ -128,6 +129,11 @@ public class EmployeeControllerTests {
         @Bean
         public JwtAuthenticationFilter jwtAuthenticationFilter() {
             return new NoopJwtAuthenticationFilter();
+        }
+
+        @Bean
+        public ErrorResponseHandler errorResponseHandler() {
+            return new ErrorResponseHandler();
         }
     }
 }

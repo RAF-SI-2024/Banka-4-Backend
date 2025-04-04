@@ -17,13 +17,13 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
+import rs.banka4.rafeisen.common.exceptions.RouteNotFound;
+import rs.banka4.rafeisen.common.exceptions.jwt.NoJwtProvided;
 import rs.banka4.rafeisen.common.security.Privilege;
 import rs.banka4.rafeisen.common.security.UserType;
 import rs.banka4.rafeisen.common.utils.jwt.VerifiedAccessToken;
 import rs.banka4.user_service.config.filters.InvalidRouteFilter;
 import rs.banka4.user_service.config.filters.JwtAuthenticationFilter;
-import rs.banka4.user_service.exceptions.RouteNotFound;
-import rs.banka4.user_service.exceptions.jwt.NoJwtProvided;
 import rs.banka4.user_service.service.abstraction.JwtService;
 
 public class RoutesFilterTests {

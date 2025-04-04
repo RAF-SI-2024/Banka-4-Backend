@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import rs.banka4.rafeisen.common.exceptions.jwt.ExpiredJwt;
 import rs.banka4.rafeisen.common.security.AuthenticatedBankUserPrincipal;
 import rs.banka4.rafeisen.common.utils.jwt.JwtParseFailed;
 import rs.banka4.rafeisen.common.utils.jwt.JwtUtil;
@@ -18,7 +19,6 @@ import rs.banka4.rafeisen.common.utils.jwt.VerifiedAccessToken;
 import rs.banka4.rafeisen.common.utils.jwt.VerifiedRefreshToken;
 import rs.banka4.rafeisen.common.utils.jwt.VerifiedToken;
 import rs.banka4.user_service.domain.user.User;
-import rs.banka4.user_service.exceptions.jwt.ExpiredJwt;
 import rs.banka4.user_service.service.abstraction.JwtService;
 import rs.banka4.user_service.service.abstraction.TokenService;
 

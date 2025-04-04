@@ -1,4 +1,4 @@
-package rs.banka4.stock_service.exceptions;
+package rs.banka4.rafeisen.common.exceptions;
 
 import java.util.Map;
 import lombok.EqualsAndHashCode;
@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 @EqualsAndHashCode(callSuper = false)
 @ToString
 @RequiredArgsConstructor
-/* TODO(arsen): remove */
 public class BaseApiException extends RuntimeException {
     private final HttpStatus status;
     private final Map<String, Object> extra;

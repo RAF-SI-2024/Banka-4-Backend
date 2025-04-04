@@ -6,23 +6,20 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import rs.banka4.user_service.exceptions.BaseApiException;
-import rs.banka4.user_service.exceptions.ErrorResponseHandler;
+import rs.banka4.rafeisen.common.exceptions.BaseApiException;
+import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 
 /**
  * Filter that handles exceptions thrown during the request processing by other filters.
  */
 @Component
+@RequiredArgsConstructor
 public class ExceptionHandlingFilter extends OncePerRequestFilter {
-
+    private final ObjectMapper objectMapper;
     private final ErrorResponseHandler errorResponseHandler;
-
-    public ExceptionHandlingFilter(ErrorResponseHandler errorResponseHandler) {
-        this.errorResponseHandler = errorResponseHandler;
-    }
 
     /**
      * Filters the incoming request to handle exceptions thrown by other filters. If a
@@ -50,11 +47,10 @@ public class ExceptionHandlingFilter extends OncePerRequestFilter {
                     .value()
             );
             response.setContentType("application/json");
-            Map<String, Object> responseBody =
+            final var responseBody =
                 errorResponseHandler.handleErrorResponse(ex)
                     .getBody();
-            response.getWriter()
-                .write(new ObjectMapper().writeValueAsString(responseBody));
+            objectMapper.writeValue(response.getWriter(), responseBody);
         }
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 
 @Configuration
 @EnableSpringDataWebSupport(pageSerializationMode = PageSerializationMode.VIA_DTO)
@@ -27,5 +28,13 @@ public class ApplicationConfig {
             (DelegatingPasswordEncoder) PasswordEncoderFactories.createDelegatingPasswordEncoder();
         encoder.setDefaultPasswordEncoderForMatches(new BCryptPasswordEncoder());
         return encoder;
+    }
+
+    /**
+     * Provide an handler for errors in responses.
+     */
+    @Bean
+    public ErrorResponseHandler errorResponseHandler() {
+        return new ErrorResponseHandler();
     }
 }

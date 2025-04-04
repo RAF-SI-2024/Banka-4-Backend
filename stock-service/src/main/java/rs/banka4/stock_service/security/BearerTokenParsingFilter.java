@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
+import rs.banka4.rafeisen.common.exceptions.jwt.ExpiredJwt;
+import rs.banka4.rafeisen.common.exceptions.jwt.NoJwtProvided;
 import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
 import rs.banka4.rafeisen.common.security.AuthenticatedBankUserPrincipal;
 import rs.banka4.rafeisen.common.utils.jwt.JwtParseFailed;
@@ -18,8 +20,6 @@ import rs.banka4.rafeisen.common.utils.jwt.JwtUtil;
 import rs.banka4.rafeisen.common.utils.jwt.UnverifiedToken;
 import rs.banka4.rafeisen.common.utils.jwt.VerifiedAccessToken;
 import rs.banka4.rafeisen.common.utils.jwt.VerifiedToken;
-import rs.banka4.stock_service.exceptions.ExpiredJwt;
-import rs.banka4.stock_service.exceptions.NoJwtProvided;
 
 /**
  * Parse a header token and register it with the {@link SecurityContextHolder}.
