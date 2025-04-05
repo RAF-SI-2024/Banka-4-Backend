@@ -87,6 +87,8 @@ services:
       dockerfile: docker/Dockerfile-java
       args:
         SERVICE: stock-service
+    environment:
+      ALPHAVANTAGE_APY_KEY: ${ALPHAVANTAGE_API_KEY:?alphavantage api key missing}
     command:
       - /code/stock-service/build/libs/stock-service-0.0.1-SNAPSHOT.jar
       - --spring.profiles.active=dev,local

@@ -56,8 +56,8 @@ public class TestDataRunner implements CommandLineRunner {
     private Exchange srbForexExchange = null;
     private Exchange srbFutureExchange = null;
 
-    @Value("${spring.alphavantage.api_key}")
-    private String vantageKey = null;
+    @Value("${alphavantage.api-key}")
+    private String vantageKey;
 
     @Override
     public void run(String... args) {
