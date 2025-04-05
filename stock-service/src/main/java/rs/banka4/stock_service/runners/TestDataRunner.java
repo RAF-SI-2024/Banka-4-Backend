@@ -32,7 +32,7 @@ import rs.banka4.stock_service.domain.security.stock.db.Stock;
 import rs.banka4.stock_service.domain.security.stock.dtos.StockInfoDto;
 import rs.banka4.stock_service.repositories.*;
 
-@Profile("-test")
+@Profile("!test")
 @Component
 @RequiredArgsConstructor
 public class TestDataRunner implements CommandLineRunner {
