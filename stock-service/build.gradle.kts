@@ -40,19 +40,26 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.5")
 	implementation("org.springdoc:springdoc-openapi-starter-common:2.8.5")
 
-	implementation("org.mapstruct:mapstruct:1.5.5.Final")
-	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-database-postgresql")
 	runtimeOnly("org.postgresql:postgresql")
 
-	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
+	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+	implementation("org.mapstruct:mapstruct:1.5.5.Final")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+	implementation("com.squareup.okhttp3:okhttp:4.12.0")
+	implementation("org.apache.commons:commons-math3:3.6.1")
+
+	implementation("com.squareup.retrofit2:retrofit:2.11.0")
+	implementation("com.squareup.retrofit2:converter-scalars:2.11.0")
+	implementation("com.squareup.retrofit2:converter-jackson:2.11.0")
 }
 
 tasks.withType<Test> {

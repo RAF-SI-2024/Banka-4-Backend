@@ -71,7 +71,7 @@ def call_exchanges_api():
         response = requests.get(g.api_url)
         ok = response.status_code == 200
         if not ok:
-            sleep(5000)
+            sleep(5)
             retries += 1
     if not ok:
         raise ExchangeRateFetchFailedError()

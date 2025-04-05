@@ -33,7 +33,6 @@ spring:
             scripts:
               action: create
               create-target: /dev/stderr
-
 server:
   servlet:
     context-path: /stock
@@ -53,3 +52,6 @@ springdoc:
 jwt:
   keys:
     verification: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=='
+
+alphavantage:
+  api-key: ${ALPHAVANTAGE_APY_KEY}
