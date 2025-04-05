@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import rs.banka4.stock_service.config.retrofit.AlphaVantageService;
@@ -31,7 +32,7 @@ import rs.banka4.stock_service.domain.security.stock.db.Stock;
 import rs.banka4.stock_service.domain.security.stock.dtos.StockInfoDto;
 import rs.banka4.stock_service.repositories.*;
 
-
+@Profile("-test")
 @Component
 @RequiredArgsConstructor
 public class TestDataRunner implements CommandLineRunner {
