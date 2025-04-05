@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authorization.AuthorityAuthorizationManager;
+import org.springframework.security.authorization.AuthorizationManagers;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
@@ -27,6 +29,24 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/listings/**")
                     .authenticated()
+                    .requestMatchers(HttpMethod.PUT, "/actuaries/limit/**")
+                    .access(
+                        AuthorizationManagers.anyOf(
+                            AuthorityAuthorizationManager.hasAuthority("SUPERVISOR"),
+                            AuthorityAuthorizationManager.hasAuthority("ADMIN")
+                        )
+                    )
+                    .requestMatchers(HttpMethod.POST, "/actuaries/search/**")
+                    .access(
+                        AuthorizationManagers.anyOf(
+                            AuthorityAuthorizationManager.hasAuthority("SUPERVISOR"),
+                            AuthorityAuthorizationManager.hasAuthority("ADMIN")
+                        )
+                    )
+                    .requestMatchers(HttpMethod.POST, "/actuaries/register")
+                    .hasAuthority("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/actuaries/update/**")
+                    .hasAuthority("ADMIN")
                     .anyRequest()
                     .authenticated()
             )

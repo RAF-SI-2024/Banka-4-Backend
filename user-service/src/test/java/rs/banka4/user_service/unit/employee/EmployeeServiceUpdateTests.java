@@ -4,12 +4,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
+import rs.banka4.rafeisen.common.security.Privilege;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
 import rs.banka4.user_service.domain.user.employee.mapper.EmployeeMapper;
@@ -35,6 +41,20 @@ public class EmployeeServiceUpdateTests {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        // Mock the security context
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(AuthenticatedBankUserAuthentication.class);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getName()).thenReturn("admin@example.com");
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        // Mock the logged-in employee
+        Employee admin = new Employee();
+        admin.setEmail("admin@example.com");
+        admin.setPrivileges(Set.of(Privilege.ADMIN));
+        when(employeeRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(admin));
     }
 
     @Test

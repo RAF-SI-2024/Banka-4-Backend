@@ -40,4 +40,12 @@ public interface EmployeeService {
     void updateEmployee(UUID id, UpdateEmployeeDto updateEmployeeDto);
 
     EmployeeResponseDto getEmployeeById(UUID id);
+
+    ResponseEntity<Page<EmployeeDto>> getAllActuaries(
+        String firstName,
+        String lastName,
+        String email,
+        String position,
+        PageRequest of
+    );
 }

@@ -71,6 +71,24 @@ public class EmployeeController implements EmployeeApiDocumentation {
         );
     }
 
+    @GetMapping("/search/actuary-only")
+    public ResponseEntity<Page<EmployeeDto>> getActuaryEmployees(
+        @RequestParam(required = false) String firstName,
+        @RequestParam(required = false) String lastName,
+        @RequestParam(required = false) String email,
+        @RequestParam(required = false) String position,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        return employeeService.getAllActuaries(
+            firstName,
+            lastName,
+            email,
+            position,
+            PageRequest.of(page, size)
+        );
+    }
+
     @Override
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateEmployee(
