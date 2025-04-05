@@ -4,6 +4,8 @@ jwt:
     key: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 
 spring:
+  profiles:
+    active: test
   jpa:
     hibernate:
       # Force Hibernate to crash us if the migrations are wrong.
