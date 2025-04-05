@@ -9,7 +9,7 @@ public class BlackHolesOptionPricing {
     private static final NormalDistribution N = new NormalDistribution();
 
     /**
-     * Calculates the price of a European option using the Black-Scholes model.
+     * Calculates the price of an option using the Black-Scholes model.
      *
      * @param S the current stock price
      * @param K the strike price
@@ -39,6 +39,21 @@ public class BlackHolesOptionPricing {
         }
     }
 
+    /**
+     * Calculates the price of an option based on the given Option object and current stock price.
+     *
+     * <p>
+     * This method extracts necessary parameters from the provided Option object, including strike
+     * price, settlement date, implied volatility, and option type. It calculates the time to
+     * expiration and uses a fixed risk-free rate to compute the option price using the
+     * Black-Scholes model.
+     *
+     * @param option the Option object containing option parameters except premium which is null (or
+     *        ignored if not)
+     * @param currentStockPrice the current price of the underlying stock (taken from an active
+     *        listing)
+     * @return the calculated option price, or 0.0 if the option has already expired
+     */
     public static double calculateOptionPriceFromOption(Option option, double currentStockPrice) {
         double riskFreeRate = 0.02;
         double S = currentStockPrice;

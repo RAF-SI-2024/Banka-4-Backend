@@ -30,6 +30,23 @@ public class OptionsMaker {
         return ticker.toUpperCase() + datePart + optionTypeChar + strikeFormatted;
     }
 
+    /**
+     * Generates a list of synthetic call and put options for a given stock, based on the
+     * Black-Scholes model. Options are created with a range of strike prices and expiry dates, and
+     * assigned tickers in the <pre>
+     * [STOCK_TICKER][YY][MM][DD][C|P][STRIKE{8}]
+     * </pre> format.
+     *
+     * <p>
+     * Expiry dates are generated starting 6 days from the current date: every 6 days for 30 days,
+     * followed by 6 more dates spaced 30 days apart. Strike prices are calculated as ±5 integers
+     * around the rounded stock price.
+     *
+     * @param stock the stock for which options are being generated
+     * @param currentPrice the current stock price (from an active listing)
+     * @param currency the currency to be used for premiums (from an exchange of an active listing)
+     * @return a list of generated call and put Option objects for the given stock
+     */
     public List<Option> generateOptions(
         Stock stock,
         BigDecimal currentPrice,

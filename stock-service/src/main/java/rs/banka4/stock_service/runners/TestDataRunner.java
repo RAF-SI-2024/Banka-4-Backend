@@ -1,14 +1,8 @@
 package rs.banka4.stock_service.runners;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.*;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
@@ -62,14 +56,6 @@ public class TestDataRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
         runProd();
-
-        if (false && environment.matchesProfiles("dev")) {
-            LOGGER.info("Inserting fake data (profiles includes 'dev')");
-            seedDevStocks();
-            seedDevForexPairs();
-            seedDevFutures();
-            seedDevExchanges();
-        }
     }
 
     public void runProd() {
@@ -425,98 +411,6 @@ public class TestDataRunner implements CommandLineRunner {
         }
     }
 
-    private void seedDevStocks() {
-    }
-
-    private JsonNode fetchExchangeRateData() throws IOException, InterruptedException {
-        Thread.sleep(10 * 1000);
-        HttpClient client = HttpClient.newHttpClient();
-
-        HttpRequest request =
-            HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/exchange/exchange-rate"))
-                .header("Accept", "application/json")
-                .GET()
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readTree(response.body());
-    }
-
-    private double getCurrencyValue(String currencyCode, JsonNode exchangeData) {
-        if (currencyCode.equals("RSD")) {
-            return 1.0;
-        }
-        JsonNode rate =
-            exchangeData.path("exchanges")
-                .path(currencyCode);
-        return rate.path("Neutral")
-            .asDouble();
-    }
-
-
-    private void seedForexPairs() {
-        JsonNode exchangeData = null;
-        try {
-            exchangeData = fetchExchangeRateData();
-        } catch (IOException | InterruptedException e) {
-            LOGGER.error(
-                "Fetch error. Forex prod seeder failed to fetch exchange office. {}",
-                e.getMessage()
-            );
-        }
-
-        ForexLiquidity[] forexLiquidities = ForexLiquidity.values();
-        int i = 0;
-        long id = 52055;
-        long ms_id = 0;
-        List<ForexPair> forexPairs = new ArrayList<>();
-        for (CurrencyCode currencyCode1 : CurrencyCode.values()) {
-            for (CurrencyCode currencyCode2 : CurrencyCode.values()) {
-                if (currencyCode1.equals(currencyCode2)) {
-                    continue;
-                }
-
-                String ticker = currencyCode1.name() + "/" + currencyCode2.name();
-                double val = -1.0;
-                try {
-                    double v1 =
-                        getCurrencyValue(
-                            currencyCode1.name()
-                                .toUpperCase(),
-                            exchangeData
-                        );
-                    double v2 =
-                        getCurrencyValue(
-                            currencyCode2.name()
-                                .toUpperCase(),
-                            exchangeData
-                        );
-                    val = v1 / v2;
-                } catch (Exception e) {
-                    LOGGER.error("Json exception in calculating forex pair value");
-                }
-
-                forexPairs.add(
-                    ForexPair.builder()
-                        .id(new UUID(ms_id, id++))
-                        .baseCurrency(currencyCode1)
-                        .quoteCurrency(currencyCode2)
-                        .liquidity(forexLiquidities[i++])
-                        .exchangeRate(new BigDecimal(val))
-                        .ticker(ticker.toUpperCase())
-                        .name(ticker)
-                        .build()
-                );
-                i = i % 3;
-            }
-        }
-        forexPairRepository.saveAllAndFlush(forexPairs);
-        LOGGER.info("Production forex pairs seeded successfully");
-    }
-
-
     private void seedProductionForexPairs() {
         for (int i = 0; i < CurrencyCode.values().length; i++) {
             for (int j = 0; j < CurrencyCode.values().length; j++) {
@@ -692,9 +586,6 @@ public class TestDataRunner implements CommandLineRunner {
 
     }
 
-    private void seedDevFutures() {
-    }
-
     private void seedProductionExchanges() {
         try {
             List<Exchange> exchanges = new ArrayList<>();
@@ -829,6 +720,46 @@ public class TestDataRunner implements CommandLineRunner {
         }
     }
 
+    // dead code used for dev seeding
+
     private void seedDevExchanges() {
+    }
+
+    private void seedDevFutures() {
+    }
+
+    private void seedDevStocks() {
+    }
+
+    private void seedForexPairs() {
+        ForexLiquidity[] forexLiquidities = ForexLiquidity.values();
+        int i = 0;
+        long id = 52055;
+        long ms_id = 0;
+        List<ForexPair> forexPairs = new ArrayList<>();
+        for (CurrencyCode currencyCode1 : CurrencyCode.values()) {
+            for (CurrencyCode currencyCode2 : CurrencyCode.values()) {
+                if (currencyCode1.equals(currencyCode2)) {
+                    continue;
+                }
+
+                String ticker = currencyCode1.name() + "/" + currencyCode2.name();
+                double val = 3.0;
+                forexPairs.add(
+                    ForexPair.builder()
+                        .id(new UUID(ms_id, id++))
+                        .baseCurrency(currencyCode1)
+                        .quoteCurrency(currencyCode2)
+                        .liquidity(forexLiquidities[i++])
+                        .exchangeRate(new BigDecimal(val))
+                        .ticker(ticker.toUpperCase())
+                        .name(ticker)
+                        .build()
+                );
+                i = i % 3;
+            }
+        }
+        forexPairRepository.saveAllAndFlush(forexPairs);
+        LOGGER.info("Production forex pairs seeded successfully");
     }
 }
