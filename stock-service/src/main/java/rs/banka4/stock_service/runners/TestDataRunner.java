@@ -62,6 +62,8 @@ public class TestDataRunner implements CommandLineRunner {
     public void runProd() {
         LOGGER.info("Seeding prod");
 
+        dropOldData();
+
         if (stockRepository.count() == 0) {
             seedProductionStocks();
         } else {
@@ -104,7 +106,28 @@ public class TestDataRunner implements CommandLineRunner {
             LOGGER.info("Not reseeding listing daily price info, data already exists");
         }
 
-        LOGGER.info("Seeding prod finished, starting...");
+        LOGGER.info("Seeding prod finished, starting stock service...");
+    }
+
+    private void dropOldData() {
+        if (stockRepository.count() == 86) {
+            // seedProductionStocks(); seeduje 86 stockova (nova funkcija)
+            LOGGER.info("Database has new data. No drops.");
+            return;
+        }
+
+        LOGGER.info("Dropping old data...");
+        try {
+            listingDailyPriceInfoRepository.deleteAllInBatch();
+            listingRepository.deleteAllInBatch();
+            optionsRepository.deleteAllInBatch();
+            exchangeRepository.deleteAllInBatch();
+            forexPairRepository.deleteAllInBatch();
+            futureRepository.deleteAllInBatch();
+            stockRepository.deleteAllInBatch();
+        } catch (Exception e) {
+            LOGGER.error("Error occurred while dropping old data: {}", e.getMessage());
+        }
     }
 
     private void seedProductionListingDailyPriceInfo() {
