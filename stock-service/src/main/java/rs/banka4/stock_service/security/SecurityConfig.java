@@ -1,5 +1,7 @@
 package rs.banka4.stock_service.security;
 
+import static org.springframework.security.config.Customizer.*;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +24,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain configureSecurity(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity.csrf(CsrfConfigurer::disable)
+            .cors(withDefaults())
             .authorizeHttpRequests(
                 request -> request.requestMatchers("/docs/api")
                     .permitAll()
