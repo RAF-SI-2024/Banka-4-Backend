@@ -31,6 +31,10 @@ public interface ListingMapper {
     FutureDto toFutureDto(Future future);
 
     @Mapping(
+        target = "securityId",
+        expression = "java(listing.getSecurity().getId())"
+    )
+    @Mapping(
         target = "price",
         source = "listing.ask"
     )

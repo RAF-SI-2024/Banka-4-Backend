@@ -252,6 +252,7 @@ public class ListingTests {
                 {
                   "content": [
                     {
+                      "securityId": "c6a3ad44-0eee-4bd3-addf-d8f2086b6f51",
                       "name": "Example One™",
                       "ticker": "EX1",
                       "volume": 0,
