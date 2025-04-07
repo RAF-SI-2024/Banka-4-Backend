@@ -53,7 +53,7 @@ public interface ListingApiDocumentation {
 
     @Operation(
         summary = "Get data for price change graph",
-        description = "Retrieves daily prices to show the price change over period of time",
+        description = "Retrieves daily prices to show the price change over period of time for security",
         security = @SecurityRequirement(name = "bearerAuth"),
         responses = {
             @ApiResponse(
@@ -70,7 +70,9 @@ public interface ListingApiDocumentation {
             )
         }
     )
-    ResponseEntity<List<PriceChangeDto>> getPriceChanges();
+    ResponseEntity<List<PriceChangeDto>> getPriceChanges(
+        @Parameter(description = "security to show price change for") UUID securityId
+    );
 
     @Operation(
         summary = "Get details for latest listing for a security",

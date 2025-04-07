@@ -94,8 +94,9 @@ public class ListingServiceImpl implements ListingService {
     }
 
     @Override
-    public List<PriceChangeDto> getPriceChanges() {
-        List<ListingDailyPriceInfo> infos = listingDailyPriceInfoRepository.findAll();
+    public List<PriceChangeDto> getPriceChanges(UUID securityId) {
+        List<ListingDailyPriceInfo> infos =
+            listingDailyPriceInfoRepository.findAllBySecurityId(securityId);
         return infos.stream()
             .map(ListingDailyPriceInfoMapper.INSTANCE::toPriceChangeDto)
             .toList();

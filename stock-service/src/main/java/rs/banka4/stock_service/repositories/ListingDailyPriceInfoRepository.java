@@ -1,5 +1,6 @@
 package rs.banka4.stock_service.repositories;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Limit;
@@ -15,4 +16,6 @@ public interface ListingDailyPriceInfoRepository extends
         value = "select l from ListingDailyPriceInfo l where l.security.id = :securityId order by l.date desc"
     )
     Optional<ListingDailyPriceInfo> getYesterdayListingDailyPriceInfo(UUID securityId, Limit limit);
+
+    List<ListingDailyPriceInfo> findAllBySecurityId(UUID securityId);
 }

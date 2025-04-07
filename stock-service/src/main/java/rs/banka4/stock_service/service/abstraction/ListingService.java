@@ -19,7 +19,7 @@ public interface ListingService {
 
     Page<ListingInfoDto> getListings(ListingFilterDto filter, Pageable pageable, boolean isClient);
 
-    List<PriceChangeDto> getPriceChanges();
+    List<PriceChangeDto> getPriceChanges(UUID securityId);
 
     ListingDetailsDto getListingDetails(UUID securityId);
 

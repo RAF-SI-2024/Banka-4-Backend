@@ -186,7 +186,7 @@ public class ListingTests {
         );
 
         mvc.get()
-            .uri("/listings/priceChange")
+            .uri("/listings/" + AssetGenerator.STOCK_EX1_UUID + "/priceChange")
             .header("Authorization", "Bearer " + JwtPlaceholders.ADMIN_EMPLOYEE_TOKEN)
             .assertThat()
             .hasStatusOk()

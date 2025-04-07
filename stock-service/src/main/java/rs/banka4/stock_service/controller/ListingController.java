@@ -46,9 +46,9 @@ public class ListingController implements ListingApiDocumentation {
         );
     }
 
-    @GetMapping("/priceChange")
-    public ResponseEntity<List<PriceChangeDto>> getPriceChanges() {
-        return new ResponseEntity<>(listingService.getPriceChanges(), HttpStatus.OK);
+    @GetMapping("/{securityId}/priceChange")
+    public ResponseEntity<List<PriceChangeDto>> getPriceChanges(@PathVariable UUID securityId) {
+        return new ResponseEntity<>(listingService.getPriceChanges(securityId), HttpStatus.OK);
     }
 
     @GetMapping("/{securityId}")
