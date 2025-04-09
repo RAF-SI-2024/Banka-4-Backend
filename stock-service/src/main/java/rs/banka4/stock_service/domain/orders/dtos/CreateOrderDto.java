@@ -9,7 +9,7 @@ import rs.banka4.stock_service.domain.orders.db.Direction;
 @Schema(description = "DTO for creating order")
 public record CreateOrderDto(
     @Schema(
-        description = "User ID",
+        description = "Asset ID",
         example = "1de54a3a-d879-4154-aa3a-e40598186f93"
     ) @NotNull(message = "AssetId is required") UUID assetId,
     @Schema(
@@ -20,10 +20,6 @@ public record CreateOrderDto(
         description = "Order quantity",
         example = "1"
     ) @NotNull(message = "Quantity is required") int quantity,
-    @Schema(
-        description = "Price per unit",
-        example = "1000.0"
-    ) MonetaryAmount pricePerUnit,
     @Schema(
         description = "Order limit value",
         example = "1000.0"
