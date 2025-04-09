@@ -223,4 +223,8 @@ public class ListingServiceImpl implements ListingService {
         );
     }
 
+    public Optional<Listing> findActiveListingByAsset(UUID assetId) {
+        return listingRepository.findBySecurityIdAndActiveTrue(assetId);
+    }
+
 }

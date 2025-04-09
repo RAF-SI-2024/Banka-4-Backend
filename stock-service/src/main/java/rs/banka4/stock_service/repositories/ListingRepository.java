@@ -18,4 +18,7 @@ public interface ListingRepository extends
         value = "select l from Listing l where l.security.id = :securityId order by l.lastRefresh desc"
     )
     Optional<Listing> getLatestListing(UUID securityId, Limit limit);
+
+    Optional<Listing> findBySecurityIdAndActiveTrue(UUID assetId);
+
 }
