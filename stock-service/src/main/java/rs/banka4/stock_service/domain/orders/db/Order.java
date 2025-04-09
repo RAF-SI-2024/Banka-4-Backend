@@ -6,6 +6,7 @@ import java.util.UUID;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import rs.banka4.stock_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.stock_service.domain.options.db.Asset;
 
@@ -15,6 +16,7 @@ import rs.banka4.stock_service.domain.options.db.Asset;
 @Getter
 @Setter
 @RequiredArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "orders")
 public class Order {
     @Id
