@@ -2,6 +2,7 @@ package rs.banka4.stock_service.domain.security.forex.db;
 
 import java.util.HashMap;
 import java.util.Map;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 
 public class CurrencyMapper {
     private static final Map<String, CurrencyCode> currencyMap = new HashMap<>();

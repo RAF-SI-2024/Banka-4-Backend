@@ -2,12 +2,12 @@ package rs.banka4.user_service.domain.account.mapper;
 
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.account.dtos.AccountTypeDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
 import rs.banka4.user_service.domain.company.mapper.CompanyMapper;
-import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.currency.mapper.CurrencyMapper;
 import rs.banka4.user_service.domain.user.client.mapper.ClientMapper;
 import rs.banka4.user_service.domain.user.employee.mapper.EmployeeMapper;
@@ -38,7 +38,7 @@ public interface AccountMapper {
         if (
             account.getCurrency()
                 .getCode()
-                == Currency.Code.RSD
+                == CurrencyCode.Code.RSD
         ) {
             if (
                 account.getAccountType()

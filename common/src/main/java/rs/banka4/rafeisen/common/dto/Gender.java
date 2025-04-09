@@ -1,4 +1,4 @@
-package rs.banka4.user_service.domain.user;
+package rs.banka4.rafeisen.common.dto;
 
 public enum Gender {
     MALE,

@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.user_service.domain.company.db.Company;
 import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.user.client.db.Client;
@@ -78,7 +79,7 @@ public class Account {
     public void setAccountMaintenance() {
         if (
             this.currency != null
-                && Currency.Code.RSD.equals(
+                && CurrencyCode.Code.RSD.equals(
                     this.getCurrency()
                         .getCode()
                 )

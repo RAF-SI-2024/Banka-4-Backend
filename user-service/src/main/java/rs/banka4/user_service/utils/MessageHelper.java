@@ -5,8 +5,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.user_service.domain.auth.dtos.NotificationTransferDto;
-import rs.banka4.user_service.domain.currency.db.Currency;
 
 
 public class MessageHelper {
@@ -40,7 +40,7 @@ public class MessageHelper {
         String firstName,
         Long loanNumber,
         BigDecimal installmentAmount,
-        Currency.Code code,
+        CurrencyCode.Code code,
         LocalDate date
     ) {
         Map<String, Object> params = new HashMap<>();
@@ -57,7 +57,7 @@ public class MessageHelper {
         String firstName,
         Long loanNumber,
         BigDecimal installmentAmount,
-        Currency.Code code,
+        CurrencyCode.Code code,
         LocalDate date
     ) {
         Map<String, Object> params = new HashMap<>();

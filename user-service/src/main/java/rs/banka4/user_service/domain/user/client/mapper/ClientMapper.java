@@ -2,9 +2,9 @@ package rs.banka4.user_service.domain.user.client.mapper;
 
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
+import rs.banka4.rafeisen.common.dto.Gender;
 import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
-import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
 import rs.banka4.user_service.domain.user.client.dtos.CreateClientDto;

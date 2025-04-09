@@ -51,6 +51,10 @@ dependencies {
 	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 	implementation("org.mapstruct:mapstruct:1.5.5.Final")
 
+	implementation("com.squareup.retrofit2:retrofit:2.11.0")
+	implementation("com.squareup.retrofit2:converter-scalars:2.11.0")
+	implementation("com.squareup.retrofit2:converter-jackson:2.11.0")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 

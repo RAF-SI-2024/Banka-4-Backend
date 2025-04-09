@@ -2,6 +2,7 @@ package rs.banka4.testlib.utils;
 
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.UUID;
 
 /**
  * A variety of tokens that do not expire to use in tests in services where logging in is more
@@ -28,6 +29,10 @@ public class JwtPlaceholders {
      * Latest-version valid access token for a client.
      */
     public static final String CLIENT_TOKEN = V3_VALID_CLIENT_TOKEN;
+    /**
+     * Id for user with CLIENT_TOKEN
+     */
+    public static final UUID CLIENT_ID = UUID.fromString("a4bf370e-2129-4116-9243-0c4ead0fe43e");
 
     public static final byte[] TERRIBLE_SECRET = new byte[64];
     public static final String TERRIBLE_SECRET_B64 =

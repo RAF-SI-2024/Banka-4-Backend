@@ -10,6 +10,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
+import rs.banka4.rafeisen.common.dto.Gender;
 import rs.banka4.rafeisen.common.security.Privilege;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
@@ -18,7 +20,6 @@ import rs.banka4.user_service.domain.company.db.ActivityCode;
 import rs.banka4.user_service.domain.company.db.Company;
 import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.loan.db.*;
-import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.db.ClientContact;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
@@ -226,8 +227,8 @@ public class TestDataRunner implements CommandLineRunner {
             clientRepository.findById(CLIENT_JANE)
                 .orElseThrow(() -> new RuntimeException("Client John not found"));
 
-        Currency currencyRSD = currencyRepository.findByCode(Currency.Code.RSD);
-        Currency currencyEUR = currencyRepository.findByCode(Currency.Code.EUR);
+        Currency currencyRSD = currencyRepository.findByCode(CurrencyCode.Code.RSD);
+        Currency currencyEUR = currencyRepository.findByCode(CurrencyCode.Code.EUR);
 
         Company company =
             companyRepository.findById(COMPANY_BIG_COMPANY_DOO)
@@ -941,56 +942,56 @@ public class TestDataRunner implements CommandLineRunner {
                     .symbol("RSD")
                     .description("Serbian national currency")
                     .active(true)
-                    .code(Currency.Code.RSD)
+                    .code(CurrencyCode.Code.RSD)
                     .build(),
                 Currency.builder()
                     .name("Euro")
                     .symbol("EUR")
                     .description("European Union currency")
                     .active(true)
-                    .code(Currency.Code.EUR)
+                    .code(CurrencyCode.Code.EUR)
                     .build(),
                 Currency.builder()
                     .name("US Dollar")
                     .symbol("USD")
                     .description("United States currency")
                     .active(true)
-                    .code(Currency.Code.USD)
+                    .code(CurrencyCode.Code.USD)
                     .build(),
                 Currency.builder()
                     .name("Swiss Franc")
                     .symbol("CHF")
                     .description("Swiss national currency")
                     .active(true)
-                    .code(Currency.Code.CHF)
+                    .code(CurrencyCode.Code.CHF)
                     .build(),
                 Currency.builder()
                     .name("Japanese Yen")
                     .symbol("JPY")
                     .description("Japanese national currency")
                     .active(true)
-                    .code(Currency.Code.JPY)
+                    .code(CurrencyCode.Code.JPY)
                     .build(),
                 Currency.builder()
                     .name("Australian Dollar")
                     .symbol("AUD")
                     .description("Australian national currency")
                     .active(true)
-                    .code(Currency.Code.AUD)
+                    .code(CurrencyCode.Code.AUD)
                     .build(),
                 Currency.builder()
                     .name("Canadian Dollar")
                     .symbol("CAD")
                     .description("Canadian national currency")
                     .active(true)
-                    .code(Currency.Code.CAD)
+                    .code(CurrencyCode.Code.CAD)
                     .build(),
                 Currency.builder()
                     .name("British Pound")
                     .symbol("GBP")
                     .description("United Kingdom national currency")
                     .active(true)
-                    .code(Currency.Code.GBP)
+                    .code(CurrencyCode.Code.GBP)
                     .build()
             );
 
@@ -1113,7 +1114,7 @@ public class TestDataRunner implements CommandLineRunner {
 
         companyRepository.saveAndFlush(stateCompany);
 
-        Currency rsdCurrency = currencyRepository.findByCode(Currency.Code.RSD);
+        Currency rsdCurrency = currencyRepository.findByCode(CurrencyCode.Code.RSD);
 
         Account stateAccount =
             Account.builder()

@@ -19,6 +19,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.loan.db.Loan;
@@ -66,7 +67,7 @@ public class GetAllLoansTests {
         sampleLoanRequest.setAmount(new BigDecimal("10000"));
         sampleLoanRequest.setCurrency(new Currency());
         sampleLoanRequest.getCurrency()
-            .setCode(Currency.Code.EUR);
+            .setCode(CurrencyCode.Code.EUR);
         sampleLoanRequest.getCurrency()
             .setName("Euro");
         sampleLoanRequest.setPurposeOfLoan("Education");
@@ -98,7 +99,7 @@ public class GetAllLoansTests {
                     .plusMonths(1),
                 BigDecimal.valueOf(5000),
                 new Currency(
-                    Currency.Code.RSD,
+                    CurrencyCode.Code.RSD,
                     "Serbian Dinar",
                     "RSD",
                     "Serbian Dinar currency",
@@ -122,7 +123,7 @@ public class GetAllLoansTests {
                     .plusMonths(1),
                 BigDecimal.valueOf(5000),
                 new Currency(
-                    Currency.Code.RSD,
+                    CurrencyCode.Code.RSD,
                     "Serbian Dinar",
                     "RSD",
                     "Serbian Dinar currency",
@@ -147,7 +148,7 @@ public class GetAllLoansTests {
                     .plusMonths(1),
                 BigDecimal.valueOf(5000),
                 new Currency(
-                    Currency.Code.RSD,
+                    CurrencyCode.Code.RSD,
                     "Serbian Dinar",
                     "RSD",
                     "Serbian Dinar currency",
@@ -171,7 +172,7 @@ public class GetAllLoansTests {
         loan1.setAccount(account1);
 
         Currency currency = new Currency();
-        currency.setCode(Currency.Code.EUR);
+        currency.setCode(CurrencyCode.Code.EUR);
         currency.setName("EUR");
         currency.setActive(true);
         currency.setSymbol("E");

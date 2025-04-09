@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.currency.db.Currency;
@@ -75,7 +76,7 @@ public class ListingLoansTests {
         UUID accountId = UUID.randomUUID();
 
         Currency currency = new Currency();
-        currency.setCode(Currency.Code.EUR);
+        currency.setCode(CurrencyCode.Code.EUR);
         currency.setName("EUR");
         currency.setActive(true);
         currency.setSymbol("E");

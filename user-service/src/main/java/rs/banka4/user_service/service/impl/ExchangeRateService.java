@@ -8,7 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import rs.banka4.user_service.domain.currency.db.Currency;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.user_service.domain.exchange.dtos.ExchangeRate;
 import rs.banka4.user_service.domain.exchange.dtos.ExchangeRateDto;
 
@@ -64,18 +64,22 @@ public class ExchangeRateService {
      * @throws NullPointerException if exchange rates are not available for the given currencies.
      * @throws IllegalArgumentException if an invalid currency code is provided.
      */
-    public BigDecimal convertCurrency(BigDecimal amount, Currency.Code from, Currency.Code to) {
+    public BigDecimal convertCurrency(
+        BigDecimal amount,
+        CurrencyCode.Code from,
+        CurrencyCode.Code to
+    ) {
         ExchangeRateDto exchangeRateDto = getExchangeRates();
-        Map<Currency.Code, ExchangeRate> exchangeRates = exchangeRateDto.exchanges();
+        Map<CurrencyCode.Code, ExchangeRate> exchangeRates = exchangeRateDto.exchanges();
 
-        if (from.equals(Currency.Code.RSD)) {
+        if (from.equals(CurrencyCode.Code.RSD)) {
             return amount.divide(
                 exchangeRates.get(to)
                     .buy(),
                 2,
                 RoundingMode.HALF_UP
             );
-        } else if (to.equals(Currency.Code.RSD)) {
+        } else if (to.equals(CurrencyCode.Code.RSD)) {
             return amount.multiply(
                 exchangeRates.get(from)
                     .sell()

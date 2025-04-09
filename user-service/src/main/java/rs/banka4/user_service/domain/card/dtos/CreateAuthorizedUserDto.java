@@ -2,7 +2,7 @@ package rs.banka4.user_service.domain.card.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
-import rs.banka4.user_service.domain.user.Gender;
+import rs.banka4.rafeisen.common.dto.Gender;
 
 public record CreateAuthorizedUserDto(
     @Schema(

@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.UUID;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
+import rs.banka4.rafeisen.common.dto.Gender;
 import rs.banka4.rafeisen.common.security.Privilege;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
@@ -12,9 +14,7 @@ import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.account.dtos.AccountTypeDto;
 import rs.banka4.user_service.domain.account.dtos.CreateAccountDto;
 import rs.banka4.user_service.domain.currency.db.Currency;
-import rs.banka4.user_service.domain.currency.db.Currency.Code;
 import rs.banka4.user_service.domain.currency.mapper.CurrencyMapper;
-import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.client.dtos.ClientDto;
 import rs.banka4.user_service.domain.user.employee.dtos.EmployeeDto;
 
@@ -35,7 +35,7 @@ public class AccountObjectMother {
             ),
             null,
             BigDecimal.valueOf(1000.00),
-            Currency.Code.RSD,
+            CurrencyCode.Code.RSD,
             false
         );
     }
@@ -56,7 +56,7 @@ public class AccountObjectMother {
             BigDecimal.valueOf(1000.00),
             CurrencyMapper.INSTANCE.toDto(
                 Currency.builder()
-                    .code(Code.RSD)
+                    .code(CurrencyCode.Code.RSD)
                     .build()
             ),
             new EmployeeDto(
@@ -99,7 +99,13 @@ public class AccountObjectMother {
         account.setDailyLimit(BigDecimal.valueOf(1000.00));
         account.setMonthlyLimit(BigDecimal.valueOf(10000.00));
         account.setCurrency(
-            new Currency(Currency.Code.RSD, "Serbian Dinar", "RSD", "Serbian Dinar currency", true)
+            new Currency(
+                CurrencyCode.Code.RSD,
+                "Serbian Dinar",
+                "RSD",
+                "Serbian Dinar currency",
+                true
+            )
         );
         account.setEmployee(EmployeeObjectMother.generateBasicEmployee());
         account.setClient(
@@ -121,7 +127,13 @@ public class AccountObjectMother {
         account.setDailyLimit(BigDecimal.valueOf(1000.00));
         account.setMonthlyLimit(BigDecimal.valueOf(10000.00));
         account.setCurrency(
-            new Currency(Currency.Code.RSD, "Serbian Dinar", "RSD", "Serbian Dinar currency", true)
+            new Currency(
+                CurrencyCode.Code.RSD,
+                "Serbian Dinar",
+                "RSD",
+                "Serbian Dinar currency",
+                true
+            )
         );
         account.setEmployee(EmployeeObjectMother.generateBasicEmployee());
         account.setClient(

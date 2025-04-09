@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.proxy.HibernateProxy;
+import rs.banka4.rafeisen.common.dto.Gender;
 import rs.banka4.rafeisen.common.security.Privilege;
 import rs.banka4.rafeisen.common.security.UserType;
 

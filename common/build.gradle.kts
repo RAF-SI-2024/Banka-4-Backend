@@ -25,6 +25,9 @@ dependencies {
 	api("org.springframework.security:spring-security-core")
 	api("org.springframework:spring-web")
 
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.5")
+
 
 	val jjwtVer = "0.12.6"
 	api("io.jsonwebtoken:jjwt-api:${jjwtVer}")

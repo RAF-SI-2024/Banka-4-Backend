@@ -10,7 +10,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
+import rs.banka4.rafeisen.common.security.Privilege;
 import rs.banka4.rafeisen.common.security.UserType;
+import rs.banka4.rafeisen.common.utils.specification.SpecificationCombinator;
 import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
 import rs.banka4.user_service.domain.auth.dtos.LoginDto;
 import rs.banka4.user_service.domain.auth.dtos.LoginResponseDto;
@@ -30,7 +32,6 @@ import rs.banka4.user_service.security.UnauthenticatedBankUserPrincipal;
 import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.abstraction.JwtService;
 import rs.banka4.user_service.utils.specification.ClientSpecification;
-import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 @Service
 @RequiredArgsConstructor
@@ -205,6 +206,10 @@ public class ClientServiceImpl implements ClientService {
             clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFound(updateClientDto.email()));
 
+        boolean hasTradePrivilege =
+            client.getPrivileges()
+                .contains(Privilege.TRADE);
+
         if (userService.existsByEmail(updateClientDto.email())) {
             throw new DuplicateEmail(updateClientDto.email());
         }
@@ -216,6 +221,15 @@ public class ClientServiceImpl implements ClientService {
         ClientMapper.INSTANCE.fromUpdate(client, updateClientDto);
         if (updateClientDto.privilege() != null) {
             client.setPrivileges(updateClientDto.privilege());
+        }
+
+        if (
+            hasTradePrivilege
+                && !client.getPrivileges()
+                    .contains(Privilege.TRADE)
+        ) {
+            client.getPrivileges()
+                .add(Privilege.TRADE);
         }
 
         clientRepository.save(client);

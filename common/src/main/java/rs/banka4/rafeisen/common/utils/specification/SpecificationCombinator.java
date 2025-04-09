@@ -1,4 +1,4 @@
-package rs.banka4.user_service.utils.specification;
+package rs.banka4.rafeisen.common.utils.specification;
 
 import org.springframework.data.jpa.domain.Specification;
 

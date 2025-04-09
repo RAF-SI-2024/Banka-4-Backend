@@ -14,6 +14,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
+import rs.banka4.rafeisen.common.utils.specification.SpecificationCombinator;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.transaction.db.MonetaryAmount;
@@ -41,7 +43,6 @@ import rs.banka4.user_service.service.abstraction.JwtService;
 import rs.banka4.user_service.service.abstraction.TotpService;
 import rs.banka4.user_service.service.abstraction.TransactionService;
 import rs.banka4.user_service.utils.specification.PaymentSpecification;
-import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 @Service
 @RequiredArgsConstructor
@@ -361,7 +362,7 @@ public class TransactionServiceImpl implements TransactionService {
             if (
                 fromAccount.getCurrency()
                     .getCode()
-                    .equals(Currency.Code.RSD)
+                    .equals(CurrencyCode.Code.RSD)
             ) {
                 fee = transferFromRsdToForeign(fromAccount, toAccount, amount);
             } else {
@@ -369,7 +370,7 @@ public class TransactionServiceImpl implements TransactionService {
                 if (
                     toAccount.getCurrency()
                         .getCode()
-                        .equals(Currency.Code.RSD)
+                        .equals(CurrencyCode.Code.RSD)
                 ) {
                     fee = transferFromForeignToRsd(fromAccount, toAccount, amount);
                 }
@@ -433,7 +434,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Transfer Client RSD to bank's RSD account
         Account rsdBankAccount =
-            bankAccountServiceImpl.getBankAccountForCurrency(Currency.Code.RSD);
+            bankAccountServiceImpl.getBankAccountForCurrency(CurrencyCode.Code.RSD);
         fromAccount.setBalance(
             fromAccount.getBalance()
                 .subtract(amount)
@@ -553,12 +554,12 @@ public class TransactionServiceImpl implements TransactionService {
                 amount,
                 fromAccount.getCurrency()
                     .getCode(),
-                Currency.Code.RSD
+                CurrencyCode.Code.RSD
             );
 
         // Transfer RSD from RSD bank account to client
         Account rsdBankAccount =
-            bankAccountServiceImpl.getBankAccountForCurrency(Currency.Code.RSD);
+            bankAccountServiceImpl.getBankAccountForCurrency(CurrencyCode.Code.RSD);
         rsdBankAccount.setBalance(
             rsdBankAccount.getBalance()
                 .subtract(convertedAmount)
@@ -643,13 +644,13 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Convert ForeignFrom to RSD using the sell rate EUR Bank -> RSD Bank
         Account rsdBankAccount =
-            bankAccountServiceImpl.getBankAccountForCurrency(Currency.Code.RSD);
+            bankAccountServiceImpl.getBankAccountForCurrency(CurrencyCode.Code.RSD);
         BigDecimal amountInRSD =
             exchangeRateService.convertCurrency(
                 amount,
                 fromAccount.getCurrency()
                     .getCode(),
-                Currency.Code.RSD
+                CurrencyCode.Code.RSD
             );
         rsdBankAccount.setBalance(
             rsdBankAccount.getBalance()
@@ -681,12 +682,12 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal amountInForeignTo =
             exchangeRateService.convertCurrency(
                 amountInRSD,
-                Currency.Code.RSD,
+                CurrencyCode.Code.RSD,
                 toAccount.getCurrency()
                     .getCode()
             );
         Account foreignToBankAccount =
-            bankAccountServiceImpl.getBankAccountForCurrency(Currency.Code.USD);
+            bankAccountServiceImpl.getBankAccountForCurrency(CurrencyCode.Code.USD);
         foreignToBankAccount.setBalance(
             foreignToBankAccount.getBalance()
                 .add(amountInForeignTo)

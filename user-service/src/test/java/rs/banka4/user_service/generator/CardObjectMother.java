@@ -5,12 +5,12 @@ import static rs.banka4.user_service.generator.AccountObjectMother.generateBasic
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import rs.banka4.rafeisen.common.dto.Gender;
 import rs.banka4.user_service.domain.card.db.*;
 import rs.banka4.user_service.domain.card.dtos.AuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
 import rs.banka4.user_service.domain.card.dtos.CreateAuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CreateCardDto;
-import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.service.mock.generators.ClientObjectMother;
 
 public class CardObjectMother {

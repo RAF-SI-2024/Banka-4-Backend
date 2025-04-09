@@ -3,12 +3,12 @@ package rs.banka4.user_service.service.mock.generators;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import rs.banka4.rafeisen.common.dto.Gender;
 import rs.banka4.user_service.domain.card.db.CardName;
 import rs.banka4.user_service.domain.card.db.CardStatus;
 import rs.banka4.user_service.domain.card.db.CardType;
 import rs.banka4.user_service.domain.card.dtos.AuthorizedUserDto;
 import rs.banka4.user_service.domain.card.dtos.CardDto;
-import rs.banka4.user_service.domain.user.Gender;
 
 public class CardObjectMother {
 

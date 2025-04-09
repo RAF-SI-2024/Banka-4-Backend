@@ -4,13 +4,13 @@ import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.UUID;
+import rs.banka4.rafeisen.common.dto.EmployeeResponseDto;
+import rs.banka4.rafeisen.common.dto.Gender;
 import rs.banka4.rafeisen.common.security.Privilege;
 import rs.banka4.user_service.domain.auth.dtos.LoginDto;
-import rs.banka4.user_service.domain.user.Gender;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
 import rs.banka4.user_service.domain.user.employee.dtos.EmployeeDto;
-import rs.banka4.user_service.domain.user.employee.dtos.EmployeeResponseDto;
 import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
 
 public class EmployeeObjectMother {

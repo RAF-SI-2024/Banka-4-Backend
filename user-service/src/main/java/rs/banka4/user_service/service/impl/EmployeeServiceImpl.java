@@ -1,8 +1,7 @@
 package rs.banka4.user_service.service.impl;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -10,23 +9,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
+import rs.banka4.rafeisen.common.dto.EmployeeResponseDto;
 import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
+import rs.banka4.rafeisen.common.security.AuthenticatedBankUserPrincipal;
 import rs.banka4.rafeisen.common.security.Privilege;
 import rs.banka4.rafeisen.common.security.UserType;
+import rs.banka4.rafeisen.common.utils.specification.SpecificationCombinator;
+import rs.banka4.user_service.config.clients.StockServiceClient;
 import rs.banka4.user_service.domain.auth.dtos.LoginDto;
 import rs.banka4.user_service.domain.auth.dtos.LoginResponseDto;
 import rs.banka4.user_service.domain.user.PrivilegesDto;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
-import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
-import rs.banka4.user_service.domain.user.employee.dtos.EmployeeDto;
-import rs.banka4.user_service.domain.user.employee.dtos.EmployeeResponseDto;
-import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
+import rs.banka4.user_service.domain.user.employee.dtos.*;
 import rs.banka4.user_service.domain.user.employee.mapper.EmployeeMapper;
 import rs.banka4.user_service.exceptions.user.*;
 import rs.banka4.user_service.exceptions.user.client.NotActivated;
@@ -36,7 +43,6 @@ import rs.banka4.user_service.security.UnauthenticatedBankUserPrincipal;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
 import rs.banka4.user_service.service.abstraction.JwtService;
 import rs.banka4.user_service.utils.specification.EmployeeSpecification;
-import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +54,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
+    private final RestTemplate restTemplate;
+    private final Retrofit stockServiceRetrofit;
+
 
     @Override
     public LoginResponseDto login(LoginDto loginDto) {
@@ -114,7 +123,48 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new DuplicateUsername(dto.username());
         }
         Employee employee = EmployeeMapper.INSTANCE.toEntity(dto);
+        employee.setPrivileges(dto.privilege());
         employeeRepository.save(employee);
+
+        Employee admin = getLoggedInEmployee();
+        if (
+            !admin.getPrivileges()
+                .contains(Privilege.ADMIN)
+        ) return;
+
+        ActuaryPayloadDto actuaryPayloadDto = null;
+        if (
+            dto.privilege()
+                .contains(Privilege.SUPERVISOR)
+        ) {
+            actuaryPayloadDto = supervisorPayload(employee.getId());
+        } else
+            if (
+                dto.privilege()
+                    .contains(Privilege.AGENT)
+            ) {
+                actuaryPayloadDto = agentPayload(employee.getId());
+            }
+
+        if (actuaryPayloadDto != null) {
+            StockServiceClient stockServiceClient =
+                stockServiceRetrofit.create(StockServiceClient.class);
+            String authorization = "Bearer " + jwtService.generateAccessToken(admin);
+            try {
+                Response<Void> response =
+                    stockServiceClient.registerActuary(authorization, actuaryPayloadDto)
+                        .execute();
+                if (!response.isSuccessful()) {
+                    LOGGER.error(
+                        "Failed to register actuary: {}",
+                        response.errorBody()
+                            .string()
+                    );
+                }
+            } catch (Exception e) {
+                LOGGER.error("Exception occurred while registering actuary", e);
+            }
+        }
 
         userService.sendVerificationEmail(employee.getFirstName(), employee.getEmail());
     }
@@ -163,6 +213,63 @@ public class EmployeeServiceImpl implements EmployeeService {
         return ResponseEntity.ok(dtos);
     }
 
+    public ResponseEntity<Page<EmployeeDto>> getAllActuaries(
+        String firstName,
+        String lastName,
+        String email,
+        String position,
+        PageRequest pageRequest
+    ) {
+        Employee loggedIn = getLoggedInEmployee();
+        Set<Privilege> privileges = loggedIn.getPrivileges();
+
+        SpecificationCombinator<Employee> combinator = new SpecificationCombinator<>();
+
+        if (firstName != null && !firstName.isEmpty()) {
+            combinator.and(EmployeeSpecification.hasFirstName(firstName));
+        }
+        if (lastName != null && !lastName.isEmpty()) {
+            combinator.and(EmployeeSpecification.hasLastName(lastName));
+        }
+        if (email != null && !email.isEmpty()) {
+            combinator.and(EmployeeSpecification.hasEmail(email));
+        }
+        if (position != null && !position.isEmpty()) {
+            combinator.and(EmployeeSpecification.hasPosition(position));
+        }
+
+        // Admin sees agents and supervisors, supervisor only sees agents
+        if (privileges.contains(Privilege.ADMIN)) {
+            combinator.and(
+                Specification.where(EmployeeSpecification.hasPrivilege(Privilege.SUPERVISOR))
+                    .or(EmployeeSpecification.hasPrivilege(Privilege.AGENT))
+            );
+        } else if (privileges.contains(Privilege.SUPERVISOR)) {
+            combinator.and(EmployeeSpecification.hasPrivilege(Privilege.AGENT));
+        }
+
+        Page<Employee> employees = employeeRepository.findAll(combinator.build(), pageRequest);
+        Page<EmployeeDto> dtos =
+            employees.map(
+                employee -> new EmployeeDto(
+                    employee.getId(),
+                    employee.getFirstName(),
+                    employee.getLastName(),
+                    employee.getDateOfBirth(),
+                    employee.getGender(),
+                    employee.getEmail(),
+                    employee.getPhone(),
+                    employee.getAddress(),
+                    employee.getUsername(),
+                    employee.getPosition(),
+                    employee.getDepartment(),
+                    employee.isActive()
+                )
+            );
+
+        return ResponseEntity.ok(dtos);
+    }
+
     public Optional<Employee> findEmployeeByEmail(String email) {
         return employeeRepository.findByEmail(email);
     }
@@ -185,6 +292,8 @@ public class EmployeeServiceImpl implements EmployeeService {
             employeeRepository.findById(id)
                 .orElseThrow(() -> new UserNotFound(id.toString()));
 
+        Set<Privilege> oldPrivileges = employee.getPrivileges();
+
         if (userService.existsByEmail(updateEmployeeDto.email())) {
             throw new DuplicateEmail(updateEmployeeDto.email());
         }
@@ -202,6 +311,90 @@ public class EmployeeServiceImpl implements EmployeeService {
             employee.setPrivileges(updateEmployeeDto.privilege());
         }
         employeeRepository.save(employee);
+
+        Employee admin = getLoggedInEmployee();
+        if (
+            updateEmployeeDto.privilege() == null
+                || updateEmployeeDto.privilege()
+                    .isEmpty()
+                || !admin.getPrivileges()
+                    .contains(Privilege.ADMIN)
+        ) return;
+
+        ActuaryPayloadDto actuaryPayloadDto = null;
+
+        // Employee -> Actuator
+        if (
+            !oldPrivileges.contains(Privilege.SUPERVISOR)
+                && !oldPrivileges.contains(Privilege.AGENT)
+        ) {
+            if (
+                updateEmployeeDto.privilege()
+                    .contains(Privilege.SUPERVISOR)
+            ) {
+                actuaryPayloadDto = supervisorPayload(employee.getId());
+            } else
+                if (
+                    updateEmployeeDto.privilege()
+                        .contains(Privilege.AGENT)
+                ) {
+                    actuaryPayloadDto = agentPayload(employee.getId());
+                }
+
+            if (actuaryPayloadDto != null) {
+                StockServiceClient stockServiceClient =
+                    stockServiceRetrofit.create(StockServiceClient.class);
+                String authorization = "Bearer " + jwtService.generateAccessToken(admin);
+                try {
+                    Response<Void> response =
+                        stockServiceClient.registerActuary(authorization, actuaryPayloadDto)
+                            .execute();
+                    if (!response.isSuccessful()) {
+                        LOGGER.error(
+                            "Failed to register actuary: {}",
+                            response.errorBody()
+                                .string()
+                        );
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Exception occurred while registering actuary", e);
+                }
+            }
+        }
+        // Agent <-> Supervisor or Actuary -> Employee
+        else {
+            UUID pathId = employee.getId();
+            if (
+                updateEmployeeDto.privilege()
+                    .contains(Privilege.SUPERVISOR)
+            ) {
+                actuaryPayloadDto = supervisorPayload(employee.getId());
+            } else
+                if (
+                    updateEmployeeDto.privilege()
+                        .contains(Privilege.AGENT)
+                ) {
+                    actuaryPayloadDto = agentPayload(employee.getId());
+                } else {
+                    pathId = admin.getId();
+                    // only id matters
+                    actuaryPayloadDto = agentPayload(employee.getId());
+                }
+
+            StockServiceClient stockServiceClient =
+                stockServiceRetrofit.create(StockServiceClient.class);
+            String authorization = "Bearer " + jwtService.generateAccessToken(admin);
+            try {
+                Response<Void> response =
+                    stockServiceClient.updateActuary(authorization, pathId, actuaryPayloadDto)
+                        .execute();
+                if (!response.isSuccessful()) {
+                    LOGGER.error("Failed to update actuary: {}", response.code());
+                }
+            } catch (Exception e) {
+                LOGGER.error("Exception occurred while updating actuary", e);
+            }
+        }
     }
 
     @Override
@@ -210,5 +403,26 @@ public class EmployeeServiceImpl implements EmployeeService {
             employeeRepository.findById(id)
                 .orElseThrow(() -> new UserNotFound(id.toString()));
         return EmployeeMapper.INSTANCE.toResponseDto(employee);
+    }
+
+    private Employee getLoggedInEmployee() {
+        Authentication auth =
+            SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new NotAuthenticated();
+        }
+        AuthenticatedBankUserPrincipal principal =
+            (AuthenticatedBankUserPrincipal) auth.getPrincipal();
+        return employeeRepository.findById(principal.userId())
+            .orElseThrow(NotAuthenticated::new);
+    }
+
+    private ActuaryPayloadDto agentPayload(UUID id) {
+        return new ActuaryPayloadDto(true, BigDecimal.valueOf(10000), CurrencyCode.RSD, id);
+    }
+
+    private ActuaryPayloadDto supervisorPayload(UUID id) {
+        return new ActuaryPayloadDto(false, null, CurrencyCode.RSD, id);
     }
 }

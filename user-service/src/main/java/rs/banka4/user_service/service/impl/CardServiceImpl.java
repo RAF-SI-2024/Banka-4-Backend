@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import rs.banka4.rafeisen.common.utils.specification.SpecificationCombinator;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.db.CardStatus;
@@ -41,7 +42,6 @@ import rs.banka4.user_service.service.abstraction.CardService;
 import rs.banka4.user_service.service.abstraction.JwtService;
 import rs.banka4.user_service.service.abstraction.TotpService;
 import rs.banka4.user_service.utils.specification.CardSpecification;
-import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 @Service
 @Primary

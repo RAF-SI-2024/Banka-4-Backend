@@ -2,7 +2,7 @@ package rs.banka4.user_service.domain.currency.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
-import rs.banka4.user_service.domain.currency.db.Currency.Code;
+import rs.banka4.rafeisen.common.currency.CurrencyCode.Code;
 
 @Schema(description = "DTO for currency details")
 public record CurrencyDto(

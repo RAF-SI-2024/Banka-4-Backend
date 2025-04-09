@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.stock_service.domain.actuaries.db.MonetaryAmount;
-import rs.banka4.stock_service.domain.security.forex.db.CurrencyCode;
 import rs.banka4.stock_service.domain.security.stock.db.Stock;
 
 

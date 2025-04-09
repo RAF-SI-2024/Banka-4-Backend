@@ -5,15 +5,16 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import rs.banka4.rafeisen.common.dto.EmployeeResponseDto;
 import rs.banka4.user_service.controller.docs.EmployeeApiDocumentation;
 import rs.banka4.user_service.domain.user.PrivilegesDto;
 import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
 import rs.banka4.user_service.domain.user.employee.dtos.EmployeeDto;
-import rs.banka4.user_service.domain.user.employee.dtos.EmployeeResponseDto;
 import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
 
@@ -68,6 +69,24 @@ public class EmployeeController implements EmployeeApiDocumentation {
             email,
             position,
             PageRequest.of(page, size)
+        );
+    }
+
+    @GetMapping("/search/actuary-only")
+    public ResponseEntity<Page<EmployeeDto>> getActuaryEmployees(
+        @RequestParam(required = false) String firstName,
+        @RequestParam(required = false) String lastName,
+        @RequestParam(required = false) String email,
+        @RequestParam(required = false) String position,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        return employeeService.getAllActuaries(
+            firstName,
+            lastName,
+            email,
+            position,
+            PageRequest.of(page, size, Sort.by("id"))
         );
     }
 

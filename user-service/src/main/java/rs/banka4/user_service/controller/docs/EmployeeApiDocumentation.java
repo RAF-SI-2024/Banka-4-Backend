@@ -12,10 +12,10 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import rs.banka4.rafeisen.common.dto.EmployeeResponseDto;
 import rs.banka4.user_service.domain.user.PrivilegesDto;
 import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
 import rs.banka4.user_service.domain.user.employee.dtos.EmployeeDto;
-import rs.banka4.user_service.domain.user.employee.dtos.EmployeeResponseDto;
 import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
 import rs.banka4.user_service.exceptions.user.DuplicateEmail;
 import rs.banka4.user_service.exceptions.user.DuplicateUsername;
@@ -203,5 +203,44 @@ public interface EmployeeApiDocumentation {
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "User details for change"
         ) @Valid UpdateEmployeeDto updateEmployeeDto
+    );
+
+    @Operation(
+        summary = "Search Actuary Employees",
+        description = """
+            Returns a paginated list of actuary employees filtered by first name, last name, email, or position.
+
+            - If the authenticated user has ADMIN privileges, they will see all SUPERVISORS.
+            - If the authenticated user has SUPERVISOR privileges, they will see all AGENTS.
+
+            Any other user role is forbidden from accessing this endpoint.
+            """,
+        security = @SecurityRequirement(name = "bearerAuth"),
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successfully retrieved list of actuary employees",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = EmployeeDto.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - Invalid or missing token"
+            ),
+            @ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - You do not have permission to access this resource"
+            )
+        }
+    )
+    ResponseEntity<Page<EmployeeDto>> getActuaryEmployees(
+        @Parameter(description = "First name of the employee") String firstName,
+        @Parameter(description = "Last name of the employee") String lastName,
+        @Parameter(description = "Email of the employee") String email,
+        @Parameter(description = "Position of the employee") String position,
+        @Parameter(description = "Page number (starts from 0)") int page,
+        @Parameter(description = "Number of records per page") int size
     );
 }

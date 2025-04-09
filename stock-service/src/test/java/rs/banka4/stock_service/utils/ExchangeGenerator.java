@@ -5,8 +5,8 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.stock_service.domain.exchanges.db.Exchange;
-import rs.banka4.stock_service.domain.security.forex.db.CurrencyCode;
 
 public class ExchangeGenerator {
     private static final UUID EXCHANGE_BER1 =

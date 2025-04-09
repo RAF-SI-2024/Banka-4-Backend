@@ -3,6 +3,7 @@ package rs.banka4.user_service.generator;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.transaction.db.MonetaryAmount;
@@ -73,9 +74,24 @@ public class TransactionObjectMother {
             .transactionNumber("1265463698391")
             .fromAccount(fromAccount)
             .toAccount(toAccount)
-            .from(new MonetaryAmount(BigDecimal.valueOf(1.00), generateCurrency(Currency.Code.EUR)))
-            .to(new MonetaryAmount(BigDecimal.valueOf(1.00), generateCurrency(Currency.Code.RSD)))
-            .fee(new MonetaryAmount(BigDecimal.valueOf(0.10), generateCurrency(Currency.Code.EUR)))
+            .from(
+                new MonetaryAmount(
+                    BigDecimal.valueOf(1.00),
+                    generateCurrency(CurrencyCode.Code.EUR)
+                )
+            )
+            .to(
+                new MonetaryAmount(
+                    BigDecimal.valueOf(1.00),
+                    generateCurrency(CurrencyCode.Code.RSD)
+                )
+            )
+            .fee(
+                new MonetaryAmount(
+                    BigDecimal.valueOf(0.10),
+                    generateCurrency(CurrencyCode.Code.EUR)
+                )
+            )
             .recipient("Milutin Joncic")
             .paymentCode("289")
             .referenceNumber("1176926")
@@ -85,7 +101,7 @@ public class TransactionObjectMother {
             .build();
     }
 
-    public static Currency generateCurrency(Currency.Code code) {
+    public static Currency generateCurrency(CurrencyCode.Code code) {
         return Currency.builder()
             .name("Fake")
             .symbol("X")

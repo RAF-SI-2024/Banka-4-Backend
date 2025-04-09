@@ -55,3 +55,7 @@ jwt:
 
 alphavantage:
   api-key: ${ALPHAVANTAGE_APY_KEY}
+
+banka4:
+  services:
+    user: 'http://gateway:80/'

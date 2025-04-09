@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.rafeisen.common.exceptions.jwt.Unauthorized;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.currency.db.Currency;
@@ -111,7 +112,7 @@ public class ManageLoansTests {
 
         Account userAccount = new Account();
         Currency currency = new Currency();
-        currency.setCode(Currency.Code.RSD);
+        currency.setCode(CurrencyCode.Code.RSD);
         userAccount.setCurrency(currency);
         userAccount.setBalance(new BigDecimal("5000"));
         loan.setAccount(userAccount);

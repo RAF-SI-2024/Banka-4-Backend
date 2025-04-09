@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.UUID;
+import rs.banka4.rafeisen.common.dto.Gender;
 import rs.banka4.rafeisen.common.security.Privilege;
-import rs.banka4.user_service.domain.user.Gender;
 
 @Schema(description = "DTO for returned clients in response")
 public record ClientDto(

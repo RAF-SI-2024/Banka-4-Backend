@@ -3,7 +3,7 @@ package rs.banka4.user_service.domain.user.employee.dtos;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.UUID;
-import rs.banka4.user_service.domain.user.Gender;
+import rs.banka4.rafeisen.common.dto.Gender;
 
 @Schema(description = "DTO for returned employees in response")
 public record EmployeeDto(

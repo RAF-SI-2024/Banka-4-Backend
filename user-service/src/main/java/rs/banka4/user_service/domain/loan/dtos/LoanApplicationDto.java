@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import rs.banka4.user_service.domain.currency.db.Currency;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.user_service.domain.loan.db.Loan;
 import rs.banka4.user_service.domain.loan.db.LoanType;
 
@@ -27,7 +27,7 @@ public record LoanApplicationDto(
     @Schema(
         description = "Currency of the loan",
         example = "EUR"
-    ) Currency.Code currency,
+    ) CurrencyCode.Code currency,
 
     @NotBlank
     @Schema(

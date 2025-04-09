@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.card.db.Card;
 import rs.banka4.user_service.domain.card.db.CardName;
@@ -52,7 +53,7 @@ public class TestDataSeeder {
                 .name("Euro")
                 .description("Euro currency")
                 .symbol("€")
-                .code(Currency.Code.EUR)
+                .code(CurrencyCode.Code.EUR)
                 .active(true)
                 .build();
         return currencyRepository.saveAndFlush(currency);

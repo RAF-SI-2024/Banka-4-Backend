@@ -2,10 +2,10 @@ package rs.banka4.user_service.domain.user.employee.mapper;
 
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
+import rs.banka4.rafeisen.common.dto.EmployeeResponseDto;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 import rs.banka4.user_service.domain.user.employee.dtos.CreateEmployeeDto;
 import rs.banka4.user_service.domain.user.employee.dtos.EmployeeDto;
-import rs.banka4.user_service.domain.user.employee.dtos.EmployeeResponseDto;
 import rs.banka4.user_service.domain.user.employee.dtos.UpdateEmployeeDto;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)

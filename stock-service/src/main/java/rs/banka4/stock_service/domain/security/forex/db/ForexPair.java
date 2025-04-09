@@ -9,6 +9,7 @@ import java.util.Objects;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.proxy.HibernateProxy;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.stock_service.domain.security.Security;
 
 @Entity(name = "forex_pairs")

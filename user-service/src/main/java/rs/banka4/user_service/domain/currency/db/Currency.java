@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.util.Objects;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 
 @Entity
 @NoArgsConstructor
@@ -17,7 +18,7 @@ public class Currency {
 
     @Id
     @Enumerated(EnumType.STRING)
-    private Code code;
+    private CurrencyCode.Code code;
 
     @Column(nullable = false)
     private String name;
@@ -30,17 +31,6 @@ public class Currency {
 
     @Column(nullable = false)
     private boolean active;
-
-    public enum Code {
-        RSD,
-        EUR,
-        USD,
-        CHF,
-        JPY,
-        AUD,
-        CAD,
-        GBP;
-    }
 
     @Override
     public final boolean equals(Object o) {

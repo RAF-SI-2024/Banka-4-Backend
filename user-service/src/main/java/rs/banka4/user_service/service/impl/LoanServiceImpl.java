@@ -22,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.banka4.rafeisen.common.exceptions.jwt.Unauthorized;
+import rs.banka4.rafeisen.common.utils.specification.SpecificationCombinator;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.dtos.AccountDto;
 import rs.banka4.user_service.domain.loan.db.*;
@@ -51,7 +52,6 @@ import rs.banka4.user_service.service.abstraction.ClientService;
 import rs.banka4.user_service.service.abstraction.JwtService;
 import rs.banka4.user_service.service.abstraction.LoanService;
 import rs.banka4.user_service.utils.loans.LoanRateScheduler;
-import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 
 @RequiredArgsConstructor

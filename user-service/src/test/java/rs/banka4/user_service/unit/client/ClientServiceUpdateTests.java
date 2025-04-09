@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import rs.banka4.user_service.domain.user.Gender;
+import rs.banka4.rafeisen.common.dto.Gender;
 import rs.banka4.user_service.domain.user.client.db.Client;
 import rs.banka4.user_service.domain.user.client.dtos.UpdateClientDto;
 import rs.banka4.user_service.exceptions.user.DuplicateEmail;

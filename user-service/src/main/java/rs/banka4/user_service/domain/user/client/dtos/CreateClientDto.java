@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.Set;
+import rs.banka4.rafeisen.common.dto.Gender;
 import rs.banka4.rafeisen.common.security.Privilege;
-import rs.banka4.user_service.domain.user.Gender;
 
 @Schema(description = "DTO for creating Client")
 public record CreateClientDto(

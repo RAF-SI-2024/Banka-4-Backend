@@ -6,7 +6,7 @@ import jakarta.persistence.Enumerated;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.Builder;
-import rs.banka4.user_service.domain.user.Gender;
+import rs.banka4.rafeisen.common.dto.Gender;
 
 @Embeddable
 @Builder

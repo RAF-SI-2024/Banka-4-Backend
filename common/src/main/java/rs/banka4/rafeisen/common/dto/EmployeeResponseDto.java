@@ -1,11 +1,10 @@
-package rs.banka4.user_service.domain.user.employee.dtos;
+package rs.banka4.rafeisen.common.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.UUID;
 import rs.banka4.rafeisen.common.security.Privilege;
-import rs.banka4.user_service.domain.user.Gender;
 
 @Schema(description = "EmployeeResponse details DTO")
 public record EmployeeResponseDto(

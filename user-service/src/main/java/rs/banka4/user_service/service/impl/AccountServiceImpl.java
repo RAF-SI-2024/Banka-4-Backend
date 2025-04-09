@@ -15,6 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
+import rs.banka4.rafeisen.common.utils.specification.SpecificationCombinator;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.account.db.AccountType;
 import rs.banka4.user_service.domain.account.dtos.AccountClientIdDto;
@@ -39,7 +41,6 @@ import rs.banka4.user_service.exceptions.user.employee.EmployeeNotFound;
 import rs.banka4.user_service.repositories.*;
 import rs.banka4.user_service.service.abstraction.*;
 import rs.banka4.user_service.utils.specification.AccountSpecification;
-import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 @Service
 @RequiredArgsConstructor
@@ -325,7 +326,7 @@ public class AccountServiceImpl implements AccountService {
      * Connects the specified currency to the given account.
      *
      * @param account the account to which the currency is to be connected
-     * @param createAccountDto contains the details of the currency code {@link Currency.Code}
+     * @param createAccountDto contains the details of the currency code {@link CurrencyCode.Code}
      * @throws IllegalStateException if the currency code does not exist in the repository
      */
     private void connectCurrencyToAccount(Account account, CreateAccountDto createAccountDto) {

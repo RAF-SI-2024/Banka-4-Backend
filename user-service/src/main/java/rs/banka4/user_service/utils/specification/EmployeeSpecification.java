@@ -1,6 +1,7 @@
 package rs.banka4.user_service.utils.specification;
 
 import org.springframework.data.jpa.domain.Specification;
+import rs.banka4.rafeisen.common.security.Privilege;
 import rs.banka4.user_service.domain.user.employee.db.Employee;
 
 public class EmployeeSpecification {
@@ -32,4 +33,17 @@ public class EmployeeSpecification {
             "%" + position.toLowerCase() + "%"
         );
     }
+
+    public static Specification<Employee> hasPrivilege(Privilege privilege) {
+        return (root, query, cb) -> cb.notEqual(
+            cb.function(
+                "bitand",
+                Long.class,
+                root.get("permissionBits"),
+                cb.literal(privilege.bit())
+            ),
+            cb.literal(0L)
+        );
+    }
+
 }

@@ -7,9 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.company.db.Company;
-import rs.banka4.user_service.domain.currency.db.Currency;
 import rs.banka4.user_service.domain.transaction.db.Transaction;
 import rs.banka4.user_service.domain.transaction.dtos.TransactionDto;
 import rs.banka4.user_service.domain.transaction.mapper.TransactionMapper;
@@ -45,7 +45,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         return accountRepository.findAllByCompany(bank);
     }
 
-    public Account getBankAccountForCurrency(Currency.Code currency) {
+    public Account getBankAccountForCurrency(CurrencyCode.Code currency) {
         return getBankAccounts().stream()
             .filter(
                 account -> account.getCurrency()
@@ -88,7 +88,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     public Client getBankOwner() {
-        return getBankAccountForCurrency(Currency.Code.RSD).getCompany()
+        return getBankAccountForCurrency(CurrencyCode.Code.RSD).getCompany()
             .getMajorityOwner();
     }
 }

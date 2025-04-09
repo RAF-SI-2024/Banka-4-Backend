@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.ApplicationContext;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.user_service.domain.account.db.Account;
 import rs.banka4.user_service.domain.auth.dtos.NotificationTransferDto;
 import rs.banka4.user_service.domain.currency.db.Currency;
@@ -73,7 +74,7 @@ class LoanInstallmentSchedulerTest {
         account.setAvailableBalance(new BigDecimal("5000"));
 
         Currency currency = new Currency();
-        currency.setCode(Currency.Code.RSD); // Use the appropriate currency code
+        currency.setCode(CurrencyCode.Code.RSD); // Use the appropriate currency code
         account.setCurrency(currency); // Ensure account has a currency
 
 
