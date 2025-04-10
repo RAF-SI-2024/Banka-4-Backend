@@ -95,7 +95,8 @@ public class OrderServiceImpl implements OrderService {
         order.setAfterHours(afterHours);
         order.setUsed(false);
 
-        return OrderMapper.INSTANCE.toDto(orderRepository.save(order));
+        Order savedOrder = orderRepository.saveAndFlush(order);
+        return OrderMapper.INSTANCE.toDto(savedOrder);
     }
 
     public OrderPreviewDto calculateAveragePrice(CreateOrderPreviewDto request) {
