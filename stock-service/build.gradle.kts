@@ -34,6 +34,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	val hibernateVer = dependencyManagement.importedProperties["hibernate.version"]
 	annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVer}")
 
