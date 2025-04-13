@@ -58,6 +58,7 @@ alphavantage:
 
 listings:
   refetch-min: 15
+  listing-info-hours: 24
   # 2 for testing, 15 for PM, 20000000 for others
 
 banka4:

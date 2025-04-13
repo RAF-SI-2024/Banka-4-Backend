@@ -22,6 +22,11 @@ public interface ListingRepository extends
     )
     Optional<Listing> getLatestListing(UUID securityId, Limit limit);
 
+    @Query(
+        value = "select l from Listing l where l.security.id = :securityId"
+    )
+    Optional<List<Listing>> getAllBySecurity(UUID securityId);
+
     Optional<Listing> findBySecurityIdAndActiveTrue(UUID assetId);
 
     @Modifying
