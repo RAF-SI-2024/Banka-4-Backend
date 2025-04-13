@@ -23,7 +23,7 @@ public interface ListingRepository extends
     Optional<Listing> getLatestListing(UUID securityId, Limit limit);
 
     @Query(
-        value = "select l from Listing l where l.security.id = :securityId"
+        value = "select l from Listing l where l.security.id = :securityId order by l.lastRefresh desc"
     )
     Optional<List<Listing>> getAllBySecurity(UUID securityId);
 

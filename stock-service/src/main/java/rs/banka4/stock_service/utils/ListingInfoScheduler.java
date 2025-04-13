@@ -37,7 +37,7 @@ public class ListingInfoScheduler {
     private static final Logger LOGGER =
         LoggerFactory.getLogger(ListingInfoScheduler.class);
 
-    @Scheduled(fixedDelayString = "#{${listings.listing-info-hours} * 60l * 60l * 1000l}") // On every 24 hours do this
+    @Scheduled(cron = "0 1 0 * * *", zone = "Europe/Belgrade")
     //@Scheduled(fixedDelayString = "#{2l * 60l * 1000l}")
     @Transactional
     public void scheduleListingInfoUpdates() {
@@ -52,10 +52,13 @@ public class ListingInfoScheduler {
             Optional<List<Listing>> listings = listingRepository.getAllBySecurity(s.getId());
 
             if(listings.isPresent()){
+                OffsetDateTime yesterdaysDate = listings.get().getFirst().getLastRefresh();
                 Exchange exchange = listings.get().getFirst().getExchange();
                 BigDecimal askHigh = BigDecimal.ZERO;
                 BigDecimal bigLow = BigDecimal.valueOf(9999999);
                 for(Listing l : listings.get()){
+                    if(l.getLastRefresh().getDayOfMonth() != yesterdaysDate.getDayOfMonth())
+                        break;
                     if(l.getAsk().compareTo(askHigh) > 0){
                         askHigh = l.getAsk();
                     }
