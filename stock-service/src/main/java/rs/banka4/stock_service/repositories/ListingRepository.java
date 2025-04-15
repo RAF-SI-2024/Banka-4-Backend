@@ -1,5 +1,6 @@
 package rs.banka4.stock_service.repositories;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import rs.banka4.stock_service.domain.listing.db.Listing;
@@ -26,6 +28,19 @@ public interface ListingRepository extends
         value = "select l from Listing l where l.security.id = :securityId order by l.lastRefresh desc"
     )
     Optional<List<Listing>> getAllBySecurity(UUID securityId);
+
+    @Query("""
+            select l from Listing l
+            where l.security.id = :securityId
+            and l.lastRefresh >= :date
+            and l.lastRefresh < :datePlusOne
+            order by l.lastRefresh desc
+        """)
+    Optional<List<Listing>> getAllSecurityListingsInAPeriod(
+        @Param("securityId") UUID securityId,
+        @Param("date") OffsetDateTime date,
+        @Param("datePlusOne") OffsetDateTime datePlusOne
+    );
 
     Optional<Listing> findBySecurityIdAndActiveTrue(UUID assetId);
 

@@ -1,11 +1,21 @@
 package rs.banka4.stock_service.utils;
 
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.Limit;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import rs.banka4.stock_service.domain.exchanges.db.Exchange;
@@ -16,12 +26,6 @@ import rs.banka4.stock_service.repositories.ListingDailyPriceInfoRepository;
 import rs.banka4.stock_service.repositories.ListingRepository;
 import rs.banka4.stock_service.repositories.SecurityRepository;
 import rs.banka4.stock_service.runners.TestDataRunner;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
 
 @Profile("!test")
 @Component
@@ -34,65 +38,177 @@ public class ListingInfoScheduler {
 
     private final ListingDailyPriceInfoRepository listingDailyPriceInfoRepository;
 
-    private static final Logger LOGGER =
-        LoggerFactory.getLogger(ListingInfoScheduler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ListingInfoScheduler.class);
 
-    @Scheduled(cron = "0 1 0 * * *", zone = "Europe/Belgrade")
-    //@Scheduled(fixedDelayString = "#{2l * 60l * 1000l}")
+    // @Scheduled(cron = "0 1 0 * * *", zone = "Europe/Belgrade")
+    @Scheduled(fixedDelayString = "#{1l * 60l * 1000l}")
     @Transactional
     public void scheduleListingInfoUpdates() {
         if (!TestDataRunner.finishedSeeding) {
-            System.out.println(
-                "Database not seeded yet. Skipping scheduled update of listings and options."
+            LOGGER.info(
+                "Database not seeded yet. Skipping scheduled update of ListingDailyInfoPrices."
             );
             return;
         }
+
+        LOGGER.info("Starting scheduleListingInfoUpdates");
+
+        ZoneId zoneBelgrade = ZoneId.of("Europe/Belgrade");
+        // ZonedDateTime nowBelgrade = ZonedDateTime.now(zoneBelgrade);
+        ZonedDateTime nowBelgrade =
+            ZonedDateTime.now(zoneBelgrade)
+                .plusDays(1); // only for testing
+        ZonedDateTime startOfToday = nowBelgrade.truncatedTo(ChronoUnit.DAYS);
+        OffsetDateTime startOfYesterday =
+            startOfToday.minusDays(1)
+                .toInstant()
+                .atOffset(ZoneOffset.UTC);
+        OffsetDateTime endOfYesterday =
+            startOfToday.toInstant()
+                .atOffset(ZoneOffset.UTC);
+
+        LOGGER.info("startOfYesterday " + startOfYesterday + " endOfYesterday " + endOfYesterday);
+
+        List<ListingDailyPriceInfo> ldpis = new ArrayList<>();
         List<Security> securities = securityRepository.findAll();
-        for(Security s : securities){
-            Optional<List<Listing>> listings = listingRepository.getAllBySecurity(s.getId());
+        for (Security s : securities) {
 
-            if(listings.isPresent()){
-                OffsetDateTime yesterdaysDate = listings.get().getFirst().getLastRefresh();
-                Exchange exchange = listings.get().getFirst().getExchange();
-                BigDecimal askHigh = BigDecimal.ZERO;
-                BigDecimal bigLow = BigDecimal.valueOf(9999999);
-                for(Listing l : listings.get()){
-                    if(l.getLastRefresh().getDayOfMonth() != yesterdaysDate.getDayOfMonth())
-                        break;
-                    if(l.getAsk().compareTo(askHigh) > 0){
-                        askHigh = l.getAsk();
-                    }
-                    if(l.getBid().compareTo(bigLow) < 0){
-                        bigLow = l.getBid();
-                    }
-                }
+            ListingDailyPriceInfo ldpi =
+                makeYesterdaysListingDailyPriceInfo(s, startOfYesterday, endOfYesterday);
+            if (ldpi == null) continue;
 
-                Optional<ListingDailyPriceInfo> yesterdayInfo = listingDailyPriceInfoRepository.getYesterdayListingDailyPriceInfo(s.getId(), Limit.of(1));
+            Optional<List<ListingDailyPriceInfo>> todaysInfoOptional =
+                listingDailyPriceInfoRepository.getListingDailyPriceInfoForDate(
+                    s.getId(),
+                    startOfYesterday.plusDays(1),
+                    endOfYesterday.plusDays(1)
+                );
 
-                Listing l = listings.get().getLast();
+            if (
+                todaysInfoOptional.isPresent()
+                    && !todaysInfoOptional.get()
+                        .isEmpty()
+            ) {
+                LOGGER.error(
+                    "There is already todays listing info! Count: "
+                        + todaysInfoOptional.get()
+                            .size()
+                        + ". Security: "
+                        + s.getTicker()
+                );
+                LOGGER.error("Deleting before new save.");
+                listingDailyPriceInfoRepository.getListingDailyPriceInfoForDate(
+                    s.getId(),
+                    startOfYesterday.plusDays(1),
+                    endOfYesterday.plusDays(1)
+                );
+            }
 
-                BigDecimal lastPrice = l.getAsk().add(l.getBid()).divide(BigDecimal.valueOf(2), RoundingMode.DOWN);
-                BigDecimal yesterdayPrice;
-                if(yesterdayInfo.isPresent())
-                     yesterdayPrice = yesterdayInfo.get().getLastPrice();
-                else{
-                    LOGGER.error("THERE IS NO YESTERDAYS LISTING INFO!");
-                    return;
-                }
-                ListingDailyPriceInfo ldpi = ListingDailyPriceInfo
-                    .builder()
-                    .askHigh(askHigh)
-                    .bigLow(bigLow)
-                    .security(s)
-                    .exchange(exchange)
-                    .date(OffsetDateTime.now())
-                    .lastPrice(lastPrice)
-                    .volume(listings.get().size())
-                    .change(yesterdayPrice.subtract(lastPrice).abs())
-                    .build();
+            ldpis.add(ldpi);
+        }
 
-                listingDailyPriceInfoRepository.save(ldpi);
+        LOGGER.info(
+            "Finished scheduleListingInfoUpdates for {} securities",
+            ldpis.size() + " out of " + securities.size() + " securities in the system."
+        );
+        listingDailyPriceInfoRepository.saveAllAndFlush(ldpis);
+    }
+
+    public ListingDailyPriceInfo makeYesterdaysListingDailyPriceInfo(
+        Security s,
+        OffsetDateTime startOfYesterday,
+        OffsetDateTime endOfYesterday
+    ) {
+        UUID securityId = s.getId();
+
+        Optional<List<Listing>> yesterdaysListings =
+            listingRepository.getAllSecurityListingsInAPeriod(
+                securityId,
+                startOfYesterday,
+                endOfYesterday
+            );
+
+        if (
+            !yesterdaysListings.isPresent()
+                || yesterdaysListings.get()
+                    .isEmpty()
+        ) {
+            LOGGER.error("No yesterday listings for " + s.getTicker());
+            return null;
+        }
+
+        Exchange exchange =
+            yesterdaysListings.get()
+                .getFirst()
+                .getExchange();
+        BigDecimal askHigh = BigDecimal.ZERO;
+        BigDecimal bigLow = BigDecimal.valueOf(9999999);
+        for (Listing l : yesterdaysListings.get()) {
+            if (
+                l.getAsk()
+                    .compareTo(askHigh)
+                    > 0
+            ) {
+                askHigh = l.getAsk();
+            }
+            if (
+                l.getBid()
+                    .compareTo(bigLow)
+                    < 0
+            ) {
+                bigLow = l.getBid();
             }
         }
+
+        Listing lastListing =
+            yesterdaysListings.get()
+                .getLast(); // more than 1 shouldn't exist anyways
+
+        Optional<List<ListingDailyPriceInfo>> yesterdayInfoOptional =
+            listingDailyPriceInfoRepository.getListingDailyPriceInfoForDate(
+                s.getId(),
+                startOfYesterday,
+                endOfYesterday
+            );
+
+
+        ListingDailyPriceInfo yesterdayInfo = null;
+        if (
+            yesterdayInfoOptional.isPresent()
+                && !yesterdayInfoOptional.get()
+                    .isEmpty()
+        ) {
+            yesterdayInfo =
+                yesterdayInfoOptional.get()
+                    .getLast();
+        }
+
+        BigDecimal lastPrice =
+            lastListing.getAsk()
+                .add(lastListing.getBid())
+                .divide(BigDecimal.valueOf(2), RoundingMode.DOWN);
+        BigDecimal yesterdayPrice;
+        if (yesterdayInfo != null) yesterdayPrice = yesterdayInfo.getLastPrice();
+        else {
+            yesterdayPrice = lastPrice;
+            // fake info change = 0 but the program will be able to start somewhere
+        }
+        return ListingDailyPriceInfo.builder()
+            .askHigh(askHigh)
+            .bigLow(bigLow)
+            .security(s)
+            .exchange(exchange)
+            .date(OffsetDateTime.now())
+            .lastPrice(lastPrice)
+            .volume(
+                yesterdaysListings.get()
+                    .size() // This should be fixed once we have orders in the db
+            )
+            .change(
+                yesterdayPrice.subtract(lastPrice)
+                    .abs()
+            )
+            .build();
+
     }
 }
