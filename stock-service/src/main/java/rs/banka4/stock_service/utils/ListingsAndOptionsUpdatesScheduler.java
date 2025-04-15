@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
@@ -175,14 +177,20 @@ public class ListingsAndOptionsUpdatesScheduler {
          * System.out.println("----------------"); System.out.println(exchangesMap.get(stock));
          * System.out.println(stock); System.out.println("--------------");
          */
+
+        Exchange exchange = exchangesMap.get(exchangeAcronym);
+        OffsetDateTime now =
+            ZonedDateTime.now(ZoneId.of("Europe/Belgrade"))
+                .toOffsetDateTime();
+
         return Listing.builder()
             .id(UUID.randomUUID())
             .ask(new BigDecimal(fakeAsk))
             .bid(new BigDecimal(fakeBid))
             .contractSize((int) fakeContractSize)
             .active(true)
-            .lastRefresh(OffsetDateTime.now())
-            .exchange(exchangesMap.get(exchangeAcronym))
+            .lastRefresh(now.minusDays(1))
+            .exchange(exchange)
             .security(stock)
             .build();
     }

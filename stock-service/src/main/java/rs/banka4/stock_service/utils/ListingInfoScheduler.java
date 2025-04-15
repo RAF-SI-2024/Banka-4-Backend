@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -40,8 +39,11 @@ public class ListingInfoScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ListingInfoScheduler.class);
 
-    // @Scheduled(cron = "0 1 0 * * *", zone = "Europe/Belgrade")
-    @Scheduled(fixedDelayString = "#{1l * 60l * 1000l}")
+    // @Scheduled(fixedDelayString = "#{1l * 60l * 1000l}")
+    @Scheduled(
+        cron = "0 1 0 * * *",
+        zone = "Europe/Belgrade"
+    )
     @Transactional
     public void scheduleListingInfoUpdates() {
         if (!TestDataRunner.finishedSeeding) {
@@ -54,18 +56,15 @@ public class ListingInfoScheduler {
         LOGGER.info("Starting scheduleListingInfoUpdates");
 
         ZoneId zoneBelgrade = ZoneId.of("Europe/Belgrade");
-        // ZonedDateTime nowBelgrade = ZonedDateTime.now(zoneBelgrade);
-        ZonedDateTime nowBelgrade =
-            ZonedDateTime.now(zoneBelgrade)
-                .plusDays(1); // only for testing
+        ZonedDateTime nowBelgrade = ZonedDateTime.now(zoneBelgrade);
+        // ZonedDateTime nowBelgrade = ZonedDateTime.now(zoneBelgrade) .plusDays(1); // only for
+        // testing
         ZonedDateTime startOfToday = nowBelgrade.truncatedTo(ChronoUnit.DAYS);
+
         OffsetDateTime startOfYesterday =
             startOfToday.minusDays(1)
-                .toInstant()
-                .atOffset(ZoneOffset.UTC);
-        OffsetDateTime endOfYesterday =
-            startOfToday.toInstant()
-                .atOffset(ZoneOffset.UTC);
+                .toOffsetDateTime();
+        OffsetDateTime endOfYesterday = startOfToday.toOffsetDateTime();
 
         LOGGER.info("startOfYesterday " + startOfYesterday + " endOfYesterday " + endOfYesterday);
 

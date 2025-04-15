@@ -57,7 +57,7 @@ alphavantage:
   api-key: ${ALPHAVANTAGE_APY_KEY}
 
 listings:
-  refetch-min: 1
+  refetch-min: 20000000
   listing-info-hours: 24
   # 2 for testing, 15 for PM, 20000000 for others
 
