@@ -27,10 +27,10 @@ import rs.banka4.bank_service.integration.generator.PortfolioGenerator;
 import rs.banka4.bank_service.integration.generator.UserGenerator;
 import rs.banka4.bank_service.integration.generator.UserTaxGenerator;
 import rs.banka4.bank_service.repositories.*;
+import rs.banka4.bank_service.runners.TestDataRunner;
 import rs.banka4.bank_service.service.abstraction.ExchangeRateService;
 import rs.banka4.bank_service.service.impl.TaxServiceImp;
 import rs.banka4.bank_service.utils.AssetGenerator;
-import rs.banka4.bank_service.utils.DataSourceService;
 import rs.banka4.bank_service.utils.ExchangeGenerator;
 import rs.banka4.bank_service.utils.ListingGenerator;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
@@ -91,7 +91,7 @@ public class TaxTests {
     private Account createStateAccount(Client client) {
         var account = AccountObjectMother.generateBasicToAccount();
         account.setClient(client);
-        account.setAccountNumber(DataSourceService.STATE_ACCOUNT_NUMBER);
+        account.setAccountNumber(TestDataRunner.STATE_ACCOUNT_NUMBER);
         userRepository.save(account.getEmployee());
         return accountRepository.save(account);
     }
@@ -429,7 +429,7 @@ public class TaxTests {
             );
         });
         var stateBalanceAfter =
-            accountRepository.findAccountByAccountNumber(DataSourceService.STATE_ACCOUNT_NUMBER)
+            accountRepository.findAccountByAccountNumber(TestDataRunner.STATE_ACCOUNT_NUMBER)
                 .orElseThrow()
                 .getAvailableBalance();
         assertEquals(
@@ -473,7 +473,7 @@ public class TaxTests {
             );
         });
         var stateBalanceAfter =
-            accountRepository.findAccountByAccountNumber(DataSourceService.STATE_ACCOUNT_NUMBER)
+            accountRepository.findAccountByAccountNumber(TestDataRunner.STATE_ACCOUNT_NUMBER)
                 .orElseThrow()
                 .getAvailableBalance();
         debt = exchangeRateService.convertCurrency(debt, CurrencyCode.EUR, CurrencyCode.RSD);
@@ -600,7 +600,7 @@ public class TaxTests {
         });
         debt2 = exchangeRateService.convertCurrency(debt2, CurrencyCode.EUR, CurrencyCode.RSD);
         var stateBalanceAfter =
-            accountRepository.findAccountByAccountNumber(DataSourceService.STATE_ACCOUNT_NUMBER)
+            accountRepository.findAccountByAccountNumber(TestDataRunner.STATE_ACCOUNT_NUMBER)
                 .orElseThrow()
                 .getAvailableBalance();
         assertEquals(
@@ -650,7 +650,7 @@ public class TaxTests {
             .assertThat()
             .hasStatusOk();
         var stateBalanceAfter =
-            accountRepository.findAccountByAccountNumber(DataSourceService.STATE_ACCOUNT_NUMBER)
+            accountRepository.findAccountByAccountNumber(TestDataRunner.STATE_ACCOUNT_NUMBER)
                 .orElseThrow()
                 .getAvailableBalance();
         assertEquals(

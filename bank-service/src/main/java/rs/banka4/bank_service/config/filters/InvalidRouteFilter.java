@@ -51,10 +51,10 @@ public class InvalidRouteFilter extends OncePerRequestFilter {
         if (!WhiteListConfig.isWhitelisted(requestURI)) {
             try {
                 if (handlerMapping.getHandler(request) == null) {
-                    throw new RouteNotFound(requestURI);
+                    throw new RouteNotFound();
                 }
             } catch (Exception e) {
-                throw new RouteNotFound(requestURI);
+                throw new RouteNotFound();
             }
         }
 

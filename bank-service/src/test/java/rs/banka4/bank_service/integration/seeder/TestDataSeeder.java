@@ -1,6 +1,6 @@
 package rs.banka4.bank_service.integration.seeder;
 
-import static rs.banka4.bank_service.utils.DataSourceService.*;
+import static rs.banka4.bank_service.runners.TestDataRunner.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

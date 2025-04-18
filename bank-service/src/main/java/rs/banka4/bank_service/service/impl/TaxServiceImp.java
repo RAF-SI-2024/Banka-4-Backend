@@ -20,10 +20,10 @@ import rs.banka4.bank_service.domain.taxes.db.dto.TaxableUserDto;
 import rs.banka4.bank_service.exceptions.transaction.InsufficientFunds;
 import rs.banka4.bank_service.repositories.AccountRepository;
 import rs.banka4.bank_service.repositories.UserTaxDebtsRepository;
+import rs.banka4.bank_service.runners.TestDataRunner;
 import rs.banka4.bank_service.service.abstraction.ProfitCalculationService;
 import rs.banka4.bank_service.service.abstraction.TaxCalculationService;
 import rs.banka4.bank_service.service.abstraction.TaxService;
-import rs.banka4.bank_service.utils.DataSourceService;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +55,7 @@ public class TaxServiceImp implements TaxService {
     public void taxUser(UUID userId) {
         var debts = userTaxDebtsRepository.findByAccount_Client_Id(userId);
         var stateAcc =
-            accountRepository.findAccountByAccountNumber(DataSourceService.STATE_ACCOUNT_NUMBER)
+            accountRepository.findAccountByAccountNumber(TestDataRunner.STATE_ACCOUNT_NUMBER)
                 .orElseThrow(() -> new IllegalArgumentException("State account not found"));
         debts.forEach(debt -> taxCalculationService.chargeTax(debt.getAccount(), stateAcc));
     }
@@ -64,7 +64,7 @@ public class TaxServiceImp implements TaxService {
     @Override
     public void taxMonthly() {
         var stateAcc =
-            accountRepository.findAccountByAccountNumber(DataSourceService.STATE_ACCOUNT_NUMBER)
+            accountRepository.findAccountByAccountNumber(TestDataRunner.STATE_ACCOUNT_NUMBER)
                 .orElseThrow(() -> new IllegalArgumentException("State account not found"));
         userTaxDebtsRepository.findAll()
             .forEach(debt -> {
