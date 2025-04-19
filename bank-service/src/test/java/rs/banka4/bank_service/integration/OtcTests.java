@@ -67,6 +67,13 @@ public class OtcTests {
 
     @Autowired
     private AssetOwnershipRepository assetOwnershipRepository;
+    @Autowired
+    ListingRepository listingRepository;
+    @Autowired
+    private ListingDailyPriceInfoRepository listingHistoryRepo;
+    @Autowired
+    private ExchangeRepository exchangeRepository;
+
 
     /**
      * Tests that the /otc/me endpoint returns a list of OTC requests for the authenticated user.
@@ -77,35 +84,51 @@ public class OtcTests {
     @Test
     public void testGetMyRequests() {
         OtcRequest dummyRequest =
-            createDummyOtcRequest(assetRepository, securityRepository, otcRequestRepository);
-        createDummyOtcRequestMeRead(assetRepository, securityRepository, otcRequestRepository);
-        String expectedJson = """
-            {
-              "content": [
+            createDummyOtcRequest(
+                assetRepository,
+                securityRepository,
+                otcRequestRepository,
+                listingRepository,
+                listingHistoryRepo,
+                exchangeRepository
+            );
+        createDummyOtcRequestMeRead(
+            assetRepository,
+            securityRepository,
+            otcRequestRepository,
+            listingRepository,
+            listingHistoryRepo,
+            exchangeRepository
+        );
+        String expectedJson =
+            """
                 {
-                  "stock": {
-                    "Name": "Example One™",
-                    "DividendYield": "0.05",
-                    "SharesOutstanding": "325000",
-                    "MarketCapitalization": null
-                  },
-                  "pricePerStock": {"amount": 1.00, "currency": "AUD"},
-                  "premium": {"amount": 1.00, "currency": "AUD"},
-                  "amount": 1,
-                  "lastModifiedDate": null,
-                  "settlementDate": "2025-04-11"
-                },
-                {
+                  "content": [
+                    {
+                      "stock": {
+                        "Name": "Example One™",
+                        "DividendYield": "0.05",
+                        "SharesOutstanding": "325000",
+                        "MarketCapitalization": null
+                      },
+                      "pricePerStock": {"amount": 1.00, "currency": "AUD"},
+                      "premium": {"amount": 1.00, "currency": "AUD"},
+                      "amount": 1,
+                      "settlementDate": "2025-04-11",
+                      "madeFor":"ForeignBankId[routingNumber=444, userId=a4bf370e-2129-4116-9243-0c4ead0fe43e]",
+                      "latestStockPrice":{"amount":66.40,"currency":"USD"}
+                    },
+                    {
+                    }
+                  ],
+                  "page": {
+                    "size": 10,
+                    "number": 0,
+                    "totalElements": 2,
+                    "totalPages": 1
+                  }
                 }
-              ],
-              "page": {
-                "size": 10,
-                "number": 0,
-                "totalElements": 2,
-                "totalPages": 1
-              }
-            }
-            """;
+                """;
         var jwtToken = "Bearer " + JwtPlaceholders.CLIENT_TOKEN;
         mvc.get()
             .uri("/stock/otc/me")
@@ -126,7 +149,14 @@ public class OtcTests {
     @Test
     public void testGetMyRequestsFails() {
         OtcRequest dummyRequest =
-            createDummyOtcRequestNotMe(assetRepository, securityRepository, otcRequestRepository);
+            createDummyOtcRequestNotMe(
+                assetRepository,
+                securityRepository,
+                otcRequestRepository,
+                listingRepository,
+                listingHistoryRepo,
+                exchangeRepository
+            );
 
         mvc.get()
             .uri("/stock/otc/me")
@@ -150,8 +180,22 @@ public class OtcTests {
     @Test
     public void testGetMyRequestsUnread() {
         OtcRequest dummyRequest =
-            createDummyOtcRequestMeRead(assetRepository, securityRepository, otcRequestRepository);
-        createDummyOtcRequestMeUnread(assetRepository, securityRepository, otcRequestRepository);
+            createDummyOtcRequestMeRead(
+                assetRepository,
+                securityRepository,
+                otcRequestRepository,
+                listingRepository,
+                listingHistoryRepo,
+                exchangeRepository
+            );
+        createDummyOtcRequestMeUnread(
+            assetRepository,
+            securityRepository,
+            otcRequestRepository,
+            listingRepository,
+            listingHistoryRepo,
+            exchangeRepository
+        );
         String expectedJson = """
             {
               "content": [
@@ -165,8 +209,8 @@ public class OtcTests {
                   "pricePerStock": {"amount": 1.00, "currency": "AUD"},
                   "premium": {"amount": 1.00, "currency": "AUD"},
                   "amount": 1,
-                  "lastModifiedDate": null,
-                  "settlementDate": "2025-04-11"
+                  "settlementDate": "2025-04-11",
+                  "latestStockPrice":{"amount":66.40,"currency":"USD"}
                 }
               ],
               "page": {
@@ -197,8 +241,22 @@ public class OtcTests {
     @Test
     public void testGetMyRequestsUnreadFails() {
         OtcRequest dummyRequest =
-            createDummyOtcRequestNotMe(assetRepository, securityRepository, otcRequestRepository);
-        createDummyOtcRequestMeRead(assetRepository, securityRepository, otcRequestRepository);
+            createDummyOtcRequestNotMe(
+                assetRepository,
+                securityRepository,
+                otcRequestRepository,
+                listingRepository,
+                listingHistoryRepo,
+                exchangeRepository
+            );
+        createDummyOtcRequestMeRead(
+            assetRepository,
+            securityRepository,
+            otcRequestRepository,
+            listingRepository,
+            listingHistoryRepo,
+            exchangeRepository
+        );
 
         mvc.get()
             .uri("/stock/otc/me/unread")
@@ -223,9 +281,23 @@ public class OtcTests {
     @Test
     public void testRejectOtc() {
         OtcRequest dummyRequest =
-            createDummyOtcRequestNotMe(assetRepository, securityRepository, otcRequestRepository);
+            createDummyOtcRequestNotMe(
+                assetRepository,
+                securityRepository,
+                otcRequestRepository,
+                listingRepository,
+                listingHistoryRepo,
+                exchangeRepository
+            );
         var id = dummyRequest.getId();
-        createDummyOtcRequestMeRead(assetRepository, securityRepository, otcRequestRepository);
+        createDummyOtcRequestMeRead(
+            assetRepository,
+            securityRepository,
+            otcRequestRepository,
+            listingRepository,
+            listingHistoryRepo,
+            exchangeRepository
+        );
 
         mvc.patch()
             .uri("/stock/otc/reject/" + id)
@@ -250,7 +322,14 @@ public class OtcTests {
     @Test
     public void testUpdateOtc() throws JsonProcessingException {
         OtcRequest dummyRequest =
-            createDummyOtcRequestMeRead(assetRepository, securityRepository, otcRequestRepository);
+            createDummyOtcRequestMeRead(
+                assetRepository,
+                securityRepository,
+                otcRequestRepository,
+                listingRepository,
+                listingHistoryRepo,
+                exchangeRepository
+            );
         var id = dummyRequest.getId();
         var momo = new MonetaryAmount();
         momo.setAmount(BigDecimal.TEN);
@@ -309,7 +388,10 @@ public class OtcTests {
             20,
             assetRepository,
             assetOwnershipRepository,
-            securityRepository
+            securityRepository,
+            listingRepository,
+            listingHistoryRepo,
+            exchangeRepository
         );
         System.out.println(
             assetOwnershipRepository.findByMyId(assetOwnerId, AssetGenerator.STOCK_EX1_UUID)
@@ -426,7 +508,10 @@ public class OtcTests {
                 assetRepository,
                 securityRepository,
                 otcRequestRepository,
-                requestAmount
+                requestAmount,
+                listingRepository,
+                listingHistoryRepo,
+                exchangeRepository
             );
         var assetOwn =
             createDummyAssetOwnership(

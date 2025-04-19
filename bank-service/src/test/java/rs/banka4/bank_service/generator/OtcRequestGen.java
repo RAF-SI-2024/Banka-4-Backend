@@ -11,11 +11,10 @@ import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.domain.trading.db.OtcRequest;
 import rs.banka4.bank_service.domain.trading.db.RequestStatus;
 import rs.banka4.bank_service.domain.user.User;
-import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
-import rs.banka4.bank_service.repositories.AssetRepository;
-import rs.banka4.bank_service.repositories.OtcRequestRepository;
-import rs.banka4.bank_service.repositories.SecurityRepository;
+import rs.banka4.bank_service.repositories.*;
 import rs.banka4.bank_service.utils.AssetGenerator;
+import rs.banka4.bank_service.utils.ExchangeGenerator;
+import rs.banka4.bank_service.utils.ListingGenerator;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.testlib.utils.JwtPlaceholders;
 
@@ -24,12 +23,18 @@ public class OtcRequestGen {
     public static OtcRequest createDummyOtcRequest(
         AssetRepository assetRepository,
         SecurityRepository securityRepository,
-        OtcRequestRepository otcRequestRepository
+        OtcRequestRepository otcRequestRepository,
+        ListingRepository listingRepo,
+        ListingDailyPriceInfoRepository listingHistoryRepo,
+        ExchangeRepository exchangeRepo
     ) {
         AssetGenerator.makeExampleAssets()
             .forEach(assetRepository::saveAndFlush);
-
+        final var ber1 = ExchangeGenerator.makeBer1();
+        exchangeRepo.save(ber1);
         var ex1 = securityRepository.findById(AssetGenerator.STOCK_EX1_UUID);
+        ListingGenerator.makeExampleListings(ex1.get(), ber1, listingRepo, listingHistoryRepo);
+
         var momo = new MonetaryAmount();
         momo.setAmount(BigDecimal.ONE);
         momo.setCurrency(CurrencyCode.AUD);
@@ -52,12 +57,18 @@ public class OtcRequestGen {
     public static OtcRequest createDummyOtcRequestNotMe(
         AssetRepository assetRepository,
         SecurityRepository securityRepository,
-        OtcRequestRepository otcRequestRepository
+        OtcRequestRepository otcRequestRepository,
+        ListingRepository listingRepo,
+        ListingDailyPriceInfoRepository listingHistoryRepo,
+        ExchangeRepository exchangeRepo
     ) {
         AssetGenerator.makeExampleAssets()
             .forEach(assetRepository::saveAndFlush);
 
+        final var ber1 = ExchangeGenerator.makeBer1();
+        exchangeRepo.save(ber1);
         var ex1 = securityRepository.findById(AssetGenerator.STOCK_EX1_UUID);
+        ListingGenerator.makeExampleListings(ex1.get(), ber1, listingRepo, listingHistoryRepo);
         var momo = new MonetaryAmount();
         momo.setAmount(BigDecimal.ONE);
         momo.setCurrency(CurrencyCode.AUD);
@@ -80,12 +91,18 @@ public class OtcRequestGen {
     public static OtcRequest createDummyOtcRequestMeUnread(
         AssetRepository assetRepository,
         SecurityRepository securityRepository,
-        OtcRequestRepository otcRequestRepository
+        OtcRequestRepository otcRequestRepository,
+        ListingRepository listingRepo,
+        ListingDailyPriceInfoRepository listingHistoryRepo,
+        ExchangeRepository exchangeRepo
     ) {
         AssetGenerator.makeExampleAssets()
             .forEach(assetRepository::saveAndFlush);
 
+        final var ber1 = ExchangeGenerator.makeBer1();
+        exchangeRepo.save(ber1);
         var ex1 = securityRepository.findById(AssetGenerator.STOCK_EX1_UUID);
+        ListingGenerator.makeExampleListings(ex1.get(), ber1, listingRepo, listingHistoryRepo);
         var momo = new MonetaryAmount();
         momo.setAmount(BigDecimal.ONE);
         momo.setCurrency(CurrencyCode.AUD);
@@ -108,12 +125,18 @@ public class OtcRequestGen {
     public static OtcRequest createDummyOtcRequestMeRead(
         AssetRepository assetRepository,
         SecurityRepository securityRepository,
-        OtcRequestRepository otcRequestRepository
+        OtcRequestRepository otcRequestRepository,
+        ListingRepository listingRepo,
+        ListingDailyPriceInfoRepository listingHistoryRepo,
+        ExchangeRepository exchangeRepo
     ) {
         AssetGenerator.makeExampleAssets()
             .forEach(assetRepository::saveAndFlush);
 
+        final var ber1 = ExchangeGenerator.makeBer1();
+        exchangeRepo.save(ber1);
         var ex1 = securityRepository.findById(AssetGenerator.STOCK_EX1_UUID);
+        ListingGenerator.makeExampleListings(ex1.get(), ber1, listingRepo, listingHistoryRepo);
         var momo = new MonetaryAmount();
         momo.setAmount(BigDecimal.ONE);
         momo.setCurrency(CurrencyCode.AUD);
@@ -137,12 +160,18 @@ public class OtcRequestGen {
         AssetRepository assetRepository,
         SecurityRepository securityRepository,
         OtcRequestRepository otcRequestRepository,
-        int requestAmount
+        int requestAmount,
+        ListingRepository listingRepo,
+        ListingDailyPriceInfoRepository listingHistoryRepo,
+        ExchangeRepository exchangeRepo
     ) {
         AssetGenerator.makeExampleAssets()
             .forEach(assetRepository::saveAndFlush);
 
+        final var ber1 = ExchangeGenerator.makeBer1();
+        exchangeRepo.save(ber1);
         var ex1 = securityRepository.findById(AssetGenerator.STOCK_EX1_UUID);
+        ListingGenerator.makeExampleListings(ex1.get(), ber1, listingRepo, listingHistoryRepo);
         var momo = new MonetaryAmount();
         momo.setAmount(BigDecimal.TEN);
         momo.setCurrency(CurrencyCode.AUD);
@@ -168,12 +197,18 @@ public class OtcRequestGen {
         int totalAvailable,
         AssetRepository assetRepository,
         AssetOwnershipRepository assetOwnershipRepository,
-        SecurityRepository securityRepository
+        SecurityRepository securityRepository,
+        ListingRepository listingRepo,
+        ListingDailyPriceInfoRepository listingHistoryRepo,
+        ExchangeRepository exchangeRepo
     ) {
         AssetGenerator.makeExampleAssets()
             .forEach(assetRepository::saveAndFlush);
 
+        final var ber1 = ExchangeGenerator.makeBer1();
+        exchangeRepo.save(ber1);
         var ex1 = securityRepository.findById(AssetGenerator.STOCK_EX1_UUID);
+        ListingGenerator.makeExampleListings(ex1.get(), ber1, listingRepo, listingHistoryRepo);
         AssetOwnershipId id = new AssetOwnershipId(owner, ex1.get());
         AssetOwnership assetOwnership = new AssetOwnership();
         assetOwnership.setId(id);

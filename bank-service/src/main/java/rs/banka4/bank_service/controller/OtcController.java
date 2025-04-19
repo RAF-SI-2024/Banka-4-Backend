@@ -14,6 +14,7 @@ import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestCreateDto;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestDto;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestUpdateDto;
 import rs.banka4.bank_service.service.abstraction.ForeignBankService;
+import rs.banka4.bank_service.service.abstraction.ListingService;
 import rs.banka4.bank_service.service.abstraction.OtcRequestService;
 import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
 
@@ -24,6 +25,7 @@ public class OtcController implements OtcApiDocumentation {
     private final OtcMapper otcMapper;
     private final OtcRequestService otcRequestService;
     private final ForeignBankService foreignBankService;
+    private final ListingService listingService;
 
     @Override
     @GetMapping("/me")
@@ -119,6 +121,11 @@ public class OtcController implements OtcApiDocumentation {
              * TODO(arsen): when establishing code to handle talking to other banks, add username
              * resolution here.
              */
+            var latestPrice =
+                listingService.getLatestPriceForStock(
+                    it.getStock()
+                        .getId()
+                );
             return otcMapper.toOtcRequestDto(
                 it,
                 foreignBankService.getUsernameFor(it.getMadeBy())
@@ -126,7 +133,8 @@ public class OtcController implements OtcApiDocumentation {
                 foreignBankService.getUsernameFor(it.getMadeFor())
                     .orElseGet(it.getMadeFor()::toString),
                 foreignBankService.getUsernameFor(it.getModifiedBy())
-                    .orElseGet(it.getModifiedBy()::toString)
+                    .orElseGet(it.getModifiedBy()::toString),
+                latestPrice
             );
         });
 

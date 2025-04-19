@@ -55,12 +55,16 @@ public record OtcRequestDto(
     @Schema(
         description = "Timestamp of the last modification of the negotiation",
         example = "2024-04-10T12:34:56Z"
-    ) OffsetDateTime lastModifiedDate,
+    ) OffsetDateTime lastModified,
 
     @Schema(
         description = "The settlement date for the OTC request which determines the expiry date of the optional contract",
         example = "2025-05-22"
-    ) LocalDate settlementDate
+    ) LocalDate settlementDate,
+    @Schema(
+        description = "Current stock price",
+        example = "400.00"
+    ) MonetaryAmount latestStockPrice
 
 ) {
 }

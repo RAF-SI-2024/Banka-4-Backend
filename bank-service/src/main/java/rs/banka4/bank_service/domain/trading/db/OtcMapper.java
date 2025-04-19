@@ -1,6 +1,7 @@
 package rs.banka4.bank_service.domain.trading.db;
 
 import org.mapstruct.*;
+import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.security.stock.db.Stock;
 import rs.banka4.bank_service.domain.security.stock.mapper.StockMapper;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestCreateDto;
@@ -27,11 +28,20 @@ public interface OtcMapper {
         target = "modifiedBy",
         source = "modifiedBy"
     )
+    @Mapping(
+        target = "amount",
+        source = "otcRequest.amount"
+    )
+    @Mapping(
+        target = "latestStockPrice",
+        source = "latestPrice"
+    )
     OtcRequestDto toOtcRequestDto(
         OtcRequest otcRequest,
         String madeBy,
         String madeFor,
-        String modifiedBy
+        String modifiedBy,
+        MonetaryAmount latestPrice
     );
 
     @Mapping(
