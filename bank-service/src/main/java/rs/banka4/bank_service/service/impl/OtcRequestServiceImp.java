@@ -14,7 +14,6 @@ import rs.banka4.bank_service.domain.trading.db.OtcRequest;
 import rs.banka4.bank_service.domain.trading.db.RequestStatus;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestCreateDto;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestUpdateDto;
-import rs.banka4.bank_service.domain.trading.utill.BankRoutingNumber;
 import rs.banka4.bank_service.exceptions.CantAcceptThisOffer;
 import rs.banka4.bank_service.exceptions.OtcNotFoundException;
 import rs.banka4.bank_service.exceptions.RequestFailed;
@@ -47,7 +46,7 @@ public class OtcRequestServiceImp implements OtcRequestService {
     }
 
     @Override
-    public void rejectOtc(UUID requestId) {
+    public void rejectOtc(ForeignBankId requestId) {
         var otc =
             otcRequestRepository.findById(requestId)
                 .orElseThrow(() -> new OtcNotFoundException(requestId));
@@ -60,12 +59,15 @@ public class OtcRequestServiceImp implements OtcRequestService {
     }
 
     @Override
-    public void updateOtc(OtcRequestUpdateDto otcRequestUpdateDto, UUID id, UUID modifiedBy) {
+    public void updateOtc(
+        OtcRequestUpdateDto otcRequestUpdateDto,
+        ForeignBankId id,
+        UUID modifiedBy
+    ) {
         var otc =
             otcRequestRepository.findById(id)
                 .orElseThrow(() -> new OtcNotFoundException(id));
-        var modBy =
-            new ForeignBankId(BankRoutingNumber.BANK4.getRoutingNumber(), modifiedBy.toString());
+        var modBy = ForeignBankId.our(modifiedBy);
         otcMapper.update(otc, otcRequestUpdateDto, modBy);
         otcRequestRepository.save(otc);
     }
@@ -84,14 +86,12 @@ public class OtcRequestServiceImp implements OtcRequestService {
                     )
                 );
         if (assetOwner.getPublicAmount() < otcRequestCreateDto.amount()) throw new RequestFailed();
-        var me = new ForeignBankId(BankRoutingNumber.BANK4.getRoutingNumber(), idMy.toString());
+        var me = ForeignBankId.our(idMy);
         var madeFor =
-            new ForeignBankId(
-                BankRoutingNumber.BANK4.getRoutingNumber(),
+            ForeignBankId.our(
                 assetOwner.getId()
                     .getUser()
                     .getId()
-                    .toString()
             );
         var stock =
             (Stock) assetOwner.getId()
@@ -109,7 +109,7 @@ public class OtcRequestServiceImp implements OtcRequestService {
     }
 
     @Override
-    public void acceptOtc(UUID requestId, UUID userId) {
+    public void acceptOtc(ForeignBankId requestId, UUID userId) {
         Optional<OtcRequest> otcRequest = otcRequestRepository.findById(requestId);
         if (otcRequest.isEmpty()) throw new OtcNotFoundException(requestId);
         OtcRequest otc = otcRequest.get();
