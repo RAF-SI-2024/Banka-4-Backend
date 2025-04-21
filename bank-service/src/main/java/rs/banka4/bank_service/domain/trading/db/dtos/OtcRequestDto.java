@@ -3,9 +3,9 @@ package rs.banka4.bank_service.domain.trading.db.dtos;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.UUID;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.security.stock.dtos.StockInfoDto;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 
 
 @Schema(
@@ -15,7 +15,7 @@ public record OtcRequestDto(
     @Schema(
         description = "Otc ID",
         example = "1fad2c01-f82f-41a6-822c-8ca1b3232575"
-    ) UUID id,
+    ) ForeignBankId id,
     @Schema(
         description = "Detailed information about the security (stock) involved in the negotiation",
         implementation = StockInfoDto.class

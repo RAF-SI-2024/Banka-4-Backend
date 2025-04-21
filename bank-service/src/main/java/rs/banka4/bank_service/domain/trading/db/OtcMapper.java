@@ -62,5 +62,9 @@ public interface OtcMapper {
     );
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(
+        target = "id",
+        ignore = true
+    )
     void update(@MappingTarget OtcRequest otc, OtcRequestUpdateDto dto, ForeignBankId modifiedBy);
 }
