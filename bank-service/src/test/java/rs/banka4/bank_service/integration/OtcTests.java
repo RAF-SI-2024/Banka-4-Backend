@@ -24,7 +24,6 @@ import rs.banka4.bank_service.domain.trading.db.OtcRequest;
 import rs.banka4.bank_service.domain.trading.db.RequestStatus;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestCreateDto;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestUpdateDto;
-import rs.banka4.bank_service.domain.trading.utill.BankRoutingNumber;
 import rs.banka4.bank_service.integration.generator.UserGenerator;
 import rs.banka4.bank_service.repositories.*;
 import rs.banka4.bank_service.service.impl.OtcRequestExpiryService;
@@ -115,7 +114,7 @@ public class OtcTests {
                       "premium": {"amount": 1.00, "currency": "AUD"},
                       "amount": 1,
                       "settlementDate": "2025-04-11",
-                      "madeFor":"ForeignBankId[routingNumber=444, userId=a4bf370e-2129-4116-9243-0c4ead0fe43e]",
+                      "madeFor":"ForeignBankId[routingNumber=444, id=a4bf370e-2129-4116-9243-0c4ead0fe43e]",
                       "latestStockPrice":{"amount":66.40,"currency":"USD"}
                     },
                     {
@@ -300,7 +299,7 @@ public class OtcTests {
         );
 
         mvc.patch()
-            .uri("/stock/otc/reject/" + id)
+            .uri("/stock/otc/reject/" + id.routingNumber() + "/" + id.id())
             .header("Authorization", "Bearer " + JwtPlaceholders.CLIENT_TOKEN)
             .assertThat()
             .hasStatusOk();
@@ -337,7 +336,7 @@ public class OtcTests {
         var updateDto = new OtcRequestUpdateDto(null, momo, null, LocalDate.parse("2025-04-11"));
         var body = objMapper.writeValueAsString(updateDto);
         mvc.patch()
-            .uri("/stock/otc/update/" + id)
+            .uri("/stock/otc/update/" + id.routingNumber() + "/" + id.id())
             .header("Authorization", "Bearer " + JwtPlaceholders.CLIENT_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
@@ -463,8 +462,7 @@ public class OtcTests {
             "Premium currency mismatch"
         );
 
-        ForeignBankId expectedMadeBy =
-            new ForeignBankId(BankRoutingNumber.BANK4.getRoutingNumber(), callerId.toString());
+        ForeignBankId expectedMadeBy = ForeignBankId.our(callerId);
         assertEquals(
             expectedMadeBy.userId(),
             createdRequest.getMadeBy()
@@ -472,8 +470,7 @@ public class OtcTests {
             "madeBy userId mismatch"
         );
 
-        ForeignBankId expectedMadeFor =
-            new ForeignBankId(BankRoutingNumber.BANK4.getRoutingNumber(), assetOwnerId.toString());
+        ForeignBankId expectedMadeFor = ForeignBankId.our(assetOwnerId);
         assertEquals(
             expectedMadeFor.userId(),
             createdRequest.getMadeFor()
