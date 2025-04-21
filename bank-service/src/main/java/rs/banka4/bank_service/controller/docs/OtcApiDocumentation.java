@@ -6,11 +6,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PathVariable;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestCreateDto;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestDto;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestUpdateDto;
@@ -100,7 +98,9 @@ public interface OtcApiDocumentation {
         }
     )
     ResponseEntity<Void> rejectOtcRequest(
-        @Parameter(description = "id of the otc request") UUID requestId
+        @Parameter(description = "id of the otc request") Long idId,
+        @Parameter(description = "routing num of the bank") String routingNumber
+
     );
 
     @Operation(
@@ -132,10 +132,8 @@ public interface OtcApiDocumentation {
             description = "Data Transfer Object representing the update information for the OTC request negotiation"
         ) OtcRequestUpdateDto otcRequestUpdateDto,
 
-        @Parameter(
-            description = "Unique identifier of the OTC request that is being updated",
-            required = true
-        ) @PathVariable UUID id,
+        @Parameter(description = "id of the otc request") Long idId,
+        @Parameter(description = "routing num of the bank") String routingNumber,
         Authentication auth
     );
 
@@ -194,10 +192,8 @@ public interface OtcApiDocumentation {
         }
     )
     ResponseEntity<Void> acceptOtcRequest(
-        @Parameter(
-            description = "Unique identifier of the OTC request that is being accepted",
-            required = true
-        ) @PathVariable UUID requestId,
+        @Parameter(description = "id of the otc request") Long idId,
+        @Parameter(description = "routing num of the bank") String routingNumber,
         Authentication auth
     );
 }
