@@ -247,17 +247,14 @@ public class ListingSpecification {
             final var subquery = query.subquery(OffsetDateTime.class);
             final var subRoot = subquery.from(Listing.class);
 
-            subquery.select(cb.greatest(subRoot.get(Listing_.lastRefresh)))
-                .where(
-                    cb.equal(
-                        subRoot.get(Listing_.security)
-                            .get(Security_.id),
-                        root.get(Listing_.security)
-                            .get(Security_.id)
-                    )
+            return root.get(Listing_.lastRefresh)
+                .in(
+                    subquery.select(cb.greatest(subRoot.get(Listing_.lastRefresh)))
+                        .groupBy(
+                            subRoot.get(Listing_.security)
+                                .get(Security_.id)
+                        )
                 );
-
-            return cb.equal(root.get(Listing_.lastRefresh), subquery);
         });
     }
 
