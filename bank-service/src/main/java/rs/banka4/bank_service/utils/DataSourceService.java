@@ -295,7 +295,7 @@ public class DataSourceService {
         List<Employee> employees =
             List.of(
                 Employee.builder()
-                    .id(EMPLOYEE_ALICE)
+                    .id(EMPLOYEE_ALICE) // DONE
                     .firstName("Alice")
                     .lastName("Johnson")
                     .dateOfBirth(LocalDate.of(1985, 4, 12))
@@ -312,7 +312,7 @@ public class DataSourceService {
                     .build(),
 
                 Employee.builder()
-                    .id(EMPLOYEE_ROBERT)
+                    .id(EMPLOYEE_ROBERT) // DONE
                     .firstName("Robert")
                     .lastName("Anderson")
                     .dateOfBirth(LocalDate.of(1990, 7, 21))
@@ -329,7 +329,7 @@ public class DataSourceService {
                     .build(),
 
                 Employee.builder()
-                    .id(EMPLOYEE_SAMANTHA)
+                    .id(EMPLOYEE_SAMANTHA) // DONE
                     .firstName("Samantha")
                     .lastName("Miller")
                     .dateOfBirth(LocalDate.of(1988, 10, 5))
@@ -1159,10 +1159,24 @@ public class DataSourceService {
                     .build(),
 
                 ActuaryInfo.builder()
+                    .userId(EMPLOYEE_DAVID)
+                    .needApproval(false)
+                    .limit(new MonetaryAmount(null, CurrencyCode.RSD))
+                    .usedLimit(new MonetaryAmount(BigDecimal.ZERO, CurrencyCode.RSD))
+                    .build(),
+
+                ActuaryInfo.builder()
                     .userId(EMPLOYEE_MICHAEL)
                     .needApproval(true)
                     .limit(new MonetaryAmount(new BigDecimal("100000"), CurrencyCode.USD))
                     .usedLimit(new MonetaryAmount(new BigDecimal("99990"), CurrencyCode.USD))
+                    .build(),
+
+                ActuaryInfo.builder()
+                    .userId(EMPLOYEE_JESSICA)
+                    .needApproval(true)
+                    .limit(new MonetaryAmount(new BigDecimal("100000"), CurrencyCode.USD))
+                    .usedLimit(new MonetaryAmount(new BigDecimal("1000"), CurrencyCode.USD))
                     .build()
             );
 
