@@ -15,15 +15,26 @@ import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
     @JsonSubTypes.Type(value = TxAccount.Option.class)
 })
 public sealed interface TxAccount {
+    long routingNumber();
+
     @JsonTypeName("PERSON")
     public record Person(ForeignBankId id) implements TxAccount {
+        public long routingNumber() {
+            return id.routingNumber();
+        }
     }
 
     @JsonTypeName("ACCOUNT")
     public record Account(String num) implements TxAccount {
+        public long routingNumber() {
+            return Long.valueOf(num.substring(0, 3));
+        }
     }
 
     @JsonTypeName("OPTION")
     public record Option(ForeignBankId id) implements TxAccount {
+        public long routingNumber() {
+            return id.routingNumber();
+        }
     }
 }
