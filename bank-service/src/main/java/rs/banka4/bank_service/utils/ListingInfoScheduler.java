@@ -196,11 +196,7 @@ public class ListingInfoScheduler {
                 yesterdaysListings.get()
                     .size() // This should be fixed once we have orders in the db
             )
-            .change(
-                twoDaysAgoPrice.subtract(lastPrice)
-                    .abs()
-            )
+            .change(lastPrice.subtract(twoDaysAgoPrice))
             .build();
-
     }
 }
