@@ -161,6 +161,11 @@ services:
       # Management interface.
       - "15672:15672"
 
+  # Dictionary server.
+  valkey:
+    image: valkey/valkey:8.1
+    # No persistence yet.
+
   # API docs viewer.
   swagger_ui:
     image: docker.swagger.io/swaggerapi/swagger-ui
