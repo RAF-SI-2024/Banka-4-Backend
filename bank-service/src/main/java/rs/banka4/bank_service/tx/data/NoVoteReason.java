@@ -1,5 +1,6 @@
 package rs.banka4.bank_service.tx.data;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
@@ -8,6 +9,15 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
     include = JsonTypeInfo.As.PROPERTY,
     property = "reason"
 )
+@JsonSubTypes({
+    @JsonSubTypes.Type(NoVoteReason.UnbalancedTx.class),
+    @JsonSubTypes.Type(NoVoteReason.NoSuchAccount.class),
+    @JsonSubTypes.Type(NoVoteReason.NoSuchAsset.class),
+    @JsonSubTypes.Type(NoVoteReason.InsufficientAsset.class),
+    @JsonSubTypes.Type(NoVoteReason.OptionAmountIncorrect.class),
+    @JsonSubTypes.Type(NoVoteReason.OptionUsedOrExpired.class),
+    @JsonSubTypes.Type(NoVoteReason.UnacceptableAsset.class),
+})
 public sealed interface NoVoteReason {
     @JsonTypeName("UNBALANCED_TX")
     public record UnbalancedTx() implements NoVoteReason {
