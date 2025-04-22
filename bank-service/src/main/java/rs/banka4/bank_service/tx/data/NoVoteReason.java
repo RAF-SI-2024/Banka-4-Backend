@@ -32,4 +32,8 @@ public sealed interface NoVoteReason {
     @JsonTypeName("OPTION_USED_OR_EXPIRED")
     public record OptionUsedOrExpired(Posting posting) implements NoVoteReason {
     }
+
+    @JsonTypeName("UNACCEPTABLE_ASSET")
+    public record UnacceptableAsset(Posting posting) implements NoVoteReason {
+    }
 }
