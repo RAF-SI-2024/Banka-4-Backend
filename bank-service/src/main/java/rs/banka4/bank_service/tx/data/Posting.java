@@ -1,8 +1,10 @@
 package rs.banka4.bank_service.tx.data;
 
+import java.math.BigDecimal;
+
 public record Posting(
     TxAccount account,
-    int amount,
+    BigDecimal amount,
     TxAsset asset
 ) {
 }
