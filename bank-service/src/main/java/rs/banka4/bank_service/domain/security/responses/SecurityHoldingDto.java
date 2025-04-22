@@ -2,10 +2,12 @@ package rs.banka4.bank_service.domain.security.responses;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 
 
 public record SecurityHoldingDto(
+    UUID id,
     AssetTypeDto assetType,
     @Schema(
         description = "Ticker symbol of the security.",

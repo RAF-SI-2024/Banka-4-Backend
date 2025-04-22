@@ -88,6 +88,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 
 //            var lastModified=orderRepository.findNewestOrder(myId,asset,true);
             return new SecurityHoldingDto(
+                asset.getId(),
                 mapToAssetTypeDto(asset),
                 ticker,
                 totalAmount,
