@@ -484,11 +484,11 @@ public class EmployeeServiceImpl implements EmployeeService {
                     );
                 return new CombinedResponse(EmployeeMapper.INSTANCE.toResponseDto(employee), dto);
             })
-            .orElseThrow(() -> {
-                return new IllegalStateException(
+            .orElseThrow(
+                () -> new IllegalStateException(
                     "Missing ActuaryInfo for employee %s".formatted(employee)
-                );
-            });
+                )
+            );
     }
 
     @Override

@@ -1159,10 +1159,24 @@ public class DataSourceService {
                     .build(),
 
                 ActuaryInfo.builder()
+                    .userId(EMPLOYEE_DAVID)
+                    .needApproval(false)
+                    .limit(new MonetaryAmount(null, CurrencyCode.RSD))
+                    .usedLimit(new MonetaryAmount(BigDecimal.ZERO, CurrencyCode.RSD))
+                    .build(),
+
+                ActuaryInfo.builder()
                     .userId(EMPLOYEE_MICHAEL)
                     .needApproval(true)
                     .limit(new MonetaryAmount(new BigDecimal("100000"), CurrencyCode.USD))
                     .usedLimit(new MonetaryAmount(new BigDecimal("99990"), CurrencyCode.USD))
+                    .build(),
+
+                ActuaryInfo.builder()
+                    .userId(EMPLOYEE_JESSICA)
+                    .needApproval(true)
+                    .limit(new MonetaryAmount(new BigDecimal("100000"), CurrencyCode.USD))
+                    .usedLimit(new MonetaryAmount(new BigDecimal("1000"), CurrencyCode.USD))
                     .build()
             );
 
