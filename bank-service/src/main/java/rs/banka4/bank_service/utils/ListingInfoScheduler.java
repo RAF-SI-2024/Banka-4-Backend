@@ -66,7 +66,7 @@ public class ListingInfoScheduler {
                 .toOffsetDateTime();
         OffsetDateTime endOfYesterday = startOfToday.toOffsetDateTime();
 
-        LOGGER.info("startOfYesterday " + startOfYesterday + " endOfYesterday " + endOfYesterday);
+        LOGGER.info("startOfYesterday: {}, endOfYesterday: {}", startOfYesterday, endOfYesterday);
 
         List<ListingDailyPriceInfo> ldpis = new ArrayList<>();
         List<Security> securities = securityRepository.findAll();
@@ -89,11 +89,10 @@ public class ListingInfoScheduler {
                         .isEmpty()
             ) {
                 LOGGER.error(
-                    "There is already yesterdays listing info! Count: "
-                        + yesterdaysInfoOptional.get()
-                            .size()
-                        + ". Security: "
-                        + s.getTicker()
+                    "There is already yesterday's listing info! Count: {}. Security: {}",
+                    yesterdaysInfoOptional.get()
+                        .size(),
+                    s.getTicker()
                 );
                 LOGGER.error("Deleting before new save.");
                 listingDailyPriceInfoRepository.deleteListingDailyPriceInfoForDate(
@@ -107,9 +106,11 @@ public class ListingInfoScheduler {
         }
 
         LOGGER.info(
-            "Finished scheduleListingInfoUpdates for {} securities",
-            ldpis.size() + " out of " + securities.size() + " securities in the system."
+            "Finished scheduleListingInfoUpdates for {} out of {} securities in the system.",
+            ldpis.size(),
+            securities.size()
         );
+
         listingDailyPriceInfoRepository.saveAllAndFlush(ldpis);
     }
 
@@ -132,7 +133,7 @@ public class ListingInfoScheduler {
                 || yesterdaysListings.get()
                     .isEmpty()
         ) {
-            LOGGER.error("No yesterday listings for " + s.getTicker());
+            LOGGER.error("No yesterday listings for {}", s.getTicker());
             return null;
         }
 
@@ -141,22 +142,14 @@ public class ListingInfoScheduler {
                 .getFirst()
                 .getExchange();
         BigDecimal askHigh = BigDecimal.ZERO;
-        BigDecimal bigLow = BigDecimal.valueOf(9999999);
+        BigDecimal bigLow = BigDecimal.valueOf(1e15);
         for (Listing l : yesterdaysListings.get()) {
-            if (
-                l.getAsk()
-                    .compareTo(askHigh)
-                    > 0
-            ) {
-                askHigh = l.getAsk();
-            }
-            if (
+            bigLow =
                 l.getBid()
-                    .compareTo(bigLow)
-                    < 0
-            ) {
-                bigLow = l.getBid();
-            }
+                    .min(bigLow);
+            askHigh =
+                l.getAsk()
+                    .max(askHigh);
         }
 
         Listing lastListing =
