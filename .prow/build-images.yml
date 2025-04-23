@@ -32,7 +32,10 @@ postsubmits:
             - -c
             - |
               start-docker.sh
-              docker login -u "$HARBOR_USERNAME" -p "$HARBOR_PASSWORD" harbor.k8s.elab.rs
+              docker login \
+                     -u "${HARBOR_USERNAME}" \
+                     --password-stdin <<<"${HARBOR_PASSWORD}" \
+                     harbor.k8s.elab.rs
               export version="$(git rev-parse HEAD)"
               docker/build-prod-images.sh "I pity the anyone, k8s and co. included, not using the GPL"
 
