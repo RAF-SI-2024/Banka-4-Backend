@@ -35,5 +35,9 @@ public interface InterbankOtcMapper {
         target = "stock",
         ignore = true
     )
+    @Mapping(
+        target = "settlementDate",
+        expression = "java(otcOffer.settlementDate().toLocalDate())"
+    )
     OtcRequest toOtcRequest(OtcOffer otcOffer);
 }
