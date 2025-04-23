@@ -425,6 +425,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        log.debug("Starting IBEX with config {}", interbankConfig);
         taskScheduler.scheduleAtFixedRate(
             () -> processOutbox(),
             interbankConfig.getResendDuration()
