@@ -3,6 +3,7 @@ package rs.banka4.bank_service.repositories;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,7 +18,7 @@ public interface AssetOwnershipRepository extends JpaRepository<AssetOwnership, 
     )
     Optional<AssetOwnership> findByMyId(UUID userId, UUID assetId);
 
-    Page<AssetOwnership> findAllByPublicAmountGreaterThan(int publicAmount, Pageable pageable);
+    Page<AssetOwnership> findAllByPublicAmountGreaterThan(int publicAmount, Limit limit);
 
     @Query(
         "SELECT ao FROM AssetOwnership ao WHERE ao.id.user.id = :userId AND (ao.privateAmount > 0 OR ao.publicAmount > 0)"

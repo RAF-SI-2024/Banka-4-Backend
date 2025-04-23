@@ -29,7 +29,7 @@ public interface AssetMapper {
     )
     @Mapping(
         target = "sellerId",
-        expression = "java(assetOwnership.getId().getUser().getId())"
+        expression = "java(new ForeignBankId(ForeignBankId.OUR_ROUTING_NUMBER, assetOwnership.getId().getUser().getId().toString()))"
     )
     @Mapping(
         target = "stockId",
