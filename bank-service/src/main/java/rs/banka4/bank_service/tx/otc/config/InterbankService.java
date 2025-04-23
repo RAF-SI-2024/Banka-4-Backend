@@ -41,4 +41,7 @@ public interface InterbankService {
 
     @DELETE("/negotiations/{routingNumber}/{id}")
     Call<Void> closeNegotiation(@Path("routingNumber") long routingNumber, @Path("id") String id);
+
+    @GET("/negotiations/{routingNumber}/{id}/accept")
+    Call<Void> acceptNegotiation(@Path("routingNumber") long routingNumber, @Path("id") String id);
 }

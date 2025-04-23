@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Service;
 import retrofit2.Response;
 import rs.banka4.bank_service.domain.assets.db.AssetOwnership;
@@ -249,6 +250,34 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
                     .closeNegotiation(id.routingNumber(), id.id());
             var response = call.execute();
             if (!response.isSuccessful()) throw new OtcNotFoundException(id);
+        } catch (IOException e) {
+            throw new RequestFailed();
+        }
+    }
+
+    @Override
+    public void acceptNegotiation(ForeignBankId id) {
+        var otc = otcRequestRepository.findById(id);
+        if (otc.isEmpty()) throw new OtcNotFoundException(id);
+        if (
+            otc.get()
+                .getModifiedBy()
+                .routingNumber()
+                != ForeignBankId.OUR_ROUTING_NUMBER
+        ) throw new WrongTurn();
+        // TODO Arsen: make a transaction
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void sendAcceptNegotiation(ForeignBankId id) {
+        try {
+            for (var x : interbankRetrofit.getAll()) {
+                var call = x.acceptNegotiation(id.routingNumber(), id.id());
+                var response = call.execute();
+                if (!response.isSuccessful()) throw new OtcNotFoundException(id);
+            }
+
         } catch (IOException e) {
             throw new RequestFailed();
         }

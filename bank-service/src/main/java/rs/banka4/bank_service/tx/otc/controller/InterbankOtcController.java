@@ -57,4 +57,14 @@ public class InterbankOtcController {
         return ResponseEntity.ok()
             .build();
     }
+
+    @GetMapping("/negotiations/{routingNumber}/{id}/accept")
+    public ResponseEntity<Void> acceptNegotiation(
+        @PathVariable long routingNumber,
+        @PathVariable String id
+    ) {
+        interbankOtcService.acceptNegotiation(new ForeignBankId(routingNumber, id));
+        return ResponseEntity.ok()
+            .build();
+    }
 }
