@@ -25,4 +25,15 @@ public class InterbankOtcController {
     public ResponseEntity<ForeignBankId> createOtc(@RequestBody OtcOffer offer) {
         return ResponseEntity.ok(interbankOtcService.createOtc(offer));
     }
+
+    @PutMapping("/negotiations/{routingNumber}/{id}")
+    public ResponseEntity<Void> createOtc(
+        @RequestBody OtcOffer offer,
+        @PathVariable long routingNumber,
+        @PathVariable String id
+    ) {
+        interbankOtcService.updateOtc(offer, new ForeignBankId(routingNumber, id));
+        return ResponseEntity.ok()
+            .build();
+    }
 }

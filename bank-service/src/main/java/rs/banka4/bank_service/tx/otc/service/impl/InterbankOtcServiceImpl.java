@@ -10,7 +10,9 @@ import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.domain.trading.db.OtcRequest;
 import rs.banka4.bank_service.domain.trading.db.RequestStatus;
 import rs.banka4.bank_service.exceptions.AssetNotFound;
+import rs.banka4.bank_service.exceptions.OtcNotFoundException;
 import rs.banka4.bank_service.exceptions.RequestFailed;
+import rs.banka4.bank_service.exceptions.WrongTurn;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
@@ -152,6 +154,30 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
             otcRequest.setStatus(RequestStatus.ACTIVE);
             otcRequest.setStock(stock.get());
             otcRequestRepository.save(otcRequest);
+        } catch (IOException e) {
+            throw new RequestFailed();
+        }
+    }
+
+    @Override
+    public void updateOtc(OtcOffer offer, ForeignBankId id) {
+        var otc = otcRequestRepository.findById(id);
+        if (otc.isEmpty()) throw new OtcNotFoundException(id);
+        var request = otc.get();
+        if (
+            request.getModifiedBy()
+                .equals(offer.lastModifiedBy())
+        ) throw new WrongTurn();
+        request = InterbankOtcMapper.INSTANCE.toOtcRequest(offer);
+        otcRequestRepository.save(request);
+    }
+
+    @Override
+    public void sendUpdateOtc(OtcOffer offer, ForeignBankId id) {
+        try {
+            var call = interbankRetrofit.sendUpdateOtc(offer, id.routingNumber(), id.id());
+            var response = call.execute();
+            if (!response.isSuccessful()) throw new WrongTurn();
         } catch (IOException e) {
             throw new RequestFailed();
         }

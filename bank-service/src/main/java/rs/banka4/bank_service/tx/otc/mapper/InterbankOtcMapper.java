@@ -2,12 +2,16 @@ package rs.banka4.bank_service.tx.otc.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 import rs.banka4.bank_service.domain.trading.db.OtcRequest;
 import rs.banka4.bank_service.tx.data.OtcOffer;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(
+    unmappedTargetPolicy = ReportingPolicy.IGNORE,
+    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
 public interface InterbankOtcMapper {
     InterbankOtcMapper INSTANCE = Mappers.getMapper(InterbankOtcMapper.class);
 

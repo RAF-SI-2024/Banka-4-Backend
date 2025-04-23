@@ -13,4 +13,8 @@ public interface InterbankOtcService {
     ForeignBankId createOtc(OtcOffer offer);
 
     void sendCreateOtc(OtcOffer offer);
+
+    void updateOtc(OtcOffer offer, ForeignBankId id);
+
+    void sendUpdateOtc(OtcOffer offer, ForeignBankId id);
 }
