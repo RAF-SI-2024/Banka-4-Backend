@@ -2,14 +2,12 @@ package rs.banka4.bank_service.tx.config;
 
 import java.time.Duration;
 import java.util.Map;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 @Data
-@AllArgsConstructor
-@Configuration
+@NoArgsConstructor
 @ConfigurationProperties("rafeisen.interbank")
 public class InterbankConfig {
     private Map<Long, SingleBankConfig> routingTable;
