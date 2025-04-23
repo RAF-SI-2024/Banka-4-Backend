@@ -66,6 +66,7 @@ import rs.banka4.bank_service.tx.otc.config.InterbankRetrofitProvider;
 public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final InterbankConfig interbankConfig;
     private final TransactionTemplate txTemplate;
+    private final TransactionTemplate txNestedTemplate;
     private final ObjectMapper objectMapper;
     private final AccountRepository accountRepo;
     private final OutboxRepository outboxRepo;
@@ -94,6 +95,11 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.txTemplate = new TransactionTemplate(transactionManager);
         this.txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.txTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
+
+        this.txNestedTemplate = new TransactionTemplate(transactionManager);
+        this.txNestedTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
+        this.txNestedTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
+
         this.objectMapper = objectMapper;
         this.accountRepo = accountRepo;
         this.outboxRepo = outboxRepo;
@@ -143,68 +149,77 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      * (voting is described later). Otherwise, a YES vote is cast. </blockquote>
      *
      * <p>
+     * Executes in a nested transaction, so local changes should be reverted.
+     *
+     * <p>
      * Caller should hold {@link #transactionKey}.
      *
-     * @returns A list of reasons not to accept a transaction. The caller is expected to make the
-     *          transaction roll back if the list is non-empty.
+     * @throws TxLocalPartVotedNo if the local part of this transaction fails
      */
-    @Transactional(propagation = Propagation.MANDATORY)
-    protected List<NoVoteReason> executeLocalPhase1(DoubleEntryTransaction tx) {
-        if (!isTxBalanced(tx)) return List.of(new NoVoteReason.UnbalancedTx());
+    private void executeLocalPhase1(DoubleEntryTransaction tx) {
+        if (!isTxBalanced(tx))
+            throw new TxLocalPartVotedNo(tx, List.of(new NoVoteReason.UnbalancedTx()));
 
-        final var noReasons = new ArrayList<NoVoteReason>();
-        for (final var posting : tx.postings()) {
-            if (
-                posting.account()
-                    .routingNumber()
-                    != ForeignBankId.OUR_ROUTING_NUMBER
-            ) continue;
-
-            switch (posting.account()) {
-            case TxAccount.Person(ForeignBankId personId) -> throw new NotImplementedException();
-            case TxAccount.Option(ForeignBankId optionId) -> throw new NotImplementedException();
-
-            case TxAccount.Account(String accNumber) -> {
-                final var accMby = accountRepo.findAccountByAccountNumber(accNumber);
-                if (!accMby.isPresent()) {
-                    noReasons.add(new NoVoteReason.NoSuchAccount(posting));
-                    continue;
-                }
-                final var acc = accMby.get();
-                entityManager.lock(acc, LockModeType.PESSIMISTIC_WRITE);
-                entityManager.refresh(acc);
-
+        txNestedTemplate.executeWithoutResult(s -> {
+            final var noReasons = new ArrayList<NoVoteReason>();
+            for (final var posting : tx.postings()) {
                 if (
-                    /* Monetary assets are the only kind depositable to accounts. */
+                    posting.account()
+                        .routingNumber()
+                        != ForeignBankId.OUR_ROUTING_NUMBER
+                ) continue;
+
+                switch (posting.account()) {
+                case TxAccount.Person(ForeignBankId personId)
+                    -> throw new NotImplementedException();
+                case TxAccount.Option(ForeignBankId optionId)
+                    -> throw new NotImplementedException();
+
+                case TxAccount.Account(String accNumber) -> {
+                    final var accMby = accountRepo.findAccountByAccountNumber(accNumber);
+                    if (!accMby.isPresent()) {
+                        noReasons.add(new NoVoteReason.NoSuchAccount(posting));
+                        continue;
+                    }
+                    final var acc = accMby.get();
+                    entityManager.lock(acc, LockModeType.PESSIMISTIC_WRITE);
+                    entityManager.refresh(acc);
+
+                    if (
+                        /* Monetary assets are the only kind depositable to accounts. */
                     !(posting.asset() instanceof TxAsset.Monas(MonetaryAsset asset))
                         /* ... but their currencies must match. */
                         || !asset.currency()
                             .equals(acc.getCurrency())
-                ) {
-                    noReasons.add(new NoVoteReason.UnacceptableAsset(posting));
-                    continue;
+                    ) {
+                        noReasons.add(new NoVoteReason.UnacceptableAsset(posting));
+                        continue;
+                    }
+
+                    /* See Note [Phase-by-phase balance changes]. */
+                    final var newAvBalance =
+                        acc.getAvailableBalance()
+                            .add(
+                                posting.amount()
+                                    .min(BigDecimal.ZERO)
+                            );
+
+                    if (newAvBalance.signum() < 0) {
+                        noReasons.add(new NoVoteReason.InsufficientAsset(posting));
+                        continue;
+                    }
+
+                    acc.setAvailableBalance(newAvBalance);
+                    accountRepo.save(acc);
                 }
-
-                /* See Note [Phase-by-phase balance changes]. */
-                final var newAvBalance =
-                    acc.getAvailableBalance()
-                        .add(
-                            posting.amount()
-                                .min(BigDecimal.ZERO)
-                        );
-
-                if (newAvBalance.signum() < 0) {
-                    noReasons.add(new NoVoteReason.InsufficientAsset(posting));
-                    continue;
                 }
-
-                acc.setAvailableBalance(newAvBalance);
-                accountRepo.save(acc);
             }
-            }
-        }
 
-        return noReasons;
+            if (!noReasons.isEmpty()) {
+                s.setRollbackOnly();
+                throw new TxLocalPartVotedNo(tx, noReasons);
+            }
+        });
     }
 
     /**
@@ -328,9 +343,13 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         }
     }
 
-    /** Precondition: {@code tx} was voted YES locally. */
+    /**
+     * Records the transaction with a single vote, presuming that we voted yes locally.
+     *
+     * @return The local transaction
+     */
     @Transactional(propagation = Propagation.MANDATORY)
-    protected ExecutingTransaction recordTx(DoubleEntryTransaction tx, int destinationCount) {
+    protected ExecutingTransaction recordTx(DoubleEntryTransaction tx, int neededVotes) {
         final String txAsString;
         try {
             txAsString = objectMapper.writeValueAsString(tx);
@@ -344,7 +363,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 txAsString,
                 /* We voted yes. */
                 1,
-                destinationCount,
+                neededVotes,
                 true
             )
         );
@@ -394,12 +413,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         synchronized (transactionKey) {
             /* Needs to be synced due to he use of executeLocalPhase1. */
             txTemplate.executeWithoutResult(status -> {
-                final var complaints = executeLocalPhase1(tx);
-                if (!complaints.isEmpty()) {
-                    /* Doom the transaction. */
-                    status.setRollbackOnly();
-                    throw new TxLocalPartVotedNo(tx, complaints);
-                }
+                executeLocalPhase1(tx);
 
                 /* We voted yes. */
                 final var idempotenceKey = newIdempotenceKey();
@@ -439,8 +453,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             throw new IllegalArgumentException("Transaction is not fully in our bank");
 
         synchronized (transactionKey) {
-            final var complaints = executeLocalPhase1(tx);
-            if (!complaints.isEmpty()) throw new TxLocalPartVotedNo(tx, complaints);
+            executeLocalPhase1(tx);
 
             recordTx(tx, 1);
 
@@ -619,14 +632,15 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     public TransactionVote processNewTxMessage(Message.NewTx message) {
         return doIdempotentMessageHandling(message, TransactionVote.class, m -> {
             final var tx = message.message();
-            final var complaints = executeLocalPhase1(tx);
             final var ectx = recordTx(tx, 2);
-            if (complaints.isEmpty()) {
+            try {
+                executeLocalPhase1(tx);
                 return new TransactionVote.Yes();
+            } catch (TxLocalPartVotedNo reason) {
+                ectx.setVotesAreYes(false);
+                execTxRepo.save(ectx);
+                return new TransactionVote.No(reason.getReasons());
             }
-            ectx.setVotesAreYes(false);
-            execTxRepo.save(ectx);
-            return new TransactionVote.No(complaints);
         });
     }
 
