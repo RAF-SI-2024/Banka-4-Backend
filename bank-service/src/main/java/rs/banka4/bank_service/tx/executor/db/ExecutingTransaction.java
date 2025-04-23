@@ -27,5 +27,9 @@ public class ExecutingTransaction {
 
     private int votesCast;
     private int neededVotes;
+    /**
+     * Whether this transaction may ever commit. If you set this to false, you must also perform
+     * local rollback of the transaction (or, prevent transaction execution).
+     */
     private boolean votesAreYes;
 }
