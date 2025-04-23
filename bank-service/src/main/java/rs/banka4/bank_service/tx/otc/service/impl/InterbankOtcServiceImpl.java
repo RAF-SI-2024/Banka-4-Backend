@@ -222,7 +222,9 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
     @Override
     public OtcNegotiation sendGetOtcNegotiation(ForeignBankId id) {
         try {
-            var call = interbankRetrofit.sendGetOtcNegotiation(id.routingNumber(), id.id());
+            var call =
+                interbankRetrofit.get(id.routingNumber())
+                    .sendGetOtcNegotiation(id.routingNumber(), id.id());
             var response = call.execute();
             return response.body();
         } catch (IOException e) {
