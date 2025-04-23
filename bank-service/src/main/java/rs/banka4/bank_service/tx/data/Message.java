@@ -14,6 +14,8 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
     @JsonSubTypes.Type(value = Message.RollbackTx.class)
 })
 public sealed interface Message {
+    IdempotenceKey idempotenceKey();
+
     @JsonTypeName("NEW_TX")
     public record NewTx(
         IdempotenceKey idempotenceKey,
