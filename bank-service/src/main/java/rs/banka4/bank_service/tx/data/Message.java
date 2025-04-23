@@ -19,7 +19,7 @@ public sealed interface Message {
     @JsonTypeName("NEW_TX")
     public record NewTx(
         IdempotenceKey idempotenceKey,
-        Transaction message
+        DoubleEntryTransaction message
     ) implements Message {
     }
 

@@ -34,11 +34,11 @@ import rs.banka4.bank_service.repositories.AccountRepository;
 import rs.banka4.bank_service.tx.TxExecutor;
 import rs.banka4.bank_service.tx.TxUtils;
 import rs.banka4.bank_service.tx.config.InterbankConfig;
+import rs.banka4.bank_service.tx.data.DoubleEntryTransaction;
 import rs.banka4.bank_service.tx.data.IdempotenceKey;
 import rs.banka4.bank_service.tx.data.Message;
 import rs.banka4.bank_service.tx.data.MonetaryAsset;
 import rs.banka4.bank_service.tx.data.NoVoteReason;
-import rs.banka4.bank_service.tx.data.Transaction;
 import rs.banka4.bank_service.tx.data.TxAccount;
 import rs.banka4.bank_service.tx.data.TxAsset;
 import rs.banka4.bank_service.tx.errors.MessagePrepFailedException;
@@ -101,7 +101,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         return key;
     }
 
-    private Set<Long> collectAndValidateDestinations(Transaction tx) {
+    private Set<Long> collectAndValidateDestinations(DoubleEntryTransaction tx) {
         final var dests = TxUtils.collectDestinations(tx);
         final var validDests =
             interbankConfig.getRoutingTable()
@@ -133,7 +133,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      *          transaction roll back if the list is non-empty.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    private List<NoVoteReason> executeLocalPhase1(Transaction tx) {
+    private List<NoVoteReason> executeLocalPhase1(DoubleEntryTransaction tx) {
         if (!isTxBalanced(tx)) return List.of(new NoVoteReason.UnbalancedTx());
 
         final var noReasons = new ArrayList<NoVoteReason>();
@@ -208,7 +208,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      *          transaction roll back if the list is non-empty.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    private void executeLocalPhase2(Transaction tx) {
+    private void executeLocalPhase2(DoubleEntryTransaction tx) {
         for (final var posting : tx.postings()) {
             if (
                 posting.account()
@@ -286,7 +286,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
     /** Precondition: {@code tx} was voted YES locally. */
     @Transactional(propagation = Propagation.MANDATORY)
-    private ExecutingTransaction recordTx(Transaction tx, int destinationCount) {
+    private ExecutingTransaction recordTx(DoubleEntryTransaction tx, int destinationCount) {
         final String txAsString;
         try {
             txAsString = objectMapper.writeValueAsString(tx);
@@ -342,7 +342,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     }
 
     @Override
-    public ForeignBankId submitTx(final Transaction tx_) {
+    public ForeignBankId submitTx(final DoubleEntryTransaction tx_) {
         final var destinations = collectAndValidateDestinations(tx_);
         final var tx = tx_.withTransactionId(ForeignBankId.our(UUID.randomUUID()));
         if (!destinations.contains(ForeignBankId.OUR_ROUTING_NUMBER))
@@ -387,7 +387,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     @Transactional(
         /* does this make sense even? */ isolation = Isolation.SERIALIZABLE
     )
-    public ForeignBankId submitImmediateTx(final Transaction tx_) {
+    public ForeignBankId submitImmediateTx(final DoubleEntryTransaction tx_) {
         final var tx = tx_.withTransactionId(ForeignBankId.our(UUID.randomUUID()));
         final var destinations = collectAndValidateDestinations(tx);
         if (!destinations.contains(ForeignBankId.OUR_ROUTING_NUMBER))

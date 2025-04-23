@@ -1,7 +1,7 @@
 package rs.banka4.bank_service.tx;
 
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
-import rs.banka4.bank_service.tx.data.Transaction;
+import rs.banka4.bank_service.tx.data.DoubleEntryTransaction;
 
 /**
  * Given a 2EA formatted transaction (see section 2.8. Transactions
@@ -27,15 +27,15 @@ public interface TxExecutor {
      * @param txDesc Transaction to eventually execute. Its ID will be overwritten.
      * @return The ID of this transaction.
      */
-    ForeignBankId submitTx(Transaction txDesc);
+    ForeignBankId submitTx(DoubleEntryTransaction txDesc);
 
     /**
      * Executes a transaction that is fully local synchronously. Unlike
-     * {@link #submitTx(Transaction)}, the (database) transaction used is the callers' transaction,
-     * so rolling back will, in fact, roll back the effects of this function.
+     * {@link #submitTx(DoubleEntryTransaction)}, the (database) transaction used is the callers'
+     * transaction, so rolling back will, in fact, roll back the effects of this function.
      *
      * @param txDesc Transaction to immediately execute. Its ID will be overwritten.
      * @return The ID of this transaction.
      */
-    ForeignBankId submitImmediateTx(Transaction txDesc);
+    ForeignBankId submitImmediateTx(DoubleEntryTransaction txDesc);
 }
