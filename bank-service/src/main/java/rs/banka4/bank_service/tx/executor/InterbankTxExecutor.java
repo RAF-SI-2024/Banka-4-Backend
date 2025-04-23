@@ -5,6 +5,8 @@ import static rs.banka4.bank_service.tx.TxUtils.isTxBalanced;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -59,6 +61,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final OutboxRepository outboxRepo;
     private final ExecutingTransactionRepository execTxRepo;
     private final TaskScheduler taskScheduler;
+    private final EntityManager entityManager;
 
     /* Synchronization key for transaction execution. */
     private final Object transactionKey = new Object();
@@ -70,7 +73,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         AccountRepository accountRepo,
         OutboxRepository outboxRepo,
         ExecutingTransactionRepository execTxRepo,
-        TaskScheduler taskScheduler
+        TaskScheduler taskScheduler,
+        EntityManager entityManager
     ) {
         this.interbankConfig = config;
         this.txTemplate = new TransactionTemplate(transactionManager);
@@ -81,6 +85,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.outboxRepo = outboxRepo;
         this.execTxRepo = execTxRepo;
         this.taskScheduler = taskScheduler;
+        this.entityManager = entityManager;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -150,6 +155,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     continue;
                 }
                 final var acc = accMby.get();
+                entityManager.lock(acc, LockModeType.PESSIMISTIC_WRITE);
+                entityManager.refresh(acc);
 
                 if (
                     /* Monetary assets are the only kind depositable to accounts. */
@@ -217,6 +224,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 final var acc =
                     accountRepo.findAccountByAccountNumber(accNumber)
                         .orElseThrow(() -> new IllegalStateException("Invalid tx?"));
+                entityManager.lock(acc, LockModeType.PESSIMISTIC_WRITE);
+                entityManager.refresh(acc);
 
                 /* @formatter:off
                  * Note [Phase-by-phase balance changes]
