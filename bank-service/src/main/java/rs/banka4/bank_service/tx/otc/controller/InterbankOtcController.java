@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.tx.data.OtcNegotiation;
 import rs.banka4.bank_service.tx.data.OtcOffer;
 import rs.banka4.bank_service.tx.data.PublicStock;
 import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
@@ -35,5 +36,15 @@ public class InterbankOtcController {
         interbankOtcService.updateOtc(offer, new ForeignBankId(routingNumber, id));
         return ResponseEntity.ok()
             .build();
+    }
+
+    @GetMapping("/negotiations/{routingNumber}/{id}")
+    public ResponseEntity<OtcNegotiation> getNegotiation(
+        @PathVariable long routingNumber,
+        @PathVariable String id
+    ) {
+        return ResponseEntity.ok(
+            interbankOtcService.getOtcNegotiation(new ForeignBankId(routingNumber, id))
+        );
     }
 }

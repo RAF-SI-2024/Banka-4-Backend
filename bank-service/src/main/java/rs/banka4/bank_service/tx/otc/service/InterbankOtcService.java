@@ -2,6 +2,7 @@ package rs.banka4.bank_service.tx.otc.service;
 
 import java.util.List;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.tx.data.OtcNegotiation;
 import rs.banka4.bank_service.tx.data.OtcOffer;
 import rs.banka4.bank_service.tx.data.PublicStock;
 
@@ -17,4 +18,8 @@ public interface InterbankOtcService {
     void updateOtc(OtcOffer offer, ForeignBankId id);
 
     void sendUpdateOtc(OtcOffer offer, ForeignBankId id);
+
+    OtcNegotiation getOtcNegotiation(ForeignBankId id);
+
+    OtcNegotiation sendGetOtcNegotiation(ForeignBankId id);
 }

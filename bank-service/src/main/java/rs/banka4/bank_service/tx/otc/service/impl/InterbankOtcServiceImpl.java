@@ -17,6 +17,7 @@ import rs.banka4.bank_service.exceptions.WrongTurn;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
+import rs.banka4.bank_service.tx.data.*;
 import rs.banka4.bank_service.tx.data.OtcOffer;
 import rs.banka4.bank_service.tx.data.PublicStock;
 import rs.banka4.bank_service.tx.data.Seller;
@@ -200,6 +201,30 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
                     .sendUpdateOtc(offer, id.routingNumber(), id.id());
             var response = call.execute();
             if (!response.isSuccessful()) throw new WrongTurn();
+        } catch (IOException e) {
+            throw new RequestFailed();
+        }
+    }
+
+    @Override
+    public OtcNegotiation getOtcNegotiation(ForeignBankId id) {
+        var xd = otcRequestRepository.findById(id);
+        if (xd.isEmpty()) throw new OtcNotFoundException(id);
+
+        return InterbankOtcMapper.INSTANCE.toOtcNegotiation(
+            xd.get(),
+            xd.get()
+                .getStatus()
+                == RequestStatus.ACTIVE
+        );
+    }
+
+    @Override
+    public OtcNegotiation sendGetOtcNegotiation(ForeignBankId id) {
+        try {
+            var call = interbankRetrofit.sendGetOtcNegotiation(id.routingNumber(), id.id());
+            var response = call.execute();
+            return response.body();
         } catch (IOException e) {
             throw new RequestFailed();
         }
