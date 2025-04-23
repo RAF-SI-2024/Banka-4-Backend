@@ -123,7 +123,7 @@ public class AssetOwnershipServiceImpl implements AssetOwnershipService {
                 .orElseThrow(AssetNotFound::new);
         MonetaryAmount latestPrice = listingService.getLatestPriceForStock(stock.getId());
         for (var x : dto.sellers()) {
-            var userInfo = interbankOtcService.getUserInfo(x.seller());
+            var userInfo = interbankOtcService.sendGetUserInfo(x.seller());
             publicStocksDtos.add(
                 new PublicStocksDto(
                     SecurityType.STOCK,

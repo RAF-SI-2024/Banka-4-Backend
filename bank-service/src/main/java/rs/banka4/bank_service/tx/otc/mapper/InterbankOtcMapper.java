@@ -71,6 +71,32 @@ public interface InterbankOtcMapper {
     )
     OtcNegotiation toOtcNegotiation(OtcRequest otcRequest, boolean isOngoing);
 
+    @Mapping(
+        source = "pricePerStock",
+        target = "pricePerUnit"
+    )
+    @Mapping(
+        source = "madeBy",
+        target = "buyerId"
+    )
+    @Mapping(
+        source = "madeFor",
+        target = "sellerId"
+    )
+    @Mapping(
+        source = "modifiedBy",
+        target = "lastModifiedBy"
+    )
+    @Mapping(
+        target = "stock",
+        expression = "java(new StockDescription(otcRequest.getStock().getTicker()))"
+    )
+    @Mapping(
+        target = "settlementDate",
+        expression = "java(midnightSettlementDate(otcRequest))"
+    )
+    OtcOffer toOtcOffer(OtcRequest otcRequest);
+
     default OffsetDateTime midnightSettlementDate(OtcRequest otcRequest) {
         return OffsetDateTime.of(otcRequest.getSettlementDate(), LocalTime.of(0, 0), ZoneOffset.UTC)
             .plusDays(1);

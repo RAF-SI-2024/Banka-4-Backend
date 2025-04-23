@@ -2,7 +2,6 @@ package rs.banka4.bank_service.tx.otc.service.impl;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Service;
@@ -190,18 +189,10 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
     }
 
     @Override
-    public void sendUpdateOtc(OtcOffer offer, ForeignBankId id) {
-        final var otherBank =
-            Stream.of(offer.buyerId(), offer.sellerId())
-                .map(ForeignBankId::routingNumber)
-                .filter(x -> !x.equals(ForeignBankId.OUR_ROUTING_NUMBER))
-                .findFirst()
-                .orElseThrow(
-                    () -> new IllegalArgumentException("Calling sendUpdateOtc with a local offer")
-                );
+    public void sendUpdateOtc(OtcOffer offer, ForeignBankId id, long routingNumber) {
         try {
             var call =
-                interbankRetrofit.get(otherBank)
+                interbankRetrofit.get(routingNumber)
                     .sendUpdateOtc(offer, id.routingNumber(), id.id());
             var response = call.execute();
             if (!response.isSuccessful()) throw new WrongTurn();
@@ -246,10 +237,10 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
     }
 
     @Override
-    public void sendCloseNegotiation(ForeignBankId id) {
+    public void sendCloseNegotiation(ForeignBankId id, long routingNumber) {
         try {
             var call =
-                interbankRetrofit.get(id.routingNumber())
+                interbankRetrofit.get(routingNumber)
                     .closeNegotiation(id.routingNumber(), id.id());
             var response = call.execute();
             if (!response.isSuccessful()) throw new OtcNotFoundException(id);
@@ -273,13 +264,14 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
     }
 
     @Override
-    public void sendAcceptNegotiation(ForeignBankId id) {
+    public void sendAcceptNegotiation(ForeignBankId id, long routingNumber) {
         try {
-            for (var x : interbankRetrofit.getAll()) {
-                var call = x.acceptNegotiation(id.routingNumber(), id.id());
-                var response = call.execute();
-                if (!response.isSuccessful()) throw new OtcNotFoundException(id);
-            }
+            var call =
+                interbankRetrofit.get(routingNumber)
+                    .acceptNegotiation(id.routingNumber(), id.id());
+            var response = call.execute();
+            if (!response.isSuccessful()) throw new OtcNotFoundException(id);
+
 
         } catch (IOException e) {
             throw new RequestFailed();

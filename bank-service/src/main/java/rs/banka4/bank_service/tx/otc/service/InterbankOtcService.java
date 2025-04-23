@@ -18,7 +18,7 @@ public interface InterbankOtcService {
 
     void updateOtc(OtcOffer offer, ForeignBankId id);
 
-    void sendUpdateOtc(OtcOffer offer, ForeignBankId id);
+    void sendUpdateOtc(OtcOffer offer, ForeignBankId id, long routingNumber);
 
     OtcNegotiation getOtcNegotiation(ForeignBankId id);
 
@@ -26,11 +26,11 @@ public interface InterbankOtcService {
 
     void closeNegotiation(ForeignBankId id);
 
-    void sendCloseNegotiation(ForeignBankId id);
+    void sendCloseNegotiation(ForeignBankId id, long routingNumber);
 
     void acceptNegotiation(ForeignBankId id);
 
-    void sendAcceptNegotiation(ForeignBankId id);
+    void sendAcceptNegotiation(ForeignBankId id, long routingNumber);
 
     UserInformation getUserInfo(ForeignBankId id);
 

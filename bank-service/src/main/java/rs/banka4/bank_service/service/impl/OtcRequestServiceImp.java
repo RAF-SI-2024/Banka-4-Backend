@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import rs.banka4.bank_service.domain.assets.db.AssetOwnership;
 import rs.banka4.bank_service.domain.security.stock.db.Stock;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.domain.trading.db.OtcMapper;
@@ -14,15 +15,15 @@ import rs.banka4.bank_service.domain.trading.db.OtcRequest;
 import rs.banka4.bank_service.domain.trading.db.RequestStatus;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestCreateDto;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestUpdateDto;
-import rs.banka4.bank_service.exceptions.CantAcceptThisOffer;
-import rs.banka4.bank_service.exceptions.OtcNotFoundException;
-import rs.banka4.bank_service.exceptions.RequestFailed;
-import rs.banka4.bank_service.exceptions.StockOwnershipNotFound;
+import rs.banka4.bank_service.exceptions.*;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
+import rs.banka4.bank_service.repositories.StockRepository;
 import rs.banka4.bank_service.service.abstraction.AccountService;
 import rs.banka4.bank_service.service.abstraction.OtcRequestService;
 import rs.banka4.bank_service.service.abstraction.TradingService;
+import rs.banka4.bank_service.tx.otc.mapper.InterbankOtcMapper;
+import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.rafeisen.common.dto.AccountNumberDto;
 
@@ -34,6 +35,8 @@ public class OtcRequestServiceImp implements OtcRequestService {
     private final AssetOwnershipRepository assetOwnershipRepository;
     private final TradingService tradingService;
     private final AccountService accountService;
+    private final InterbankOtcService interbankOtcService;
+    private final StockRepository stockRepository;
 
     @Override
     public Page<OtcRequest> getMyRequests(Pageable pageable, UUID myId) {
@@ -56,6 +59,10 @@ public class OtcRequestServiceImp implements OtcRequestService {
         ) throw new RequestFailed();
         otc.setStatus(RequestStatus.REJECTED);
         otcRequestRepository.save(otc);
+        // send update to other bank
+        if (routingNumber(otc) != -1) {
+            interbankOtcService.sendCloseNegotiation(requestId, routingNumber(otc));
+        }
     }
 
     @Override
@@ -70,32 +77,50 @@ public class OtcRequestServiceImp implements OtcRequestService {
         var modBy = ForeignBankId.our(modifiedBy);
         otcMapper.update(otc, otcRequestUpdateDto, modBy);
         otcRequestRepository.save(otc);
+        // send update to other bank
+        if (routingNumber(otc) != -1) {
+            interbankOtcService.sendUpdateOtc(
+                InterbankOtcMapper.INSTANCE.toOtcOffer(otc),
+                id,
+                routingNumber(otc)
+            );
+        }
     }
 
     @Override
     public void createOtc(OtcRequestCreateDto otcRequestCreateDto, UUID idMy) {
-        var assetOwner =
-            assetOwnershipRepository.findByMyId(
-                otcRequestCreateDto.userId(),
-                otcRequestCreateDto.assetId()
-            )
-                .orElseThrow(
-                    () -> new StockOwnershipNotFound(
-                        otcRequestCreateDto.userId(),
-                        otcRequestCreateDto.assetId()
-                    )
-                );
-        if (assetOwner.getPublicAmount() < otcRequestCreateDto.amount()) throw new RequestFailed();
+        AssetOwnership assetOwner;
+        if (
+            otcRequestCreateDto.userId()
+                .routingNumber()
+                == ForeignBankId.OUR_ROUTING_NUMBER
+        ) {
+            assetOwner =
+                assetOwnershipRepository.findByMyId(
+                    UUID.fromString(
+                        otcRequestCreateDto.userId()
+                            .id()
+                    ),
+                    otcRequestCreateDto.assetId()
+                )
+                    .orElseThrow(
+                        () -> new StockOwnershipNotFound(
+                            UUID.fromString(
+                                otcRequestCreateDto.userId()
+                                    .id()
+                            ),
+                            otcRequestCreateDto.assetId()
+                        )
+                    );
+            if (assetOwner.getPublicAmount() < otcRequestCreateDto.amount())
+                throw new RequestFailed();
+        }
+
         var me = ForeignBankId.our(idMy);
-        var madeFor =
-            ForeignBankId.our(
-                assetOwner.getId()
-                    .getUser()
-                    .getId()
-            );
-        var stock =
-            (Stock) assetOwner.getId()
-                .getAsset();
+        var madeFor = otcRequestCreateDto.userId();
+        Stock stock =
+            stockRepository.findById(otcRequestCreateDto.assetId())
+                .orElseThrow(AssetNotFound::new);
         var newOtc =
             otcMapper.toOtcRequest(
                 otcRequestCreateDto,
@@ -106,6 +131,8 @@ public class OtcRequestServiceImp implements OtcRequestService {
                 stock
             );
         otcRequestRepository.save(newOtc);
+        if (madeFor.routingNumber() != ForeignBankId.OUR_ROUTING_NUMBER)
+            interbankOtcService.sendCreateOtc(InterbankOtcMapper.INSTANCE.toOtcOffer(newOtc));
     }
 
     @Override
@@ -154,6 +181,10 @@ public class OtcRequestServiceImp implements OtcRequestService {
                         null
                     );
                 tradingService.sendPremiumAndGetOption(buyerAccount, sellerAccount, otc);
+                // send update to other bank
+                if (routingNumber(otc) != -1) {
+                    interbankOtcService.sendAcceptNegotiation(requestId, routingNumber(otc));
+                }
             } else {
                 throw new CantAcceptThisOffer("Other side has to accept the offer", userId);
             }
@@ -198,5 +229,23 @@ public class OtcRequestServiceImp implements OtcRequestService {
             // TODO replace with no right account exception
             throw new RequestFailed();
         }
+    }
+
+    private long routingNumber(OtcRequest otcRequest) {
+        if (
+            otcRequest.getMadeBy()
+                .routingNumber()
+                != ForeignBankId.OUR_ROUTING_NUMBER
+        )
+            return otcRequest.getMadeBy()
+                .routingNumber();
+        if (
+            otcRequest.getMadeFor()
+                .routingNumber()
+                != ForeignBankId.OUR_ROUTING_NUMBER
+        )
+            return otcRequest.getMadeFor()
+                .routingNumber();
+        return -1;
     }
 }
