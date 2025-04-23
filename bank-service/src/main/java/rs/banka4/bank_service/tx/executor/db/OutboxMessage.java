@@ -8,7 +8,6 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import rs.banka4.bank_service.tx.data.IdempotenceKey;
 
 @Data
 @Entity
@@ -17,10 +16,7 @@ import rs.banka4.bank_service.tx.data.IdempotenceKey;
 @NoArgsConstructor
 public class OutboxMessage {
     @EmbeddedId
-    private IdempotenceKey messageKey;
-
-    /** Which routing # to send this message to? */
-    private Long destination;
+    private OutboxMessageId messageKey;
 
     @Column(
         nullable = false,

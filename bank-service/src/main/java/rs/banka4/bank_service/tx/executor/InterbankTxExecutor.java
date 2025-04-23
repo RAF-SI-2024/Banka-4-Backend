@@ -7,12 +7,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
@@ -34,19 +37,26 @@ import rs.banka4.bank_service.repositories.AccountRepository;
 import rs.banka4.bank_service.tx.TxExecutor;
 import rs.banka4.bank_service.tx.TxUtils;
 import rs.banka4.bank_service.tx.config.InterbankConfig;
+import rs.banka4.bank_service.tx.data.CommitTransaction;
 import rs.banka4.bank_service.tx.data.DoubleEntryTransaction;
 import rs.banka4.bank_service.tx.data.IdempotenceKey;
 import rs.banka4.bank_service.tx.data.Message;
 import rs.banka4.bank_service.tx.data.MonetaryAsset;
 import rs.banka4.bank_service.tx.data.NoVoteReason;
+import rs.banka4.bank_service.tx.data.RollbackTransaction;
+import rs.banka4.bank_service.tx.data.TransactionVote;
 import rs.banka4.bank_service.tx.data.TxAccount;
 import rs.banka4.bank_service.tx.data.TxAsset;
 import rs.banka4.bank_service.tx.errors.MessagePrepFailedException;
 import rs.banka4.bank_service.tx.errors.TxLocalPartVotedNo;
 import rs.banka4.bank_service.tx.executor.db.ExecutingTransaction;
 import rs.banka4.bank_service.tx.executor.db.ExecutingTransactionRepository;
+import rs.banka4.bank_service.tx.executor.db.InboxMessage;
+import rs.banka4.bank_service.tx.executor.db.InboxRepository;
 import rs.banka4.bank_service.tx.executor.db.OutboxMessage;
+import rs.banka4.bank_service.tx.executor.db.OutboxMessageId;
 import rs.banka4.bank_service.tx.executor.db.OutboxRepository;
+import rs.banka4.bank_service.tx.otc.config.InterbankRetrofitProvider;
 
 /**
  * A transaction executor capable of delivering transactions across banks.
@@ -62,6 +72,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final ExecutingTransactionRepository execTxRepo;
     private final TaskScheduler taskScheduler;
     private final EntityManager entityManager;
+    private final InterbankRetrofitProvider interbanks;
+    private final InboxRepository inboxRepo;
 
     /* Synchronization key for transaction execution. */
     private final Object transactionKey = new Object();
@@ -74,7 +86,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         OutboxRepository outboxRepo,
         ExecutingTransactionRepository execTxRepo,
         TaskScheduler taskScheduler,
-        EntityManager entityManager
+        EntityManager entityManager,
+        InterbankRetrofitProvider interbanks,
+        InboxRepository inboxRepo
     ) {
         this.interbankConfig = config;
         this.txTemplate = new TransactionTemplate(transactionManager);
@@ -86,10 +100,12 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.execTxRepo = execTxRepo;
         this.taskScheduler = taskScheduler;
         this.entityManager = entityManager;
+        this.interbanks = interbanks;
+        this.inboxRepo = inboxRepo;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    protected final IdempotenceKey newIdempotenceKey() {
+    protected IdempotenceKey newIdempotenceKey() {
         final var key =
             new IdempotenceKey(
                 ForeignBankId.OUR_ROUTING_NUMBER,
@@ -189,6 +205,34 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         }
 
         return noReasons;
+    }
+
+    /**
+     * Roll back phase one of local transaction execution:
+     *
+     * <blockquote>
+     * <p>
+     * Should a transaction fail after it has been
+     * <a href="https://arsen.srht.site/si-tx-proto/#orga35c5c5">locally prepared</a>, it can be
+     * rolled back by un-reserving all resources reserved by local credit postings in the original
+     * transaction. The transaction should also be marked as failed in the transaction log.
+     * </p>
+     *
+     * <p>
+     * It is impossible for a transaction to be rolled back after a
+     * <a href="https://arsen.srht.site/si-tx-proto/#org09040a6">local commit</a>.
+     * </p>
+     * </blockquote>
+     *
+     * <p>
+     * Caller should hold {@link #transactionKey}.
+     *
+     * @returns A list of reasons not to accept a transaction. The caller is expected to make the
+     *          transaction roll back if the list is non-empty.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    protected void rollbackLocalPhase1(DoubleEntryTransaction tx) {
+        throw new NotImplementedException();
     }
 
     /**
@@ -328,8 +372,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             didSend = true;
             outboxRepo.save(
                 new OutboxMessage(
-                    message.idempotenceKey(),
-                    dest,
+                    new OutboxMessageId(message.idempotenceKey(), dest),
                     messageAsString,
                     false,
                     Instant.MIN
@@ -408,28 +451,118 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     }
 
     /* =============================== Inter-bank processing. =============================== */
+
+    /* Synchronization key for the outbox. We don't want multiple outboxings at once. */
+    private final Object messageSendKey = new Object();
+
     @Async("txExecutorPool")
     private void processOutbox() {
-        final List<Pair<Long, String>> toResend;
-        synchronized (transactionKey) {
-            final var lastSendInstant =
-                Instant.now()
-                    .minus(interbankConfig.getResendDuration());
-            toResend = txTemplate.execute(new TransactionCallback<List<Pair<Long, String>>>() {
-                @Override
-                public List<Pair<Long, String>> doInTransaction(TransactionStatus status) {
-                    final var messages = outboxRepo.findAllSentBefore(lastSendInstant);
-                    messages.forEach(m -> m.setLastSendTime(lastSendInstant));
-                    outboxRepo.saveAll(messages);
-                    return messages.stream()
-                        .map(m -> Pair.of(m.getDestination(), m.getMessageBody()))
-                        .toList();
+        synchronized (messageSendKey) {
+            final List<Pair<OutboxMessageId, String>> toResend;
+            synchronized (transactionKey) {
+                final var lastSendInstant =
+                    Instant.now()
+                        .minus(interbankConfig.getResendDuration());
+                toResend =
+                    txTemplate.execute(
+                        new TransactionCallback<List<Pair<OutboxMessageId, String>>>() {
+                            @Override
+                            public List<Pair<OutboxMessageId, String>> doInTransaction(
+                                TransactionStatus status
+                            ) {
+                                final var messages = outboxRepo.findAllSentBefore(lastSendInstant);
+                                messages.forEach(m -> m.setLastSendTime(lastSendInstant));
+                                outboxRepo.saveAll(messages);
+                                return messages.stream()
+                                    .map(m -> Pair.of(m.getMessageKey(), m.getMessageBody()))
+                                    .toList();
+                            }
+                        }
+                    );
+            }
+
+            log.debug("need to resend {}", toResend);
+            for (final var msg : toResend) {
+                try {
+                    final var message = objectMapper.readValue(msg.getRight(), Message.class);
+                    sendStoredMessage(msg.getLeft(), message);
+                } catch (IOException e) {
+                    log.error("cannot deliver message {}: {}", msg, e);
                 }
-            });
+            }
+        }
+    }
+
+    private void sendStoredMessage(OutboxMessageId msgId, Message particularMessage)
+        throws IOException {
+        final var remote = interbanks.get(msgId.destination());
+        final var response = (switch (particularMessage) {
+        case Message.NewTx newTx -> remote.sendNewTx(newTx);
+        case Message.CommitTx commitTx -> remote.sendCommit(commitTx);
+        case Message.RollbackTx rollbackTx -> remote.sendRollback(rollbackTx);
+        }).execute();
+
+        if (response.code() == 202) {
+            /* No response yet. The DB was already updated with the next resend time. */
+            return;
         }
 
-        /* TODO(arsen): deliver toResend. */
-        log.debug("need to resend {}", toResend);
+        if (!response.isSuccessful()) {
+            /* Didn't manage to deliver. */
+            log.error("Failed to deliver message {}: {}", msgId, response);
+            return;
+        }
+
+        txTemplate.executeWithoutResult(status -> {
+            if (response.body() instanceof TransactionVote txVote) {
+                processVote(((Message.NewTx) particularMessage).message(), txVote);
+            }
+            outboxRepo.markAsDelivered(msgId);
+        });
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    protected void processVote(DoubleEntryTransaction tx, TransactionVote txVote) {
+        final var ongoingTx =
+            execTxRepo.findAndLockTx(tx.transactionId())
+                .orElseThrow(() -> new IllegalStateException("tx we sent vanished?"));
+
+        ongoingTx.setVotesCast(ongoingTx.getVotesCast() + 1);
+
+        if (txVote instanceof TransactionVote.No noVote) {
+            /* This party voted no. */
+            ongoingTx.setVotesAreYes(false);
+            /* TODO(arsen): process reason */
+            log.error("tx {} failed to execute due to {}", tx, noVote);
+        }
+
+        /*
+         * If we just received the last vote, we should queue out the commits and rollbacks, as well
+         * as perform our part of the commit.
+         */
+
+        if (ongoingTx.getNeededVotes() == ongoingTx.getVotesCast()) {
+            if (ongoingTx.isVotesAreYes()) {
+                /* Success. */
+                executeLocalPhase2(tx);
+                final var idempotenceKey = newIdempotenceKey();
+                queueOutgoingMessage(
+                    new Message.CommitTx(idempotenceKey, new CommitTransaction(tx.transactionId())),
+                    collectAndValidateDestinations(tx)
+                );
+            } else {
+                /* Someone said no. Roll back everyone. */
+                final var idempotenceKey = newIdempotenceKey();
+                rollbackLocalPhase1(tx);
+                queueOutgoingMessage(
+                    new Message.RollbackTx(
+                        idempotenceKey,
+                        new RollbackTransaction(tx.transactionId())
+                    ),
+                    collectAndValidateDestinations(tx)
+                );
+            }
+        }
     }
 
     @Override
@@ -440,5 +573,93 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             interbankConfig.getResendDuration()
                 .dividedBy(2)
         );
+    }
+
+    /* Message reception. */
+    protected <T, M extends Message> T doIdempotentMessageHandling(
+        M msg,
+        Class<T> responseType,
+        Function<M, T> handler
+    ) {
+        final var idemKey = msg.idempotenceKey();
+        final var isVoid = responseType.equals(Void.TYPE);
+        synchronized (transactionKey) {
+            return txTemplate.execute(new TransactionCallback<T>() {
+                @Override
+                @SneakyThrows
+                public T doInTransaction(TransactionStatus status) {
+                    final var prevMsg = inboxRepo.findAndLock(idemKey);
+                    if (prevMsg.isPresent()) {
+                        /* Previously-handled message. */
+                        final var oldResp =
+                            prevMsg.get()
+                                .getResponseBody();
+                        assert isVoid == (oldResp == null)
+                               : "Body must be null iff response type is void";
+
+                        if (isVoid)
+                            /* It's void - simple case. */
+                            return null;
+                        return objectMapper.readValue(oldResp, responseType);
+                    } else {
+                        final var resp = handler.apply(msg);
+                        inboxRepo.save(
+                            new InboxMessage(
+                                idemKey,
+                                isVoid ? null : objectMapper.writeValueAsString(resp)
+                            )
+                        );
+                        return resp;
+                    }
+                }
+            });
+        }
+    }
+
+    public TransactionVote processNewTxMessage(Message.NewTx message) {
+        return doIdempotentMessageHandling(message, TransactionVote.class, m -> {
+            final var tx = message.message();
+            final var complaints = executeLocalPhase1(tx);
+            if (complaints.isEmpty()) {
+                recordTx(tx, 2);
+                return new TransactionVote.Yes();
+            }
+            return new TransactionVote.No(complaints);
+        });
+    }
+
+    public void processCommitOrRollbackMessage(Message message) {
+        final var isCommit = switch (message) {
+        case Message.CommitTx ignored -> true;
+        case Message.RollbackTx ignored -> false;
+        default -> throw new IllegalArgumentException();
+        };
+        final var txId = switch (message) {
+        /* @formatter:off */
+        case Message.CommitTx m -> m.message().transactionId();
+        case Message.RollbackTx m -> m.message().transactionId();
+        default -> throw new AssertionError("unreachable, but javac is being a silly billy :(");
+        /* @formatter:on */
+        };
+        doIdempotentMessageHandling(message, TransactionVote.class, m -> {
+            final var tx =
+                execTxRepo.findById(txId)
+                    .orElseThrow(() -> new IllegalStateException("Invalid tx?"));
+            try {
+                final var fullTx =
+                    objectMapper.readValue(tx.getTxObject(), DoubleEntryTransaction.class);
+
+                if (isCommit) executeLocalPhase2(fullTx);
+                else rollbackLocalPhase1(fullTx);
+
+                assert tx.isVotesAreYes() : "Double-rollback?";
+                tx.setVotesCast(tx.getNeededVotes());
+                tx.setVotesAreYes(isCommit);
+                execTxRepo.save(tx);
+                return null;
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException("invalid TX was persisted?", e);
+            }
+        });
     }
 }

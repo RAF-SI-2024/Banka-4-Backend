@@ -6,12 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.tx.data.IdempotenceKey;
 
 @Repository
-public interface ExecutingTransactionRepository extends
-    JpaRepository<ExecutingTransaction, ForeignBankId> {
-    @Query("SELECT o FROM ExecutingTransaction o WHERE o.id = :id")
+public interface InboxRepository extends JpaRepository<InboxMessage, IdempotenceKey> {
+    @Query("SELECT im FROM InboxMessage im WHERE im.id = :id")
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<ExecutingTransaction> findAndLockTx(ForeignBankId id);
+    Optional<InboxMessage> findAndLock(IdempotenceKey id);
 }
