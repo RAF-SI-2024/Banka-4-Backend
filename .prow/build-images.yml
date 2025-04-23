@@ -23,6 +23,7 @@ postsubmits:
       - ^main$
     labels:
       preset-harbor-robot-push: "true"
+      preset-k8s-banka-4: "true"
     spec:
       containers:
         - image: harbor.k8s.elab.rs/base-images/base:java-21-node-18-docker
@@ -32,7 +33,17 @@ postsubmits:
             - |
               start-docker.sh
               docker login -u "$HARBOR_USERNAME" -p "$HARBOR_PASSWORD" harbor.k8s.elab.rs
+              export version="$(git rev-parse HEAD)"
               docker/build-prod-images.sh "I pity the anyone, k8s and co. included, not using the GPL"
+
+              # Do deployment
+              helm upgrade \
+                   --atomic \
+                   --timeout=1h \
+                   --namespace=banka-4 \
+                   --set imageTag="${version}" \
+                   banka-4-backend \
+                   oci://harbor.k8s.elab.rs/banka-4/helm/backend
           securityContext:
             privileged: true
           imagePullPolicy: Always
