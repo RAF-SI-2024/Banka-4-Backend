@@ -300,6 +300,15 @@ public class LoanServiceImpl implements LoanService {
                 .add(loanAmount)
         );
 
+        bankAccount.setAvailableBalance(
+            bankAccount.getAvailableBalance()
+                .subtract(loanAmount)
+        );
+        userAccount.setAvailableBalance(
+            userAccount.getAvailableBalance()
+                .add(loanAmount)
+        );
+
         accountRepository.save(bankAccount);
         accountRepository.save(userAccount);
 
