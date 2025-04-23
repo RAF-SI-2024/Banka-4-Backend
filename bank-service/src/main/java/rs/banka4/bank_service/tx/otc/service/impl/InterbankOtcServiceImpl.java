@@ -2,6 +2,7 @@ package rs.banka4.bank_service.tx.otc.service.impl;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import retrofit2.Response;
@@ -20,7 +21,7 @@ import rs.banka4.bank_service.tx.data.OtcOffer;
 import rs.banka4.bank_service.tx.data.PublicStock;
 import rs.banka4.bank_service.tx.data.Seller;
 import rs.banka4.bank_service.tx.data.StockDescription;
-import rs.banka4.bank_service.tx.otc.config.InterbankService;
+import rs.banka4.bank_service.tx.otc.config.InterbankRetrofitProvider;
 import rs.banka4.bank_service.tx.otc.mapper.InterbankOtcMapper;
 import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
 
@@ -28,7 +29,7 @@ import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
 @RequiredArgsConstructor
 public class InterbankOtcServiceImpl implements InterbankOtcService {
     private final AssetOwnershipRepository assetOwnershipRepository;
-    private final InterbankService interbankRetrofit;
+    private final InterbankRetrofitProvider interbankRetrofit;
     private final StockRepository stockRepository;
     private final OtcRequestRepository otcRequestRepository;
 
@@ -101,13 +102,19 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
 
     @Override
     public List<PublicStock> fetchPublicStocks() {
-        try {
-            var call = interbankRetrofit.getPublicStocks();
-            Response<List<PublicStock>> response = call.execute();
-            return response.body();
-        } catch (IOException e) {
-            throw new RequestFailed();
-        }
+        return interbankRetrofit.getAll()
+            .stream()
+            .flatMap(interbank -> {
+                try {
+                    var call = interbank.getPublicStocks();
+                    Response<List<PublicStock>> response = call.execute();
+                    return response.body()
+                        .stream();
+                } catch (IOException e) {
+                    throw new RequestFailed();
+                }
+            })
+            .toList();
     }
 
     @Override
@@ -137,7 +144,12 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
     @Override
     public void sendCreateOtc(OtcOffer offer) {
         try {
-            var call = interbankRetrofit.sendCreateOtc(offer);
+            var call =
+                interbankRetrofit.get(
+                    offer.sellerId()
+                        .routingNumber()
+                )
+                    .sendCreateOtc(offer);
             Response<ForeignBankId> response = call.execute();
             ForeignBankId id = response.body();
 
@@ -174,8 +186,18 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
 
     @Override
     public void sendUpdateOtc(OtcOffer offer, ForeignBankId id) {
+        final var otherBank =
+            Stream.of(offer.buyerId(), offer.sellerId())
+                .map(ForeignBankId::routingNumber)
+                .filter(x -> !x.equals(ForeignBankId.OUR_ROUTING_NUMBER))
+                .findFirst()
+                .orElseThrow(
+                    () -> new IllegalArgumentException("Calling sendUpdateOtc with a local offer")
+                );
         try {
-            var call = interbankRetrofit.sendUpdateOtc(offer, id.routingNumber(), id.id());
+            var call =
+                interbankRetrofit.get(otherBank)
+                    .sendUpdateOtc(offer, id.routingNumber(), id.id());
             var response = call.execute();
             if (!response.isSuccessful()) throw new WrongTurn();
         } catch (IOException e) {
