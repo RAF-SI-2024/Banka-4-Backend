@@ -22,4 +22,8 @@ public interface InterbankOtcService {
     OtcNegotiation getOtcNegotiation(ForeignBankId id);
 
     OtcNegotiation sendGetOtcNegotiation(ForeignBankId id);
+
+    void closeNegotiation(ForeignBankId id);
+
+    void sendCloseNegotiation(ForeignBankId id);
 }

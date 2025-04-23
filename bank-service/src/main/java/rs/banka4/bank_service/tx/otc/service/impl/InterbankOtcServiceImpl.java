@@ -231,4 +231,26 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
             throw new RequestFailed();
         }
     }
+
+    @Override
+    public void closeNegotiation(ForeignBankId id) {
+        var xd = otcRequestRepository.findById(id);
+        if (xd.isEmpty()) throw new OtcNotFoundException(id);
+        var otc = xd.get();
+        otc.setStatus(RequestStatus.REJECTED);
+        otcRequestRepository.save(xd.get());
+    }
+
+    @Override
+    public void sendCloseNegotiation(ForeignBankId id) {
+        try {
+            var call =
+                interbankRetrofit.get(id.routingNumber())
+                    .closeNegotiation(id.routingNumber(), id.id());
+            var response = call.execute();
+            if (!response.isSuccessful()) throw new OtcNotFoundException(id);
+        } catch (IOException e) {
+            throw new RequestFailed();
+        }
+    }
 }

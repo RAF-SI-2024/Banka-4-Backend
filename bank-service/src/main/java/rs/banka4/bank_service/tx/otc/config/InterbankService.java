@@ -38,4 +38,7 @@ public interface InterbankService {
 
     @POST("/interbank")
     Call<Void> sendRollback(@Body Message.RollbackTx rollbackTx);
+
+    @DELETE("/negotiations/{routingNumber}/{id}")
+    Call<Void> closeNegotiation(@Path("routingNumber") long routingNumber, @Path("id") String id);
 }

@@ -47,4 +47,14 @@ public class InterbankOtcController {
             interbankOtcService.getOtcNegotiation(new ForeignBankId(routingNumber, id))
         );
     }
+
+    @DeleteMapping("/negotiations/{routingNumber}/{id}")
+    public ResponseEntity<OtcNegotiation> closeNegotiation(
+        @PathVariable long routingNumber,
+        @PathVariable String id
+    ) {
+        interbankOtcService.closeNegotiation(new ForeignBankId(routingNumber, id));
+        return ResponseEntity.ok()
+            .build();
+    }
 }
