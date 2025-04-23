@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
 @EnableScheduling
@@ -14,6 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 )
 @EnableConfigurationProperties
 @ConfigurationPropertiesScan
+@EnableTransactionManagement
 public class BankServiceApplication {
 
     public static void main(String[] args) {
