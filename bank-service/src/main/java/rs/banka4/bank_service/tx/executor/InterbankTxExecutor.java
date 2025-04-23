@@ -89,7 +89,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    private final IdempotenceKey newIdempotenceKey() {
+    protected final IdempotenceKey newIdempotenceKey() {
         final var key =
             new IdempotenceKey(
                 ForeignBankId.OUR_ROUTING_NUMBER,
@@ -133,7 +133,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      *          transaction roll back if the list is non-empty.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    private List<NoVoteReason> executeLocalPhase1(DoubleEntryTransaction tx) {
+    protected List<NoVoteReason> executeLocalPhase1(DoubleEntryTransaction tx) {
         if (!isTxBalanced(tx)) return List.of(new NoVoteReason.UnbalancedTx());
 
         final var noReasons = new ArrayList<NoVoteReason>();
@@ -208,7 +208,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      *          transaction roll back if the list is non-empty.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    private void executeLocalPhase2(DoubleEntryTransaction tx) {
+    protected void executeLocalPhase2(DoubleEntryTransaction tx) {
         for (final var posting : tx.postings()) {
             if (
                 posting.account()
@@ -286,7 +286,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
     /** Precondition: {@code tx} was voted YES locally. */
     @Transactional(propagation = Propagation.MANDATORY)
-    private ExecutingTransaction recordTx(DoubleEntryTransaction tx, int destinationCount) {
+    protected ExecutingTransaction recordTx(DoubleEntryTransaction tx, int destinationCount) {
         final String txAsString;
         try {
             txAsString = objectMapper.writeValueAsString(tx);
@@ -314,7 +314,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      * must not be only our bank.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    private void queueOutgoingMessage(Message message, Set<Long> destinations) {
+    protected void queueOutgoingMessage(Message message, Set<Long> destinations) {
         final String messageAsString;
         try {
             messageAsString = objectMapper.writeValueAsString(message);
