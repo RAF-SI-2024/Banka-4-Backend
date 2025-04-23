@@ -73,3 +73,8 @@ configurations {
 		)
 	}
 }
+
+/* PLEASE */
+tasks.withType<Test> {
+	enableAssertions = true
+}
