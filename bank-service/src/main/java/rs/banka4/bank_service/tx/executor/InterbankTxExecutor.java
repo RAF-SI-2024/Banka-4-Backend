@@ -620,10 +620,12 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         return doIdempotentMessageHandling(message, TransactionVote.class, m -> {
             final var tx = message.message();
             final var complaints = executeLocalPhase1(tx);
+            final var ectx = recordTx(tx, 2);
             if (complaints.isEmpty()) {
-                recordTx(tx, 2);
                 return new TransactionVote.Yes();
             }
+            ectx.setVotesAreYes(false);
+            execTxRepo.save(ectx);
             return new TransactionVote.No(complaints);
         });
     }
@@ -650,9 +652,11 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     objectMapper.readValue(tx.getTxObject(), DoubleEntryTransaction.class);
 
                 if (isCommit) executeLocalPhase2(fullTx);
-                else rollbackLocalPhase1(fullTx);
+                else if (tx.isVotesAreYes()) rollbackLocalPhase1(fullTx);
 
-                assert tx.isVotesAreYes() : "Double-rollback?";
+                assert tx.isVotesAreYes() || !isCommit
+                       : "Votes-are-no -> Votes-are-yes edge invalid";
+
                 tx.setVotesCast(tx.getNeededVotes());
                 tx.setVotesAreYes(isCommit);
                 execTxRepo.save(tx);
