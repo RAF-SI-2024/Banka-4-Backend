@@ -22,4 +22,9 @@ public class AssetOwnership {
 
     @Column(nullable = false)
     private int reservedAmount;
+
+    public String getTicker() {
+        return getId().getAsset()
+            .getTicker();
+    }
 }
