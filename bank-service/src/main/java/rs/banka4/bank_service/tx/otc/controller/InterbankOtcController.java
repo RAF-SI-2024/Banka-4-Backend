@@ -3,9 +3,9 @@ package rs.banka4.bank_service.tx.otc.controller;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.tx.data.OtcOffer;
 import rs.banka4.bank_service.tx.data.PublicStock;
 import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
 
@@ -19,5 +19,10 @@ public class InterbankOtcController {
     @GetMapping("/public-stock")
     public ResponseEntity<List<PublicStock>> sendPublicStocks() {
         return ResponseEntity.ok(interbankOtcService.sendPublicStocks());
+    }
+
+    @PostMapping("/negotiations")
+    public ResponseEntity<ForeignBankId> createOtc(@RequestBody OtcOffer offer) {
+        return ResponseEntity.ok(interbankOtcService.createOtc(offer));
     }
 }

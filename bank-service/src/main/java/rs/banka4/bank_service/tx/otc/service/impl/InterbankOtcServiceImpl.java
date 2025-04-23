@@ -7,12 +7,19 @@ import org.springframework.stereotype.Service;
 import retrofit2.Response;
 import rs.banka4.bank_service.domain.assets.db.AssetOwnership;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.domain.trading.db.OtcRequest;
+import rs.banka4.bank_service.domain.trading.db.RequestStatus;
+import rs.banka4.bank_service.exceptions.AssetNotFound;
 import rs.banka4.bank_service.exceptions.RequestFailed;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
+import rs.banka4.bank_service.repositories.OtcRequestRepository;
+import rs.banka4.bank_service.repositories.StockRepository;
+import rs.banka4.bank_service.tx.data.OtcOffer;
 import rs.banka4.bank_service.tx.data.PublicStock;
 import rs.banka4.bank_service.tx.data.Seller;
 import rs.banka4.bank_service.tx.data.StockDescription;
 import rs.banka4.bank_service.tx.otc.config.InterbankService;
+import rs.banka4.bank_service.tx.otc.mapper.InterbankOtcMapper;
 import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
 
 @Service
@@ -20,6 +27,8 @@ import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
 public class InterbankOtcServiceImpl implements InterbankOtcService {
     private final AssetOwnershipRepository assetOwnershipRepository;
     private final InterbankService interbankRetrofit;
+    private final StockRepository stockRepository;
+    private final OtcRequestRepository otcRequestRepository;
 
     /**
      * Fetches all asset ownership from our bank, filters only ones that have publicAmount > 0 and
@@ -94,6 +103,55 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
             var call = interbankRetrofit.getPublicStocks();
             Response<List<PublicStock>> response = call.execute();
             return response.body();
+        } catch (IOException e) {
+            throw new RequestFailed();
+        }
+    }
+
+    @Override
+    public ForeignBankId createOtc(OtcOffer offer) {
+        var stock =
+            stockRepository.findByTicker(
+                offer.stock()
+                    .ticker()
+            );
+        if (stock.isEmpty()) {
+            throw new AssetNotFound();
+        }
+        OtcRequest otcRequest = InterbankOtcMapper.INSTANCE.toOtcRequest(offer);
+        ForeignBankId id =
+            new ForeignBankId(
+                ForeignBankId.OUR_ROUTING_NUMBER,
+                UUID.randomUUID()
+                    .toString()
+            );
+        otcRequest.setId(id);
+        otcRequest.setStatus(RequestStatus.ACTIVE);
+        otcRequest.setStock(stock.get());
+        otcRequestRepository.save(otcRequest);
+        return id;
+    }
+
+    @Override
+    public void sendCreateOtc(OtcOffer offer) {
+        try {
+            var call = interbankRetrofit.sendCreateOtc(offer);
+            Response<ForeignBankId> response = call.execute();
+            ForeignBankId id = response.body();
+
+            var stock =
+                stockRepository.findByTicker(
+                    offer.stock()
+                        .ticker()
+                );
+            if (stock.isEmpty()) {
+                throw new AssetNotFound();
+            }
+            OtcRequest otcRequest = InterbankOtcMapper.INSTANCE.toOtcRequest(offer);
+            otcRequest.setId(id);
+            otcRequest.setStatus(RequestStatus.ACTIVE);
+            otcRequest.setStock(stock.get());
+            otcRequestRepository.save(otcRequest);
         } catch (IOException e) {
             throw new RequestFailed();
         }

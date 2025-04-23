@@ -8,6 +8,7 @@ public record OtcOffer(
     StockDescription stock,
     OffsetDateTime settlementDate,
     MonetaryAmount pricePerUnit,
+    MonetaryAmount premium,
     ForeignBankId buyerId,
     ForeignBankId sellerId,
     int amount,
