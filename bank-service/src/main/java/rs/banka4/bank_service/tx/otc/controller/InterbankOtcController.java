@@ -8,6 +8,7 @@ import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.tx.data.OtcNegotiation;
 import rs.banka4.bank_service.tx.data.OtcOffer;
 import rs.banka4.bank_service.tx.data.PublicStock;
+import rs.banka4.bank_service.tx.data.UserInformation;
 import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
 
 @RestController
@@ -66,5 +67,15 @@ public class InterbankOtcController {
         interbankOtcService.acceptNegotiation(new ForeignBankId(routingNumber, id));
         return ResponseEntity.ok()
             .build();
+    }
+
+    @GetMapping("/user/{routingNumber}/{id}")
+    public ResponseEntity<UserInformation> getUserInfo(
+        @PathVariable long routingNumber,
+        @PathVariable String id
+    ) {
+        return ResponseEntity.ok(
+            interbankOtcService.getUserInfo(new ForeignBankId(routingNumber, id))
+        );
     }
 }

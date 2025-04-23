@@ -15,9 +15,11 @@ import rs.banka4.bank_service.exceptions.AssetNotFound;
 import rs.banka4.bank_service.exceptions.OtcNotFoundException;
 import rs.banka4.bank_service.exceptions.RequestFailed;
 import rs.banka4.bank_service.exceptions.WrongTurn;
+import rs.banka4.bank_service.exceptions.user.UserNotFound;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
+import rs.banka4.bank_service.repositories.UserRepository;
 import rs.banka4.bank_service.tx.data.*;
 import rs.banka4.bank_service.tx.data.OtcOffer;
 import rs.banka4.bank_service.tx.data.PublicStock;
@@ -34,6 +36,7 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
     private final InterbankRetrofitProvider interbankRetrofit;
     private final StockRepository stockRepository;
     private final OtcRequestRepository otcRequestRepository;
+    private final UserRepository userRepository;
 
     /**
      * Fetches all asset ownership from our bank, filters only ones that have publicAmount > 0 and
@@ -278,6 +281,27 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
                 if (!response.isSuccessful()) throw new OtcNotFoundException(id);
             }
 
+        } catch (IOException e) {
+            throw new RequestFailed();
+        }
+    }
+
+    @Override
+    public UserInformation getUserInfo(ForeignBankId id) {
+        UUID myId = UUID.fromString(id.id());
+        var user = userRepository.findById(myId);
+        if (user.isEmpty()) throw new UserNotFound(myId.toString());
+        return new UserInformation("Rafeisen", user.get().email);
+    }
+
+    @Override
+    public UserInformation sendGetUserInfo(ForeignBankId id) {
+        try {
+            var call =
+                interbankRetrofit.get(id.routingNumber())
+                    .getUserInfo(id.routingNumber(), id.id());
+            var response = call.execute();
+            return response.body();
         } catch (IOException e) {
             throw new RequestFailed();
         }

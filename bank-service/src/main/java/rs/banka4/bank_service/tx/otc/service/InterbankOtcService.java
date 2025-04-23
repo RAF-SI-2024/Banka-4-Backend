@@ -5,6 +5,7 @@ import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.tx.data.OtcNegotiation;
 import rs.banka4.bank_service.tx.data.OtcOffer;
 import rs.banka4.bank_service.tx.data.PublicStock;
+import rs.banka4.bank_service.tx.data.UserInformation;
 
 public interface InterbankOtcService {
     List<PublicStock> sendPublicStocks();
@@ -30,4 +31,8 @@ public interface InterbankOtcService {
     void acceptNegotiation(ForeignBankId id);
 
     void sendAcceptNegotiation(ForeignBankId id);
+
+    UserInformation getUserInfo(ForeignBankId id);
+
+    UserInformation sendGetUserInfo(ForeignBankId id);
 }
