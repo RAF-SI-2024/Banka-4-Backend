@@ -175,6 +175,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         return stockRepo.findByTicker(stockDescription.ticker());
     }
 
+
+    /* ==== Stock postings. Used when stocks are being exchanged. ==== */
     private Optional<NoVoteReason> personStockPostingPhase1(
         User person,
         StockDescription assetDescription,
@@ -317,6 +319,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         );
     }
 
+
+    /* ==== Option creation. Used when an OTC option is made from a sellers' stocks. ==== */
     private Optional<NoVoteReason> createAndReserveOptionPhase1(
         User person,
         OptionDescription optDesc,
@@ -386,6 +390,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         otcRequestRepo.save(negotiation);
     }
 
+
+    /* ==== Option deposits. Used when an OTC option is given to a buyer. ==== */
     private Optional<NoVoteReason> depositOptionPhase1(
         User person,
         OptionDescription optDesc,
