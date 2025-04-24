@@ -147,45 +147,6 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    @Transactional
-    public void createFeeTransaction(CreateFeeTransactionDto createFeeTransactionDto) {
-        Client client =
-            clientRepository.findById(UUID.fromString(createFeeTransactionDto.userId()))
-                .orElseThrow(() -> new UserNotFound(createFeeTransactionDto.userId()));
-
-        Account found =
-            accountRepository.findAccountByAccountNumber(createFeeTransactionDto.fromAccount())
-                .orElseThrow(() -> new AccountNotFound(createFeeTransactionDto.fromAccount()));
-
-        Account bankAccount =
-            bankAccountServiceImpl.getBankAccountForCurrency(
-                CurrencyCode.valueOf(
-                    createFeeTransactionDto.currencyCode()
-                        .name()
-                )
-            );
-
-        Map<String, Account> lockedAccounts =
-            lockAccounts(found.getAccountNumber(), bankAccount.getAccountNumber());
-
-        Account fromAccount = lockedAccounts.get(found.getAccountNumber());
-        Account toAccount = lockedAccounts.get(bankAccount.getAccountNumber());
-
-        validateAccountActive(fromAccount);
-        validateClientAccountOwnership(client, fromAccount);
-        validateSufficientFunds(
-            fromAccount,
-            createFeeTransactionDto.fromAmount()
-                .add(BigDecimal.ONE)
-        );
-        validateDailyAndMonthlyLimit(fromAccount, createFeeTransactionDto.fromAmount());
-
-        transferAmount(fromAccount, toAccount, createFeeTransactionDto.fromAmount());
-
-        createFeeTransaction(fromAccount, toAccount, createFeeTransactionDto.fromAmount());
-    }
-
-    @Override
     public Page<TransactionDto> getAllTransactionsForClient(
         String token,
         TransactionStatus paymentStatus,
