@@ -180,6 +180,7 @@ public class OtcRequestServiceImp implements OtcRequestService {
                             .getCurrency(),
                         null
                     );
+                // TODO kada pokrecemo kod sebe transakciju, a kada saljemo accept drugoj banci??
                 tradingService.sendPremiumAndGetOption(buyerAccount, sellerAccount, otc);
                 // send update to other bank
                 if (routingNumber(otc) != -1) {

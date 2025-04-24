@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import rs.banka4.bank_service.domain.options.db.Option;
 import rs.banka4.bank_service.domain.options.db.OptionType;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.exceptions.*;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.OptionsRepository;
@@ -75,7 +76,13 @@ public class OptionServiceImpl implements OptionService {
                     <= stockOwnership.get()
                         .getPrivateAmount()
             ) {
-                tradingService.usePutOption(option, userId, accountNumber);
+                tradingService.usePutOption(
+                    option,
+                    userId,
+                    accountNumber,
+                    ownership.get()
+                        .getPrivateAmount()
+                );
             } else {
                 throw new NotEnoughStock();
             }
@@ -83,7 +90,13 @@ public class OptionServiceImpl implements OptionService {
             var otcRequest = otcRequestRepository.findByOptionId(optionId);
             if (otcRequest.isEmpty()) {
                 // exchange option
-                tradingService.useCallOptionFromExchange(option, userId, accountNumber);
+                tradingService.useCallOptionFromExchange(
+                    option,
+                    userId,
+                    accountNumber,
+                    ownership.get()
+                        .getPrivateAmount()
+                );
             } else {
                 // otc option
                 AccountNumberDto sellerAccount =
@@ -100,12 +113,9 @@ public class OptionServiceImpl implements OptionService {
                     );
                 tradingService.useCallOptionFromOtc(
                     option,
-                    userId,
-                    UUID.fromString(
-                        otcRequest.get()
-                            .getMadeFor()
-                            .userId()
-                    ),
+                    ForeignBankId.our(userId),
+                    otcRequest.get()
+                        .getMadeFor(),
                     accountNumber,
                     sellerAccount.accountNumber(),
                     otcRequest.get()
