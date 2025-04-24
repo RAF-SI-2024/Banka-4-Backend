@@ -37,4 +37,10 @@ public sealed interface TxAccount {
             return id.routingNumber();
         }
     }
+
+    public record MemoryHole() implements TxAccount {
+        public long routingNumber() {
+            return ForeignBankId.OUR_ROUTING_NUMBER;
+        }
+    }
 }

@@ -369,6 +369,10 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     acc.setAvailableBalance(newAvBalance);
                     accountRepo.save(acc);
                 }
+
+                case TxAccount.MemoryHole() -> {
+                    /* Always OK. */
+                }
                 }
             }
 
@@ -443,6 +447,10 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                         )
                 );
                 accountRepo.save(acc);
+            }
+
+            case TxAccount.MemoryHole() -> {
+                /* Always OK. */
             }
             }
         }
@@ -549,6 +557,10 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                         )
                 );
                 accountRepo.save(acc);
+            }
+
+            case TxAccount.MemoryHole() -> {
+                /* Always OK. */
             }
             }
         }
