@@ -198,6 +198,36 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         return Optional.empty();
     }
 
+    private void personStockPostingPhase1Rollback(
+        User person,
+        StockDescription assetDescription,
+        Posting posting
+    ) {
+        final var asset =
+            stockRepo.findByTicker(assetDescription.ticker())
+                .orElseThrow(() -> new IllegalStateException("invalid tx?"));
+
+        final var assetOwnership =
+            assetOwnershipRepo.findAndLockById(new AssetOwnershipId(person, asset))
+                .orElseThrow(() -> new IllegalStateException("invalid tx?"));
+
+        final int amount;
+        try {
+            amount =
+                posting.amount()
+                    .intValueExact();
+        } catch (ArithmeticException e) {
+            throw new IllegalStateException("invalid tx?", e);
+        }
+
+        if (amount >= 0) return;
+
+        /* Roll back the reservation. */
+        assetOwnership.setPrivateAmount(assetOwnership.getPrivateAmount() - amount);
+        assetOwnership.setReservedAmount(assetOwnership.getReservedAmount() + amount);
+        assetOwnershipRepo.save(assetOwnership);
+    }
+
     private void personStockPostingPhase2(
         User person,
         StockDescription assetDescription,
@@ -374,7 +404,48 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     protected void rollbackLocalPhase1(DoubleEntryTransaction tx) {
-        throw new NotImplementedException();
+        for (final var posting : tx.postings()) {
+            if (
+                posting.account()
+                    .routingNumber()
+                    != ForeignBankId.OUR_ROUTING_NUMBER
+            ) continue;
+
+            switch (posting.account()) {
+            case TxAccount.Person(ForeignBankId personId) -> {
+                final var person =
+                    userRepo.findById(UUID.fromString(personId.id()))
+                        .orElseThrow(() -> new IllegalStateException("invalid tx"));
+                switch (posting.asset()) {
+                case TxAsset.Monas(MonetaryAsset asset)
+                    -> throw new IllegalArgumentException(
+                        "must preprocess tx with resolvePersonMonetaryAssetPostings before P1"
+                    );
+                case TxAsset.Stock(StockDescription asset)
+                    -> personStockPostingPhase1Rollback(person, asset, posting);
+                case TxAsset.Option(OptionDescription asset) -> throw new NotImplementedException();
+                }
+            }
+            case TxAccount.Option(ForeignBankId optionId) -> throw new NotImplementedException();
+
+            case TxAccount.Account(String accNumber) -> {
+                final var acc =
+                    accountRepo.findAccountByAccountNumber(accNumber)
+                        .orElseThrow(() -> new IllegalStateException("Invalid tx?"));
+                entityManager.lock(acc, LockModeType.PESSIMISTIC_WRITE);
+                entityManager.refresh(acc);
+
+                acc.setAvailableBalance(
+                    acc.getAvailableBalance()
+                        .subtract(
+                            posting.amount()
+                                .min(BigDecimal.ZERO)
+                        )
+                );
+                accountRepo.save(acc);
+            }
+            }
+        }
     }
 
     /**
