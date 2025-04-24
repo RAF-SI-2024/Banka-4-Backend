@@ -35,4 +35,10 @@ public interface AssetOwnershipRepository extends JpaRepository<AssetOwnership, 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM AssetOwnership a WHERE a.id = :id")
     Optional<AssetOwnership> findAndLockById(AssetOwnershipId id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query(
+        value = "select a from AssetOwnership a where a.id.user.id = :userId and a.id.asset.id = :assetId"
+    )
+    Optional<AssetOwnership> findAndLockByMyId(UUID userId, UUID assetId);
 }

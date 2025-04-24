@@ -132,7 +132,7 @@ public class AssetOwnershipServiceImpl implements AssetOwnershipService {
         int publicAmount,
         int reservedAmount
     ) {
-        var ao = assetOwnershipRepository.findByMyId(userId, assetId);
+        var ao = assetOwnershipRepository.findAndLockByMyId(userId, assetId);
         if (ao.isPresent()) {
             var assetOwnership = ao.get();
             if (
