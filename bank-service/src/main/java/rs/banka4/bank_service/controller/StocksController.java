@@ -1,9 +1,9 @@
 package rs.banka4.bank_service.controller;
 
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +52,7 @@ public class StocksController implements StocksApiDocumentation {
     }
 
     @GetMapping("/public")
-    public ResponseEntity<Page<PublicStocksDto>> getPublicStocks(
+    public ResponseEntity<List<PublicStocksDto>> getPublicStocks(
         Authentication auth,
         Pageable pageable
     ) {

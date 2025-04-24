@@ -20,7 +20,7 @@ public interface AssetOwnershipRepository extends JpaRepository<AssetOwnership, 
     )
     Optional<AssetOwnership> findByMyId(UUID userId, UUID assetId);
 
-    Page<AssetOwnership> findAllByPublicAmountGreaterThan(int publicAmount, Limit limit);
+    List<AssetOwnership> findAllByPublicAmountGreaterThan(int publicAmount, Limit limit);
 
     @Query(
         "SELECT ao FROM AssetOwnership ao WHERE ao.id.user.id = :userId AND (ao.privateAmount > 0 OR ao.publicAmount > 0)"

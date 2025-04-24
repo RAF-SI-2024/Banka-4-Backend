@@ -419,7 +419,7 @@ public class OtcTests {
 
         OtcRequestCreateDto createDto =
             new OtcRequestCreateDto(
-                assetOwnerId,
+                ForeignBankId.our(assetOwnerId),
                 AssetGenerator.STOCK_EX1_UUID,
                 price,
                 premium,

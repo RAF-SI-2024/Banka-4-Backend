@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Limit;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -84,7 +83,7 @@ public class AssetOwnershipServiceImpl implements AssetOwnershipService {
     }
 
     @Override
-    public Page<PublicStocksDto> getPublicStocks(Pageable pageable, String token) {
+    public List<PublicStocksDto> getPublicStocks(Pageable pageable, String token) {
         final var allPublic =
             assetOwnershipRepository.findAllByPublicAmountGreaterThan(0, Limit.of(999));
         var otherBank = interbankOtcService.fetchPublicStocks();
@@ -92,25 +91,31 @@ public class AssetOwnershipServiceImpl implements AssetOwnershipService {
         for (var x : otherBank) {
             publicStocksOtherBank.addAll(convertToPublicStocksDto(x));
         }
-        // TODO nakalemiti publicStocksOtherBank na response nekako
 
-        return allPublic.map(o -> {
+        List<PublicStocksDto> ourPublicStocks = new ArrayList<>();
+
+        for (var s : allPublic) {
             final var lastPrice =
                 listingService.getLatestPriceForStock(
-                    o.getId()
+                    s.getId()
                         .getAsset()
                         .getId()
                 );
-            return AssetMapper.INSTANCE.mapPublicStocksDto(
-                o,
-                SecurityType.STOCK,
-                o.getId()
-                    .getUser()
-                    .getEmail(),
-                lastPrice,
-                OffsetDateTime.now()
+            ourPublicStocks.add(
+                AssetMapper.INSTANCE.mapPublicStocksDto(
+                    s,
+                    SecurityType.STOCK,
+                    s.getId()
+                        .getUser()
+                        .getEmail(),
+                    lastPrice,
+                    OffsetDateTime.now()
+                )
             );
-        });
+        }
+
+        publicStocksOtherBank.addAll(ourPublicStocks);
+        return publicStocksOtherBank;
     }
 
     private List<PublicStocksDto> convertToPublicStocksDto(PublicStock dto) {
