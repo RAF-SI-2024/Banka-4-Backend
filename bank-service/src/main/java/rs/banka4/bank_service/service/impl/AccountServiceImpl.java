@@ -382,7 +382,7 @@ public class AccountServiceImpl implements AccountService {
             try {
                 long random =
                     ThreadLocalRandom.current()
-                        .nextLong(0, (long) 1e10 - 1);
+                        .nextLong(0, (long) 1e9 - 1);
                 accountNumber = String.format("4440001%09d", random);
 
                 if (
