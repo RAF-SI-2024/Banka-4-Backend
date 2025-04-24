@@ -1,6 +1,7 @@
 package rs.banka4.bank_service.service.abstraction;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,5 +25,9 @@ public interface OtcRequestService {
 
     void acceptOtc(ForeignBankId requestId, UUID userId);
 
-    AccountNumberDto getRequiredAccount(UUID userId, CurrencyCode currencyCode, BigDecimal premium);
+    Optional<AccountNumberDto> getRequiredAccount(
+        UUID userId,
+        CurrencyCode currencyCode,
+        BigDecimal premium
+    );
 }

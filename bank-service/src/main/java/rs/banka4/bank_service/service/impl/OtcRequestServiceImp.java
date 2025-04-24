@@ -167,42 +167,22 @@ public class OtcRequestServiceImp implements OtcRequestService {
         }
     }
 
-    public AccountNumberDto getRequiredAccount(
+    public Optional<AccountNumberDto> getRequiredAccount(
         UUID userId,
         CurrencyCode currencyCode,
         BigDecimal premium
     ) {
         final var accounts = accountService.getAccountsForUser(userId);
-        AccountNumberDto currentAccount = null;
-        AccountNumberDto rightCurrencyAccount = null;
         for (var account : accounts) {
             if (
                 account.currency()
-                    .equals(CurrencyCode.RSD)
-            ) currentAccount = account;
-            if (
-                account.currency()
                     .equals(currencyCode)
-            ) rightCurrencyAccount = account;
-        }
-        if (rightCurrencyAccount != null) {
-            if (
-                premium != null
-                    && rightCurrencyAccount.availableBalance()
+                    && account.availableBalance()
                         .compareTo(premium)
                         >= 0
-            ) return rightCurrencyAccount;
-            else {
-                // TODO replace with insufficient funds on account exception
-                throw new RequestFailed();
-            }
-        } else if (currentAccount != null) {
-            // TODO use exchange service to determine if there is enough funds
-            return currentAccount;
-        } else {
-            // TODO replace with no right account exception
-            throw new RequestFailed();
+            ) return Optional.of(account);
         }
+        return Optional.empty();
     }
 
     private long routingNumber(OtcRequest otcRequest) {
