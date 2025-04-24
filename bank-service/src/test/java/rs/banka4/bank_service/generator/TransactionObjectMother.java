@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import rs.banka4.bank_service.domain.account.db.Account;
-import rs.banka4.bank_service.domain.transaction.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.transaction.db.Transaction;
 import rs.banka4.bank_service.domain.transaction.db.TransactionStatus;
 import rs.banka4.bank_service.domain.transaction.dtos.CreatePaymentDto;

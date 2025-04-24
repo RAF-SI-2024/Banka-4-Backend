@@ -14,12 +14,10 @@ import rs.banka4.rafeisen.common.currency.CurrencyCode;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MonetaryAmount {
-    @Column(nullable = false)
+    @Column()
     private BigDecimal amount;
+
     @Enumerated(EnumType.STRING)
-    @Column(
-        columnDefinition = "currency",
-        nullable = false
-    )
+    @Column(columnDefinition = "currency")
     private CurrencyCode currency;
 }

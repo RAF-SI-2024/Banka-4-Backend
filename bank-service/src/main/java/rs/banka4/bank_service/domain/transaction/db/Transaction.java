@@ -7,6 +7,7 @@ import java.util.UUID;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 import rs.banka4.bank_service.domain.account.db.Account;
+import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 
 @Entity
 @Builder
