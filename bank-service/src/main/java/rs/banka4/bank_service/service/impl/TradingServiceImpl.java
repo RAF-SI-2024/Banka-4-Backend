@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,25 +14,71 @@ import rs.banka4.bank_service.domain.trading.db.OtcRequest;
 import rs.banka4.bank_service.service.abstraction.*;
 import rs.banka4.bank_service.tx.TxExecutor;
 import rs.banka4.bank_service.tx.data.*;
-import rs.banka4.rafeisen.common.dto.AccountNumberDto;
+import rs.banka4.bank_service.tx.otc.mapper.InterbankOtcMapper;
 
 @Service
 @RequiredArgsConstructor
 public class TradingServiceImpl implements TradingService {
     private final TxExecutor txExecutor;
     private final AccountService accountService;
-    private final TransactionService transactionService;
     private final AssetOwnershipService assetOwnershipService;
     private final ExchangeRateService exchangeRateService;
     private final BankAccountService bankAccountService;
 
     @Override
-    public void sendPremiumAndGetOption(
-        AccountNumberDto buyer,
-        AccountNumberDto seller,
-        OtcRequest otcRequest
-    ) {
-        throw new NotImplementedException();
+    public void sendPremiumAndGetOption(OtcRequest otcRequest) {
+        var monetaryAsset =
+            new TxAsset.Monas(
+                new MonetaryAsset(
+                    otcRequest.getPremium()
+                        .getCurrency()
+                )
+            );
+        var buyer = new TxAccount.Person(otcRequest.getMadeBy());
+        var seller = new TxAccount.Person(otcRequest.getMadeFor());
+        Posting buyerCreditPremium =
+            new Posting(
+                buyer,
+                otcRequest.getPremium()
+                    .getAmount()
+                    .negate(),
+                monetaryAsset
+            );
+        Posting sellerDebitPremium =
+            new Posting(
+                seller,
+                otcRequest.getPremium()
+                    .getAmount(),
+                monetaryAsset
+            );
+        var option =
+            new TxAsset.Option(
+                new OptionDescription(
+                    ForeignBankId.our(otcRequest.getOptionId()),
+                    new StockDescription(
+                        otcRequest.getStock()
+                            .getTicker()
+                    ),
+                    otcRequest.getPricePerStock(),
+                    InterbankOtcMapper.midnightSettlementDate(otcRequest),
+                    otcRequest.getAmount(),
+                    otcRequest.getId()
+                )
+            );
+        Posting buyerDebitOption = new Posting(buyer, BigDecimal.ONE, option);
+        Posting sellerCreditOption = new Posting(seller, BigDecimal.ONE.negate(), option);
+        txExecutor.submitTx(
+            new DoubleEntryTransaction(
+                List.of(
+                    buyerDebitOption,
+                    buyerCreditPremium,
+                    sellerCreditOption,
+                    sellerDebitPremium
+                ),
+                "🤯",
+                null
+            )
+        );
     }
 
     @Override
@@ -387,7 +432,6 @@ public class TradingServiceImpl implements TradingService {
         ForeignBankId buyerId,
         ForeignBankId sellerId,
         String buyerAccount,
-        String sellerAccount,
         int amount
     ) {
         var stock =

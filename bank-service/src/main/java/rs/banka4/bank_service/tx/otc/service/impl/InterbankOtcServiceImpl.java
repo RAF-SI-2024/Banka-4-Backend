@@ -19,6 +19,7 @@ import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
 import rs.banka4.bank_service.repositories.UserRepository;
+import rs.banka4.bank_service.service.abstraction.TradingService;
 import rs.banka4.bank_service.tx.data.*;
 import rs.banka4.bank_service.tx.data.OtcOffer;
 import rs.banka4.bank_service.tx.data.PublicStock;
@@ -36,6 +37,7 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
     private final StockRepository stockRepository;
     private final OtcRequestRepository otcRequestRepository;
     private final UserRepository userRepository;
+    private final TradingService tradingService;
 
     /**
      * Fetches all asset ownership from our bank, filters only ones that have publicAmount > 0 and
@@ -259,7 +261,7 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
                 .routingNumber()
                 != ForeignBankId.OUR_ROUTING_NUMBER
         ) throw new WrongTurn();
-        // TODO Arsen: make a transaction
+        tradingService.sendPremiumAndGetOption(otc.get());
         throw new NotImplementedException();
     }
 

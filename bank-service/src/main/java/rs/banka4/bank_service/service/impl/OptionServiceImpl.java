@@ -14,7 +14,6 @@ import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.service.abstraction.OptionService;
 import rs.banka4.bank_service.service.abstraction.OtcRequestService;
 import rs.banka4.bank_service.service.abstraction.TradingService;
-import rs.banka4.rafeisen.common.dto.AccountNumberDto;
 
 @Service
 @RequiredArgsConstructor
@@ -99,25 +98,12 @@ public class OptionServiceImpl implements OptionService {
                 );
             } else {
                 // otc option
-                AccountNumberDto sellerAccount =
-                    otcRequestService.getRequiredAccount(
-                        UUID.fromString(
-                            otcRequest.get()
-                                .getMadeFor()
-                                .userId()
-                        ),
-                        otcRequest.get()
-                            .getPricePerStock()
-                            .getCurrency(),
-                        null
-                    );
                 tradingService.useCallOptionFromOtc(
                     option,
                     ForeignBankId.our(userId),
                     otcRequest.get()
                         .getMadeFor(),
                     accountNumber,
-                    sellerAccount.accountNumber(),
                     otcRequest.get()
                         .getAmount()
                 );

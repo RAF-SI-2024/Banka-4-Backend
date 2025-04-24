@@ -140,51 +140,24 @@ public class OtcRequestServiceImp implements OtcRequestService {
         Optional<OtcRequest> otcRequest = otcRequestRepository.findById(requestId);
         if (otcRequest.isEmpty()) throw new OtcNotFoundException(requestId);
         OtcRequest otc = otcRequest.get();
+        ForeignBankId ourUserId = ForeignBankId.our(userId);
         if (
-            UUID.fromString(
-                otc.getMadeBy()
-                    .userId()
-            )
-                .equals(userId)
-                || UUID.fromString(
-                    otc.getMadeFor()
-                        .userId()
-                )
-                    .equals(userId)
+            otc.getMadeBy()
+                .equals(ourUserId)
+                || otc.getMadeFor()
+                    .equals(ourUserId)
         ) {
             if (
-                !UUID.fromString(
-                    otc.getModifiedBy()
-                        .userId()
-                )
-                    .equals(userId)
+                !otc.getModifiedBy()
+                    .equals(ourUserId)
             ) {
-                AccountNumberDto buyerAccount =
-                    getRequiredAccount(
-                        UUID.fromString(
-                            otc.getMadeBy()
-                                .userId()
-                        ),
-                        otc.getPremium()
-                            .getCurrency(),
-                        otc.getPremium()
-                            .getAmount()
-                    );
-                AccountNumberDto sellerAccount =
-                    getRequiredAccount(
-                        UUID.fromString(
-                            otc.getMadeFor()
-                                .userId()
-                        ),
-                        otc.getPremium()
-                            .getCurrency(),
-                        null
-                    );
-                // TODO kada pokrecemo kod sebe transakciju, a kada saljemo accept drugoj banci??
-                tradingService.sendPremiumAndGetOption(buyerAccount, sellerAccount, otc);
+
+
                 // send update to other bank
                 if (routingNumber(otc) != -1) {
                     interbankOtcService.sendAcceptNegotiation(requestId, routingNumber(otc));
+                } else {
+                    tradingService.sendPremiumAndGetOption(otc);
                 }
             } else {
                 throw new CantAcceptThisOffer("Other side has to accept the offer", userId);

@@ -67,7 +67,7 @@ public interface InterbankOtcMapper {
     )
     @Mapping(
         target = "settlementDate",
-        expression = "java(midnightSettlementDate(otcRequest))"
+        expression = "java(InterbankOtcMapper.midnightSettlementDate(otcRequest))"
     )
     OtcNegotiation toOtcNegotiation(OtcRequest otcRequest, boolean isOngoing);
 
@@ -93,11 +93,11 @@ public interface InterbankOtcMapper {
     )
     @Mapping(
         target = "settlementDate",
-        expression = "java(midnightSettlementDate(otcRequest))"
+        expression = "java(InterbankOtcMapper.midnightSettlementDate(otcRequest))"
     )
     OtcOffer toOtcOffer(OtcRequest otcRequest);
 
-    default OffsetDateTime midnightSettlementDate(OtcRequest otcRequest) {
+    static OffsetDateTime midnightSettlementDate(OtcRequest otcRequest) {
         return OffsetDateTime.of(otcRequest.getSettlementDate(), LocalTime.of(0, 0), ZoneOffset.UTC)
             .plusDays(1);
     }
