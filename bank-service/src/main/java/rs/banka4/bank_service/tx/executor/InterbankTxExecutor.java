@@ -36,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
-import rs.banka4.bank_service.domain.assets.db.AssetOwnershipId;
 import rs.banka4.bank_service.domain.options.db.Option;
 import rs.banka4.bank_service.domain.options.db.OptionType;
 import rs.banka4.bank_service.domain.security.stock.db.Stock;
@@ -44,7 +43,6 @@ import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.domain.trading.db.RequestStatus;
 import rs.banka4.bank_service.domain.user.User;
 import rs.banka4.bank_service.repositories.AccountRepository;
-import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.OptionsRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
@@ -97,7 +95,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final UserRepository userRepo;
     private final StockRepository stockRepo;
     private final OptionsRepository optionsRepo;
-    private final AssetOwnershipRepository assetOwnershipRepo;
     private final OtcRequestRepository otcRequestRepo;
     private final AssetOwnershipService assetOwnershipService;
 
@@ -117,7 +114,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         InboxRepository inboxRepo,
         UserRepository userRepo,
         StockRepository stockRepo,
-        AssetOwnershipRepository assetOwnershipRepo,
         OptionsRepository optionsRepo,
         OtcRequestRepository otcRequestRepository,
         AssetOwnershipService assetOwnershipService
@@ -141,7 +137,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.inboxRepo = inboxRepo;
         this.userRepo = userRepo;
         this.stockRepo = stockRepo;
-        this.assetOwnershipRepo = assetOwnershipRepo;
         this.optionsRepo = optionsRepo;
         this.otcRequestRepo = otcRequestRepository;
         this.assetOwnershipService = assetOwnershipService;
@@ -202,22 +197,17 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             /* Nothing to reserve, this is a debit. */
             return Optional.empty();
 
-        final var assetOwnership_ =
-            assetOwnershipRepo.findAndLockById(new AssetOwnershipId(person, asset));
-        if (assetOwnership_.isEmpty())
-            /* The user never had any. */
-            return Optional.of(new NoVoteReason.InsufficientAsset(posting));
-        final var assetOwnership = assetOwnership_.get();
+        if (
+            !assetOwnershipService.changeAssetOwnership(
+                asset,
+                person,
+                /* Note that, if we're here, amount < 0. */
+                +amount,
+                0,
+                -amount
+            )
+        ) return Optional.of(new NoVoteReason.InsufficientAsset(posting));
 
-        /* Transfers must come from privately-posessed stocks. Amount is negative. */
-        final var newPrivateStockAmount = assetOwnership.getPrivateAmount() + amount;
-        if (newPrivateStockAmount < 0)
-            return Optional.of(new NoVoteReason.InsufficientAsset(posting));
-
-        /* Commit the reservation. */
-        assetOwnership.setPrivateAmount(newPrivateStockAmount);
-        assetOwnership.setReservedAmount(assetOwnership.getReservedAmount() - amount);
-        assetOwnershipRepo.save(assetOwnership);
         return Optional.empty();
     }
 
@@ -230,10 +220,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             stockRepo.findByTicker(assetDescription.ticker())
                 .orElseThrow(() -> new IllegalStateException("invalid tx?"));
 
-        final var assetOwnership =
-            assetOwnershipRepo.findAndLockById(new AssetOwnershipId(person, asset))
-                .orElseThrow(() -> new IllegalStateException("invalid tx?"));
-
         final int amount;
         try {
             amount =
@@ -243,12 +229,10 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             throw new IllegalStateException("invalid tx?", e);
         }
 
-        if (amount >= 0) return;
-
-        /* Roll back the reservation. */
-        assetOwnership.setPrivateAmount(assetOwnership.getPrivateAmount() - amount);
-        assetOwnership.setReservedAmount(assetOwnership.getReservedAmount() + amount);
-        assetOwnershipRepo.save(assetOwnership);
+        if (
+            /* Roll back the reservation. */
+            !assetOwnershipService.changeAssetOwnership(asset, person, -amount, 0, +amount)
+        ) throw new IllegalStateException("invalid tx?");
     }
 
     private void personStockPostingPhase2(
@@ -258,10 +242,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     ) {
         final var asset =
             stockRepo.findByTicker(assetDescription.ticker())
-                .orElseThrow(() -> new IllegalStateException("invalid tx?"));
-
-        final var assetOwnership =
-            assetOwnershipRepo.findAndLockById(new AssetOwnershipId(person, asset))
                 .orElseThrow(() -> new IllegalStateException("invalid tx?"));
 
         final int amount;
@@ -292,11 +272,16 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
          * @formatter:on
          */
 
-        assetOwnership.setReservedAmount(assetOwnership.getReservedAmount() + Math.min(amount, 0));
-        assetOwnership.setPrivateAmount(
-            assetOwnership.getPrivateAmount() - Math.min(amount, 0) + amount
-        );
-        assetOwnershipRepo.save(assetOwnership);
+        if (
+            /* Commit the transaction. */
+            !assetOwnershipService.changeAssetOwnership(
+                asset,
+                person,
+                -Math.min(amount, 0) + amount,
+                0,
+                +Math.min(amount, 0)
+            )
+        ) throw new IllegalStateException("invalid tx?");
     }
 
     private Map<ForeignBankId, UUID> remoteToLocalOptionNameMap = new ConcurrentHashMap<>();
