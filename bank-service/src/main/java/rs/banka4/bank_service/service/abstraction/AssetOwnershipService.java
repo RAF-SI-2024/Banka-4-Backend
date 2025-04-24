@@ -11,4 +11,12 @@ public interface AssetOwnershipService {
     AssetOwnership transferStock(UUID userId, UUID assetId, int amount, TransferTo transferTo);
 
     List<PublicStocksDto> getPublicStocks(Pageable pageable, String token);
+
+    boolean changeAssetOwnership(
+        UUID assetId,
+        UUID userId,
+        int privateAmount,
+        int publicAmount,
+        int reservedAmount
+    );
 }
