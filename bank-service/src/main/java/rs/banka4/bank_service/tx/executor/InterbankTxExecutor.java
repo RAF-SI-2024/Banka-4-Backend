@@ -12,9 +12,11 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -33,13 +35,21 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.assets.db.AssetOwnershipId;
+import rs.banka4.bank_service.domain.options.db.Option;
+import rs.banka4.bank_service.domain.options.db.OptionType;
+import rs.banka4.bank_service.domain.security.stock.db.Stock;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.domain.trading.db.RequestStatus;
 import rs.banka4.bank_service.domain.user.User;
 import rs.banka4.bank_service.repositories.AccountRepository;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
+import rs.banka4.bank_service.repositories.OptionsRepository;
+import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
 import rs.banka4.bank_service.repositories.UserRepository;
+import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
 import rs.banka4.bank_service.tx.TxExecutor;
 import rs.banka4.bank_service.tx.TxUtils;
 import rs.banka4.bank_service.tx.config.InterbankConfig;
@@ -86,7 +96,10 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final InboxRepository inboxRepo;
     private final UserRepository userRepo;
     private final StockRepository stockRepo;
+    private final OptionsRepository optionsRepo;
     private final AssetOwnershipRepository assetOwnershipRepo;
+    private final OtcRequestRepository otcRequestRepo;
+    private final AssetOwnershipService assetOwnershipService;
 
     /* Synchronization key for transaction execution. */
     private final Object transactionKey = new Object();
@@ -104,7 +117,10 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         InboxRepository inboxRepo,
         UserRepository userRepo,
         StockRepository stockRepo,
-        AssetOwnershipRepository assetOwnershipRepo
+        AssetOwnershipRepository assetOwnershipRepo,
+        OptionsRepository optionsRepo,
+        OtcRequestRepository otcRequestRepository,
+        AssetOwnershipService assetOwnershipService
     ) {
         this.interbankConfig = config;
         this.txTemplate = new TransactionTemplate(transactionManager);
@@ -126,6 +142,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.userRepo = userRepo;
         this.stockRepo = stockRepo;
         this.assetOwnershipRepo = assetOwnershipRepo;
+        this.optionsRepo = optionsRepo;
+        this.otcRequestRepo = otcRequestRepository;
+        this.assetOwnershipService = assetOwnershipService;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -157,12 +176,16 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         return dests;
     }
 
+    private Optional<Stock> resolveStock(StockDescription stockDescription) {
+        return stockRepo.findByTicker(stockDescription.ticker());
+    }
+
     private Optional<NoVoteReason> personStockPostingPhase1(
         User person,
         StockDescription assetDescription,
         Posting posting
     ) {
-        final var asset_ = stockRepo.findByTicker(assetDescription.ticker());
+        final var asset_ = resolveStock(assetDescription);
         if (asset_.isEmpty()) return Optional.of(new NoVoteReason.NoSuchAsset(posting));
         final var asset = asset_.get();
 
@@ -276,6 +299,156 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         assetOwnershipRepo.save(assetOwnership);
     }
 
+    private Map<ForeignBankId, UUID> remoteToLocalOptionNameMap = new ConcurrentHashMap<>();
+
+    private Optional<Option> resolveOptionDescription(OptionDescription optDesc) {
+        final var stock = resolveStock(optDesc.stock());
+        if (stock.isEmpty()) return Optional.empty();
+        return Optional.of(
+            optionsRepo.save(
+                new Option(
+                    remoteToLocalOptionNameMap.computeIfAbsent(
+                        optDesc.id(),
+                        k -> UUID.randomUUID()
+                    ),
+                    null,
+                    null,
+                    stock.get(),
+                    OptionType.CALL,
+                    optDesc.pricePerUnit(),
+                    /* Processed otherwise. */
+                    new MonetaryAmount(
+                        BigDecimal.ZERO,
+                        optDesc.pricePerUnit()
+                            .getCurrency()
+                    ),
+                    0.,
+                    0,
+                    optDesc.settlementDate(),
+                    false,
+                    optDesc.id()
+                )
+            )
+        );
+    }
+
+    private Optional<NoVoteReason> createAndReserveOptionPhase1(
+        User person,
+        OptionDescription optDesc,
+        Posting posting
+    ) {
+        final var negotiation_ = otcRequestRepo.findById(optDesc.negotiationId());
+        if (negotiation_.isEmpty())
+            return Optional.of(new NoVoteReason.OptionNegotiationNotFound(posting));
+        final var negotiation = negotiation_.get();
+
+        final var option_ = resolveOptionDescription(optDesc);
+        if (option_.isEmpty()) return Optional.of(new NoVoteReason.NoSuchAsset(posting));
+        final var option = option_.get();
+
+        if (
+            !assetOwnershipService.changeAssetOwnership(
+                option.getStock()
+                    .getId(),
+                person.getId(),
+                0,
+                -optDesc.amount(),
+                +optDesc.amount()
+            )
+        ) return Optional.of(new NoVoteReason.InsufficientAsset(posting));
+
+        negotiation.setOptionId(option.getId());
+        otcRequestRepo.save(negotiation);
+        return Optional.empty();
+    }
+
+    private void createAndReserveOptionPhase1Rollback(
+        User person,
+        OptionDescription optDesc,
+        Posting posting
+    ) {
+        final var negotiation =
+            otcRequestRepo.findById(optDesc.negotiationId())
+                .orElseThrow(() -> new IllegalStateException("invalid option tx"));
+        negotiation.setOptionId(null);
+        otcRequestRepo.save(negotiation);
+        final var stock =
+            stockRepo.findByTicker(
+                optDesc.stock()
+                    .ticker()
+            )
+                .orElseThrow(() -> new IllegalStateException("invalid option tx"));
+
+        if (
+            !assetOwnershipService.changeAssetOwnership(
+                stock.getId(),
+                person.getId(),
+                0,
+                +optDesc.amount(),
+                -optDesc.amount()
+            )
+        ) throw new IllegalStateException("invalid option tx?");
+    }
+
+    private void createAndReserveOptionPhase2(
+        User person,
+        OptionDescription optDesc,
+        Posting posting
+    ) {
+        final var negotiation =
+            otcRequestRepo.findById(optDesc.negotiationId())
+                .orElseThrow(() -> new IllegalStateException("invalid option tx"));
+        negotiation.setStatus(RequestStatus.FINISHED);
+        otcRequestRepo.save(negotiation);
+    }
+
+    private Optional<NoVoteReason> depositOptionPhase1(
+        User person,
+        OptionDescription optDesc,
+        Posting posting
+    ) {
+        final var negotiation_ = otcRequestRepo.findById(optDesc.negotiationId());
+        if (negotiation_.isEmpty())
+            return Optional.of(new NoVoteReason.OptionNegotiationNotFound(posting));
+        final var negotiation = negotiation_.get();
+
+        final var option_ = resolveOptionDescription(optDesc);
+        if (option_.isEmpty()) return Optional.of(new NoVoteReason.NoSuchAsset(posting));
+        final var option = option_.get();
+        negotiation.setOptionId(option.getId());
+        otcRequestRepo.save(negotiation);
+        return Optional.empty();
+    }
+
+    private void depositOptionPhase1Rollback(
+        User person,
+        OptionDescription optDesc,
+        Posting posting
+    ) {
+        final var negotiation =
+            otcRequestRepo.findById(optDesc.negotiationId())
+                .orElseThrow(() -> new IllegalStateException("invalid option tx"));
+        negotiation.setOptionId(null);
+        otcRequestRepo.save(negotiation);
+    }
+
+    private void depositOptionPhase2(User person, OptionDescription optDesc, Posting posting) {
+        final var negotiation =
+            otcRequestRepo.findById(optDesc.negotiationId())
+                .orElseThrow(() -> new IllegalStateException("invalid option tx"));
+        negotiation.setStatus(RequestStatus.FINISHED);
+        otcRequestRepo.save(negotiation);
+        if (
+            !assetOwnershipService.changeAssetOwnership(
+                negotiation.getOptionId(),
+                person.getId(),
+                1,
+                0,
+                0
+            )
+        ) throw new IllegalStateException("invalid option tx?");
+    }
+
     /**
      * Perform phase one of local transaction execution:
      *
@@ -324,8 +497,26 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                         -> personStockPostingPhase1(person, asset, posting).ifPresent(
                             noReasons::add
                         );
-                    case TxAsset.Option(OptionDescription asset)
-                        -> throw new NotImplementedException();
+                    case TxAsset.Option(OptionDescription option) -> {
+                        if (
+                            posting.amount()
+                                .equals(new BigDecimal("-1"))
+                        ) {
+                            createAndReserveOptionPhase1(person, option, posting).ifPresent(
+                                noReasons::add
+                            );
+                        } else
+                            if (
+                                (posting.amount()
+                                    .equals(new BigDecimal("1")))
+                            ) {
+                                depositOptionPhase1(person, option, posting).ifPresent(
+                                    noReasons::add
+                                );
+                            } else {
+                                noReasons.add(new NoVoteReason.InsufficientAsset(posting));
+                            }
+                    }
                     }
                 }
                 case TxAccount.Option(ForeignBankId optionId) -> {
@@ -427,7 +618,22 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     );
                 case TxAsset.Stock(StockDescription asset)
                     -> personStockPostingPhase1Rollback(person, asset, posting);
-                case TxAsset.Option(OptionDescription asset) -> throw new NotImplementedException();
+                case TxAsset.Option(OptionDescription option) -> {
+                    if (
+                        posting.amount()
+                            .equals(new BigDecimal("-1"))
+                    ) {
+                        createAndReserveOptionPhase1Rollback(person, option, posting);
+                    } else
+                        if (
+                            (posting.amount()
+                                .equals(new BigDecimal("1")))
+                        ) {
+                            depositOptionPhase1Rollback(person, option, posting);
+                        } else {
+                            throw new IllegalStateException("Invalid tx?");
+                        }
+                }
                 }
             }
             case TxAccount.Option(ForeignBankId optionId) -> throw new NotImplementedException();
@@ -493,7 +699,22 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     );
                 case TxAsset.Stock(StockDescription asset)
                     -> personStockPostingPhase2(person, asset, posting);
-                case TxAsset.Option(OptionDescription asset) -> throw new NotImplementedException();
+                case TxAsset.Option(OptionDescription option) -> {
+                    if (
+                        posting.amount()
+                            .equals(new BigDecimal("-1"))
+                    ) {
+                        createAndReserveOptionPhase2(person, option, posting);
+                    } else
+                        if (
+                            posting.amount()
+                                .equals(new BigDecimal("1"))
+                        ) {
+                            depositOptionPhase2(person, option, posting);
+                        } else {
+                            throw new IllegalStateException("Invalid tx?");
+                        }
+                }
                 }
             }
             case TxAccount.Option(ForeignBankId optionId) -> throw new NotImplementedException();
