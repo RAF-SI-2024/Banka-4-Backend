@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -32,8 +33,13 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+import rs.banka4.bank_service.domain.assets.db.AssetOwnershipId;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.domain.user.User;
 import rs.banka4.bank_service.repositories.AccountRepository;
+import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
+import rs.banka4.bank_service.repositories.StockRepository;
+import rs.banka4.bank_service.repositories.UserRepository;
 import rs.banka4.bank_service.tx.TxExecutor;
 import rs.banka4.bank_service.tx.TxUtils;
 import rs.banka4.bank_service.tx.config.InterbankConfig;
@@ -43,7 +49,10 @@ import rs.banka4.bank_service.tx.data.IdempotenceKey;
 import rs.banka4.bank_service.tx.data.Message;
 import rs.banka4.bank_service.tx.data.MonetaryAsset;
 import rs.banka4.bank_service.tx.data.NoVoteReason;
+import rs.banka4.bank_service.tx.data.OptionDescription;
+import rs.banka4.bank_service.tx.data.Posting;
 import rs.banka4.bank_service.tx.data.RollbackTransaction;
+import rs.banka4.bank_service.tx.data.StockDescription;
 import rs.banka4.bank_service.tx.data.TransactionVote;
 import rs.banka4.bank_service.tx.data.TxAccount;
 import rs.banka4.bank_service.tx.data.TxAsset;
@@ -75,6 +84,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final EntityManager entityManager;
     private final InterbankRetrofitProvider interbanks;
     private final InboxRepository inboxRepo;
+    private final UserRepository userRepo;
+    private final StockRepository stockRepo;
+    private final AssetOwnershipRepository assetOwnershipRepo;
 
     /* Synchronization key for transaction execution. */
     private final Object transactionKey = new Object();
@@ -89,7 +101,10 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         TaskScheduler taskScheduler,
         EntityManager entityManager,
         InterbankRetrofitProvider interbanks,
-        InboxRepository inboxRepo
+        InboxRepository inboxRepo,
+        UserRepository userRepo,
+        StockRepository stockRepo,
+        AssetOwnershipRepository assetOwnershipRepo
     ) {
         this.interbankConfig = config;
         this.txTemplate = new TransactionTemplate(transactionManager);
@@ -108,6 +123,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.entityManager = entityManager;
         this.interbanks = interbanks;
         this.inboxRepo = inboxRepo;
+        this.userRepo = userRepo;
+        this.stockRepo = stockRepo;
+        this.assetOwnershipRepo = assetOwnershipRepo;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -137,6 +155,95 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 )
             );
         return dests;
+    }
+
+    private Optional<NoVoteReason> personStockPostingPhase1(
+        User person,
+        StockDescription assetDescription,
+        Posting posting
+    ) {
+        final var asset_ = stockRepo.findByTicker(assetDescription.ticker());
+        if (asset_.isEmpty()) return Optional.of(new NoVoteReason.NoSuchAsset(posting));
+        final var asset = asset_.get();
+
+        final int amount;
+        try {
+            amount =
+                posting.amount()
+                    .intValueExact();
+        } catch (ArithmeticException ignored) {
+            return Optional.of(new NoVoteReason.InsufficientAsset(posting));
+        }
+
+        if (amount >= 0)
+            /* Nothing to reserve, this is a debit. */
+            return Optional.empty();
+
+        final var assetOwnership_ =
+            assetOwnershipRepo.findAndLockById(new AssetOwnershipId(person, asset));
+        if (assetOwnership_.isEmpty())
+            /* The user never had any. */
+            return Optional.of(new NoVoteReason.InsufficientAsset(posting));
+        final var assetOwnership = assetOwnership_.get();
+
+        /* Transfers must come from privately-posessed stocks. Amount is negative. */
+        final var newPrivateStockAmount = assetOwnership.getPrivateAmount() + amount;
+        if (newPrivateStockAmount < 0)
+            return Optional.of(new NoVoteReason.InsufficientAsset(posting));
+
+        /* Commit the reservation. */
+        assetOwnership.setPrivateAmount(newPrivateStockAmount);
+        assetOwnership.setReservedAmount(assetOwnership.getReservedAmount() - amount);
+        assetOwnershipRepo.save(assetOwnership);
+        return Optional.empty();
+    }
+
+    private void personStockPostingPhase2(
+        User person,
+        StockDescription assetDescription,
+        Posting posting
+    ) {
+        final var asset =
+            stockRepo.findByTicker(assetDescription.ticker())
+                .orElseThrow(() -> new IllegalStateException("invalid tx?"));
+
+        final var assetOwnership =
+            assetOwnershipRepo.findAndLockById(new AssetOwnershipId(person, asset))
+                .orElseThrow(() -> new IllegalStateException("invalid tx?"));
+
+        final int amount;
+        try {
+            amount =
+                posting.amount()
+                    .intValueExact();
+        } catch (ArithmeticException e) {
+            throw new IllegalStateException("invalid tx?", e);
+        }
+
+        /* @formatter:off
+         * By reasoning similar to Note [Phase-by-phase balance changes], let P be the private
+         * reservation amount before phase 1, P' be private ownership amount after phase 1, and
+         * P_r be private ownership amount after phase 2.  Let, also, R with respective
+         * indices/superscripts indicate the same states of ownership reservation.  Let X be the
+         * amount of the posting.
+         *
+         * Our goal is that P_r = P + X, and R_r = R.
+         *
+         * P' = P + \min(X, 0), and R' = P - \min(X, 0) as a result of P' = P and R' = R if X >= 0,
+         * and P' = P + X and R' = R - X otherwise
+         *
+         * Lets express P and R in terms of P' and R'.  P = P' - \min(X, 0); R = R' + \min(X, 0).
+         * Hence, P_r = P' - \min(X, 0) + X; R_r = R' + \min(X, 0).  By reasoning similar to Note
+         * [Phase-by-phase balance changes].
+         *
+         * @formatter:on
+         */
+
+        assetOwnership.setReservedAmount(assetOwnership.getReservedAmount() + Math.min(amount, 0));
+        assetOwnership.setPrivateAmount(
+            assetOwnership.getPrivateAmount() - Math.min(amount, 0) + amount
+        );
+        assetOwnershipRepo.save(assetOwnership);
     }
 
     /**
@@ -170,10 +277,30 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 ) continue;
 
                 switch (posting.account()) {
-                case TxAccount.Person(ForeignBankId personId)
-                    -> throw new NotImplementedException();
-                case TxAccount.Option(ForeignBankId optionId)
-                    -> throw new NotImplementedException();
+                case TxAccount.Person(ForeignBankId personId) -> {
+                    final var person_ = userRepo.findById(UUID.fromString(personId.id()));
+                    if (!person_.isPresent()) {
+                        noReasons.add(new NoVoteReason.NoSuchAccount(posting));
+                        continue;
+                    }
+                    final var person = person_.get();
+
+                    switch (posting.asset()) {
+                    case TxAsset.Monas(MonetaryAsset asset)
+                        -> throw new IllegalArgumentException(
+                            "must preprocess tx with resolvePersonMonetaryAssetPostings"
+                        );
+                    case TxAsset.Stock(StockDescription asset)
+                        -> personStockPostingPhase1(person, asset, posting).ifPresent(
+                            noReasons::add
+                        );
+                    case TxAsset.Option(OptionDescription asset)
+                        -> throw new NotImplementedException();
+                    }
+                }
+                case TxAccount.Option(ForeignBankId optionId) -> {
+                    throw new NotImplementedException();
+                }
 
                 case TxAccount.Account(String accNumber) -> {
                     final var accMby = accountRepo.findAccountByAccountNumber(accNumber);
@@ -276,7 +403,20 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             ) continue;
 
             switch (posting.account()) {
-            case TxAccount.Person(ForeignBankId personId) -> throw new NotImplementedException();
+            case TxAccount.Person(ForeignBankId personId) -> {
+                final var person =
+                    userRepo.findById(UUID.fromString(personId.id()))
+                        .orElseThrow(() -> new IllegalStateException("invalid tx"));
+                switch (posting.asset()) {
+                case TxAsset.Monas(MonetaryAsset asset)
+                    -> throw new IllegalArgumentException(
+                        "must preprocess tx with resolvePersonMonetaryAssetPostings before P1"
+                    );
+                case TxAsset.Stock(StockDescription asset)
+                    -> personStockPostingPhase2(person, asset, posting);
+                case TxAsset.Option(OptionDescription asset) -> throw new NotImplementedException();
+                }
+            }
             case TxAccount.Option(ForeignBankId optionId) -> throw new NotImplementedException();
 
             case TxAccount.Account(String accNumber) -> {
