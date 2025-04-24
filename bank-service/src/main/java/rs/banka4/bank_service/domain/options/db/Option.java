@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.security.stock.db.Stock;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 
 @Entity(name = "options")
 @AllArgsConstructor
@@ -44,4 +45,6 @@ public class Option extends Asset {
     @Column(nullable = false)
     @Builder.Default
     private boolean active = true;
+
+    private ForeignBankId foreignId;
 }
