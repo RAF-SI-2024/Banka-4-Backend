@@ -9,6 +9,7 @@ public record OptionDescription(
     StockDescription stock,
     MonetaryAmount pricePerUnit,
     OffsetDateTime settlementDate,
-    int amount
+    int amount,
+    ForeignBankId negotiationId
 ) {
 }

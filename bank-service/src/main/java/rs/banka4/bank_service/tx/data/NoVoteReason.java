@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
     @JsonSubTypes.Type(NoVoteReason.OptionAmountIncorrect.class),
     @JsonSubTypes.Type(NoVoteReason.OptionUsedOrExpired.class),
     @JsonSubTypes.Type(NoVoteReason.UnacceptableAsset.class),
+    @JsonSubTypes.Type(NoVoteReason.OptionNegotiationNotFound.class),
 })
 public sealed interface NoVoteReason {
     @JsonTypeName("UNBALANCED_TX")
@@ -45,5 +46,9 @@ public sealed interface NoVoteReason {
 
     @JsonTypeName("UNACCEPTABLE_ASSET")
     public record UnacceptableAsset(Posting posting) implements NoVoteReason {
+    }
+
+    @JsonTypeName("OPTION_NEGOTIATION_NOT_FOUND")
+    public record OptionNegotiationNotFound(Posting posting) implements NoVoteReason {
     }
 }
