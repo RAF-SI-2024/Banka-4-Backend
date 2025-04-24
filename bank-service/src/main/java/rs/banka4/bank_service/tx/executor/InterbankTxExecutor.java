@@ -348,9 +348,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
         if (
             !assetOwnershipService.changeAssetOwnership(
-                option.getStock()
-                    .getId(),
-                person.getId(),
+                option.getStock(),
+                person,
                 0,
                 -optDesc.amount(),
                 +optDesc.amount()
@@ -381,8 +380,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
         if (
             !assetOwnershipService.changeAssetOwnership(
-                stock.getId(),
-                person.getId(),
+                stock,
+                person,
                 0,
                 +optDesc.amount(),
                 -optDesc.amount()
