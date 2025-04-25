@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.options.db.Asset;
 import rs.banka4.bank_service.domain.options.db.Option;
-import rs.banka4.bank_service.domain.options.db.OptionType;
 import rs.banka4.bank_service.domain.orders.db.Direction;
 import rs.banka4.bank_service.domain.orders.db.Order;
 import rs.banka4.bank_service.domain.security.forex.db.ForexPair;
@@ -38,9 +37,14 @@ public class ProfitCalculationServiceImpl implements ProfitCalculationService {
     /**
      * Calculates total profit (unrealized) for the given user and asset.
      */
-    public MonetaryAmount calculateProfit(UUID userId, Asset asset, MonetaryAmount currentPrice) {
+    public MonetaryAmount calculateProfit(
+        UUID userId,
+        Asset asset,
+        MonetaryAmount currentPrice,
+        int totalAmount
+    ) {
         if (asset instanceof Option option) {
-            return calculateOptionProfit(currentPrice, option);
+            return calculateOptionProfit(currentPrice, option, totalAmount);
         }
 
         var buyOrders =
@@ -217,7 +221,7 @@ public class ProfitCalculationServiceImpl implements ProfitCalculationService {
     /**
      * Calculates profit (unrealized/realized) for the given option.
      */
-    public MonetaryAmount calculateOptionProfit(Option option) {
+    public MonetaryAmount calculateOptionProfit(Option option, int totalAmount) {
         var optionalListing =
             listingRepository.getLatestListing(
                 option.getStock()
@@ -233,7 +237,7 @@ public class ProfitCalculationServiceImpl implements ProfitCalculationService {
                 )
             )
                 .orElseThrow(AssetNotFound::new);
-        return calculateOptionProfit(currentPrice, option);
+        return calculateOptionProfit(currentPrice, option, totalAmount);
     }
 
     private BigDecimal computeFee(Order order, BigDecimal baseCost) {
@@ -250,44 +254,33 @@ public class ProfitCalculationServiceImpl implements ProfitCalculationService {
         };
     }
 
-    private MonetaryAmount calculateOptionProfit(MonetaryAmount monetaryCurrPrice, Option option) {
-        final var contractMultiplier = BigDecimal.valueOf(100);
-        var currentStockPrice = monetaryCurrPrice.getAmount();
-        var strikePrice =
+    private MonetaryAmount calculateOptionProfit(
+        MonetaryAmount monetaryCurrPrice,
+        Option option,
+        int totalAmount
+    ) {
+        BigDecimal curr = monetaryCurrPrice.getAmount();
+        BigDecimal strike =
             option.getStrikePrice()
                 .getAmount();
-        var premium =
+        BigDecimal premium =
             option.getPremium()
                 .getAmount();
 
-        var intrinsic = getIntrinsic(option, currentStockPrice, strikePrice);
+        BigDecimal intrinsic = switch (option.getOptionType()) {
+        case CALL -> curr.subtract(strike);
+        case PUT -> strike.subtract(curr);
+        default -> throw new IllegalArgumentException("Unknown option type");
+        };
 
-        var totalIntrinsicValue = intrinsic.multiply(contractMultiplier);
-        var totalPremium = premium.multiply(contractMultiplier);
+        BigDecimal profit = intrinsic.subtract(premium);
 
-        var profit = totalIntrinsicValue.subtract(totalPremium);
         profit = profit.setScale(2, RoundingMode.HALF_UP);
-        return new MonetaryAmount(profit, monetaryCurrPrice.getCurrency());
+        return new MonetaryAmount(
+            profit.multiply(BigDecimal.valueOf(totalAmount)),
+            monetaryCurrPrice.getCurrency()
+        );
     }
-
-    private static BigDecimal getIntrinsic(
-        Option option,
-        BigDecimal currentStockPrice,
-        BigDecimal strikePrice
-    ) {
-        BigDecimal intrinsic;
-        if (option.getOptionType() == OptionType.CALL) {
-            intrinsic = currentStockPrice.subtract(strikePrice);
-        } else if (option.getOptionType() == OptionType.PUT) {
-            intrinsic = strikePrice.subtract(currentStockPrice);
-        } else {
-            throw new IllegalArgumentException(
-                "Unsupported option type: " + option.getOptionType()
-            );
-        }
-        return intrinsic.max(BigDecimal.ZERO);
-    }
-
 
     /**
      * Distinguishes each asset type by returning a multiplier for the final profit. - Stock -> 1 -

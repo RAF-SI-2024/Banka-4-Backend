@@ -82,8 +82,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
                 )
                     .orElseThrow(AssetNotFound::new);
 
-            var profit = profitCalculator.calculateProfit(myId, asset, currentPrice);
-
+            var profit = profitCalculator.calculateProfit(myId, asset, currentPrice, totalAmount);
             var ticker = asset.getTicker();
 
 //            var lastModified=orderRepository.findNewestOrder(myId,asset,true);
@@ -120,7 +119,12 @@ public class SecuritiesServiceImpl implements SecuritiesService {
                             )
                         )
                             .orElseThrow(AssetNotFound::new);
-                    return profitCalculator.calculateProfit(myId, asset, currentPrice);
+                    return profitCalculator.calculateProfit(
+                        myId,
+                        asset,
+                        currentPrice,
+                        ownership.getPrivateAmount() + ownership.getPublicAmount()
+                    );
                 }
                 return null;
             })

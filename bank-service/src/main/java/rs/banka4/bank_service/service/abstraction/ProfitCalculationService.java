@@ -11,12 +11,17 @@ public interface ProfitCalculationService {
      * Calculates total profit (unrealized) for the given user and asset. In case of option pls give
      * current price of stock that option has.
      */
-    MonetaryAmount calculateProfit(UUID userId, Asset asset, MonetaryAmount currentPrice);
+    MonetaryAmount calculateProfit(
+        UUID userId,
+        Asset asset,
+        MonetaryAmount currentPrice,
+        int totalAmount
+    );
 
     /**
      * Calculates profit (unrealized/realized) for the given option.
      */
-    MonetaryAmount calculateOptionProfit(Option option);
+    MonetaryAmount calculateOptionProfit(Option option, int totalAmount);
 
     /**
      * Calculate realized profit (P&L) for exactly one sell order, using FIFO matching against prior

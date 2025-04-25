@@ -351,7 +351,7 @@ public class TradingServiceImpl implements TradingService {
                 .used(true)
                 .build();
         orderRepository.save(order);
-        taxService.addTaxForOtcToDB(o, a);
+        taxService.addTaxForOtcToDB(o, a, amount);
     }
 
     /**

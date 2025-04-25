@@ -36,8 +36,9 @@ public interface TaxService {
      * {@link #addTaxAmountToDB} to persist or update the tax debt.
      *
      * @param option the option for which to calculate and record tax; must be non-null
+     * @param amount
      */
-    void addTaxForOtcToDB(Option option, Account account);
+    void addTaxForOtcToDB(Option option, Account account, int amount);
 
     /**
      * Adds a tax amount to the database for the given account.
