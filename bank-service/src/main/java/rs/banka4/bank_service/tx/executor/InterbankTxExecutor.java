@@ -997,12 +997,86 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             throw new IllegalStateException("Didn't properly handle a lack of local message?");
     }
 
+    private sealed interface ResolvePersonMonetaryAssetPostingResult {
+        record Success(Posting posting) implements ResolvePersonMonetaryAssetPostingResult {
+        }
+
+        record Failed(NoVoteReason reason) implements ResolvePersonMonetaryAssetPostingResult {
+        }
+    }
+
+    /**
+     * Replaces postings to {@link TxAccount.Person} with postings to {@link TxAccount.Account}. The
+     * accounts picked are accounts that can be credited and debited in the given currency, and have
+     * sufficient funds (in the case of credits). If no such account exists, a failure is indicated.
+     * If a non-{@link TxAccount.Person Person} posting is passed, it is returned unaltered.
+     *
+     * @param posting Posting to resolve
+     * @return A posting, if a person, it will be replaced by an account.
+     */
+    private ResolvePersonMonetaryAssetPostingResult resolvePersonMonetaryAssetPosting(
+        Posting posting
+    ) {
+        if (
+            !(posting.account() instanceof TxAccount.Person person)
+                || posting.account()
+                    .routingNumber()
+                    != ForeignBankId.OUR_ROUTING_NUMBER
+                || !(posting
+                    .asset() instanceof TxAsset.Monas(MonetaryAsset(CurrencyCode currencyCode)))
+        ) return new ResolvePersonMonetaryAssetPostingResult.Success(posting);
+        final var userId =
+            UUID.fromString(
+                person.id()
+                    .id()
+            );
+        return otcRequestService.getRequiredAccount(
+            userId,
+            currencyCode,
+            posting.amount()
+                .negate()
+                .max(BigDecimal.ZERO)
+        )
+            .map(x -> posting.withAccount(new TxAccount.Account(x.accountNumber())))
+            .<ResolvePersonMonetaryAssetPostingResult>map(
+                ResolvePersonMonetaryAssetPostingResult.Success::new
+            )
+            .orElseGet(
+                () -> new ResolvePersonMonetaryAssetPostingResult.Failed(
+                    posting.amount()
+                        .equals(BigDecimal.ZERO)
+                            ? new NoVoteReason.UnacceptableAsset(posting)
+                            : new NoVoteReason.InsufficientAsset(posting)
+                )
+            );
+    }
+
+    private DoubleEntryTransaction preprocessDoubleEntryTx(DoubleEntryTransaction tx) {
+        final var postings =
+            tx.postings()
+                .stream()
+                .map(this::resolvePersonMonetaryAssetPosting)
+                .toList();
+        final var reasonsAgainst =
+            postings.stream()
+                .filter(x -> x instanceof ResolvePersonMonetaryAssetPostingResult.Failed)
+                .map(x -> ((ResolvePersonMonetaryAssetPostingResult.Failed) x).reason())
+                .toList();
+        if (!reasonsAgainst.isEmpty()) throw new TxLocalPartVotedNo(tx, reasonsAgainst);
+        return tx.withPostings(
+            postings.stream()
+                .map(x -> ((ResolvePersonMonetaryAssetPostingResult.Success) x).posting())
+                .toList()
+        );
+    }
+
     @Override
     public ForeignBankId submitTx(final DoubleEntryTransaction tx_) {
         final var destinations = collectAndValidateDestinations(tx_);
-        final var tx = tx_.withTransactionId(ForeignBankId.our(UUID.randomUUID()));
         if (!destinations.contains(ForeignBankId.OUR_ROUTING_NUMBER))
             throw new IllegalArgumentException("Transaction is not in our bank");
+        final var tx =
+            preprocessDoubleEntryTx(tx_).withTransactionId(ForeignBankId.our(UUID.randomUUID()));
 
         synchronized (transactionKey) {
             /* Needs to be synced due to he use of executeLocalPhase1. */
@@ -1039,12 +1113,13 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         /* does this make sense even? */ isolation = Isolation.SERIALIZABLE
     )
     public ForeignBankId submitImmediateTx(final DoubleEntryTransaction tx_) {
-        final var tx = tx_.withTransactionId(ForeignBankId.our(UUID.randomUUID()));
-        final var destinations = collectAndValidateDestinations(tx);
+        final var destinations = collectAndValidateDestinations(tx_);
         if (!destinations.contains(ForeignBankId.OUR_ROUTING_NUMBER))
             throw new IllegalArgumentException("Transaction is not in our bank");
         if (destinations.size() == 1)
             throw new IllegalArgumentException("Transaction is not fully in our bank");
+        final var tx =
+            preprocessDoubleEntryTx(tx_).withTransactionId(ForeignBankId.our(UUID.randomUUID()));
 
         synchronized (transactionKey) {
             executeLocalPhase1(tx);
@@ -1225,12 +1300,13 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
     public TransactionVote processNewTxMessage(Message.NewTx message) {
         return doIdempotentMessageHandling(message, TransactionVote.class, m -> {
-            final var tx = message.message();
-            final var ectx = recordTx(tx, 2);
             try {
+                final var tx = preprocessDoubleEntryTx(message.message());
+                recordTx(tx, 2);
                 executeLocalPhase1(tx);
                 return new TransactionVote.Yes();
             } catch (TxLocalPartVotedNo reason) {
+                final var ectx = recordTx(message.message(), 2);
                 ectx.setVotesAreYes(false);
                 execTxRepo.save(ectx);
                 return new TransactionVote.No(reason.getReasons());
