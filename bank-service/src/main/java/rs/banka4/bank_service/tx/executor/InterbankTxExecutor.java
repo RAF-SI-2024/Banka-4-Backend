@@ -495,8 +495,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             }
             case TxAsset.Stock(StockDescription sd) -> {
                 final var stock = resolveStock(sd).orElseThrow(() -> new IllegalStateException("Invalid tx?"));
-                if (!assetOwnershipService.changeAssetOwnership(option.getId(), sellerUuid, -1, 0, 0))
-                    throw new IllegalStateException("Invalid tx?");
                 assert posting.amount().compareTo(new BigDecimal(-offer.getAmount())) == 0;
                 if (!assetOwnershipService.changeAssetOwnership(stock.getId(), sellerUuid, 0, 0, -offer.getAmount()))
                     throw new IllegalStateException("Invalid tx?");
