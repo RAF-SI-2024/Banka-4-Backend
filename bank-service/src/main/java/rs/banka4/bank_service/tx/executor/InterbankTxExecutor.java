@@ -707,8 +707,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             }
         }
 
-        if (!noReasons.isEmpty()) {
-            throw new TxLocalPartVotedNo(tx, noReasons);
+        if (!noReasons.isEmpty()) {throw new TxLocalPartVotedNo(tx, noReasons);
         }
     }
 
@@ -1144,7 +1143,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final Object messageSendKey = new Object();
 
     @Async("txExecutorPool")
-    private void processOutbox() {
+    protected void processOutbox() {
         synchronized (messageSendKey) {
             final List<Pair<OutboxMessageId, String>> toResend;
             synchronized (transactionKey) {

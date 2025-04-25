@@ -1,6 +1,7 @@
 package rs.banka4.bank_service.service.impl;
 
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -12,10 +13,14 @@ import org.springframework.stereotype.Service;
 import rs.banka4.bank_service.domain.orders.db.Direction;
 import rs.banka4.bank_service.domain.orders.db.Order;
 import rs.banka4.bank_service.domain.orders.db.Status;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.exceptions.InsufficientVolume;
 import rs.banka4.bank_service.repositories.OrderRepository;
+import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
 import rs.banka4.bank_service.service.abstraction.ListingService;
 import rs.banka4.bank_service.service.abstraction.TaxService;
+import rs.banka4.bank_service.tx.TxExecutor;
+import rs.banka4.bank_service.tx.data.*;
 
 @Slf4j
 @Service
@@ -25,6 +30,8 @@ public class OrderExecutionService {
     private final OrderRepository orderRepository;
     private final ListingService listingService;
     private final TaxService taxService;
+    private final TxExecutor txExecutor;
+    private final AssetOwnershipService assetOwnershipService;
 
     /**
      * Processes an order in an all-or-nothing manner. If a matching order is found, it executes the
@@ -69,7 +76,78 @@ public class OrderExecutionService {
         order.setUsed(true);
         orderRepository.save(order);
 
-        // TODO: Make transaction between order's client and matchedOrder's client
+        Posting orderPosting =
+            new Posting(
+                new TxAccount.Account(
+                    order.getAccount()
+                        .getAccountNumber()
+                ),
+                order.getDirection() == Direction.BUY
+                    ? order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity()))
+                        .negate()
+                    : order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity())),
+                new TxAsset.Monas(
+                    order.getPricePerUnit()
+                        .getCurrency()
+                )
+            );
+
+        Posting matchOrderPosting =
+            new Posting(
+                new TxAccount.Account(
+                    matchedOrder.getAccount()
+                        .getAccountNumber()
+                ),
+                order.getDirection() == Direction.SELL
+                    ? order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity()))
+                        .negate()
+                    : order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity())),
+                new TxAsset.Monas(
+                    order.getPricePerUnit()
+                        .getCurrency()
+                )
+            );
+
+//        Posting orderPostingStock = new Posting(
+//            new TxAccount.Person(order.getAccount().getClient().getId()),
+//            order.getDirection() == Direction.BUY ?
+//                BigDecimal.valueOf(order.getQuantity())
+//                :
+//                BigDecimal.valueOf(order.getQuantity()).negate(),
+//            new TxAsset.Stock(order.getAsset().getTicker())
+//        );
+//
+//        Posting matchOrderPostingStock = new Posting(
+//            new TxAccount.Person(matchedOrder.getAccount().getClient().getId()),
+//            order.getDirection() == Direction.SELL ?
+//                BigDecimal.valueOf(order.getQuantity())
+//                :
+//                BigDecimal.valueOf(order.getQuantity()).negate(),
+//            new TxAsset.Stock(order.getAsset().getTicker())
+//        );
+
+        DoubleEntryTransaction transaction =
+            new DoubleEntryTransaction(
+                List.of(orderPosting, matchOrderPosting),
+                "Order execution between buyer and seller",
+                ForeignBankId.our(UUID.randomUUID())
+            );
+
+        try {
+            txExecutor.submitImmediateTx(transaction);
+        } catch (Exception e) {
+            log.error("Failed to submit transaction for orders {} {}", order, matchedOrder, e);
+            return CompletableFuture.failedFuture(e);
+        }
+
         /**
          * Calculates and records tax for a SELL order. BUY orders are ignored.
          * <p>
@@ -80,6 +158,8 @@ public class OrderExecutionService {
          */
         taxService.addTaxForOrderToDB(order);
         orderRepository.save(matchedOrder);
+
+        calculateAssetOwnerships(order, matchedOrder);
 
         log.info(
             "[AON] Order {} fully executed against order {}.",
@@ -160,7 +240,6 @@ public class OrderExecutionService {
                 orderRepository.save(matchedOrder);
                 orderRepository.save(lockedOrder);
 
-                // TODO: Make transaction between order's client and matchedOrder's client
                 /**
                  * Calculates and records tax for a SELL order. BUY orders are ignored.
                  * <p>
@@ -216,6 +295,7 @@ public class OrderExecutionService {
                 }
 
             }
+            // TODO: Make transaction between order's client and matchedOrder's client
 
             if (lockedOrder.getRemainingPortions() == 0) {
                 lockedOrder.setDone(true);
@@ -247,6 +327,41 @@ public class OrderExecutionService {
                 lockedOrder.getId()
             );
             return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    @Transactional
+    protected void calculateAssetOwnerships(Order order, Order matchedOrder) {
+        if (order.getDirection() == Direction.BUY) {
+            assetOwnershipService.changeAssetOwnership(
+                order.getAsset(),
+                order.getUser(),
+                order.getQuantity(),
+                0,
+                0
+            );
+            assetOwnershipService.changeAssetOwnership(
+                matchedOrder.getAsset(),
+                matchedOrder.getUser(),
+                -matchedOrder.getQuantity(),
+                0,
+                0
+            );
+        } else {
+            assetOwnershipService.changeAssetOwnership(
+                order.getAsset(),
+                order.getUser(),
+                -order.getQuantity(),
+                0,
+                0
+            );
+            assetOwnershipService.changeAssetOwnership(
+                matchedOrder.getAsset(),
+                matchedOrder.getUser(),
+                matchedOrder.getQuantity(),
+                0,
+                0
+            );
         }
     }
 

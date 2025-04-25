@@ -23,16 +23,16 @@ import rs.banka4.bank_service.domain.orders.db.Status;
 import rs.banka4.bank_service.domain.orders.dtos.*;
 import rs.banka4.bank_service.domain.orders.mapper.OrderMapper;
 import rs.banka4.bank_service.domain.security.future.db.Future;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.domain.user.User;
 import rs.banka4.bank_service.exceptions.*;
 import rs.banka4.bank_service.repositories.ActuaryRepository;
 import rs.banka4.bank_service.repositories.AssetRepository;
 import rs.banka4.bank_service.repositories.OrderRepository;
 import rs.banka4.bank_service.repositories.UserRepository;
-import rs.banka4.bank_service.service.abstraction.AccountService;
-import rs.banka4.bank_service.service.abstraction.ExchangeRateService;
-import rs.banka4.bank_service.service.abstraction.ListingService;
-import rs.banka4.bank_service.service.abstraction.OrderService;
+import rs.banka4.bank_service.service.abstraction.*;
+import rs.banka4.bank_service.tx.TxExecutor;
+import rs.banka4.bank_service.tx.data.*;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.rafeisen.common.exceptions.jwt.Unauthorized;
 import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
@@ -53,6 +53,8 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final AccountService accountService;
     private final ExchangeRateService exchangeRateService;
+    private final BankAccountService bankAccountService;
+    private final TxExecutor txExecutor;
 
     @Override
     public OrderDto createOrder(
@@ -664,19 +666,7 @@ public class OrderServiceImpl implements OrderService {
         orderExecutionService.processAllOrNothingOrderAsync(order)
             .thenAccept(executed -> {
                 if (executed) {
-                    payFee(
-                        new CreateFeeTransactionDto(
-                            order.getUser()
-                                .getId()
-                                .toString(),
-                            order.getAccount()
-                                .getId()
-                                .toString(),
-                            commission,
-                            order.getPricePerUnit()
-                                .getCurrency()
-                        )
-                    );
+                    payFee(order, commission);
                 }
             })
             .exceptionally(ex -> null);
@@ -697,32 +687,51 @@ public class OrderServiceImpl implements OrderService {
         orderExecutionService.processPartialOrderAsync(order)
             .thenAccept(executed -> {
                 if (executed) {
-                    payFee(
-                        new CreateFeeTransactionDto(
-                            order.getUser()
-                                .getId()
-                                .toString(),
-                            order.getAccount()
-                                .getId()
-                                .toString(),
-                            commission,
-                            order.getPricePerUnit()
-                                .getCurrency()
-                        )
-                    );
+                    payFee(order, commission);
                 }
             })
             .exceptionally(ex -> null);
     }
 
-    /**
-     * [Communicates with User Service] Sends a request to the transaction service to pay the fee
-     * for the order.
-     *
-     * @param dto The DTO containing the fee transaction details.
-     */
-    private void payFee(CreateFeeTransactionDto dto) {
-        throw new RuntimeException("Not implemented yet");
+
+    private void payFee(Order order, BigDecimal commission) {
+        StockDescription stockDescription =
+            new StockDescription(
+                order.getAsset()
+                    .getTicker()
+            );
+
+        Account bankAccount =
+            bankAccountService.getBankAccountForCurrency(
+                order.getAccount()
+                    .getCurrency()
+            );
+
+        Posting orderPosting =
+            new Posting(
+                new TxAccount.Account(
+                    order.getAccount()
+                        .getAccountNumber()
+                ),
+                commission.negate(),
+                new TxAsset.Stock(stockDescription)
+            );
+
+        Posting bankPosting =
+            new Posting(
+                new TxAccount.Account(bankAccount.getAccountNumber()),
+                commission,
+                new TxAsset.Stock(stockDescription)
+            );
+
+        DoubleEntryTransaction transaction =
+            new DoubleEntryTransaction(
+                List.of(orderPosting, bankPosting),
+                "Order execution fee",
+                ForeignBankId.our(UUID.randomUUID())
+            );
+
+        txExecutor.submitImmediateTx(transaction);
     }
 
 }
