@@ -96,6 +96,7 @@ public class TradingServiceImpl implements TradingService {
                     new TxAccount.Account(userAccount),
                     o.getPremium()
                         .getAmount()
+                        .multiply(new BigDecimal(amount))
                         .negate(),
                     new TxAsset.Monas(
                         new MonetaryAsset(
@@ -108,7 +109,8 @@ public class TradingServiceImpl implements TradingService {
                 new Posting(
                     new TxAccount.MemoryHole(),
                     o.getPremium()
-                        .getAmount(),
+                        .getAmount()
+                        .multiply(new BigDecimal(amount)),
                     new TxAsset.Monas(
                         new MonetaryAsset(
                             o.getPremium()
@@ -123,7 +125,8 @@ public class TradingServiceImpl implements TradingService {
             BigDecimal original =
                 exchangeRateService.convertCurrency(
                     o.getPremium()
-                        .getAmount(),
+                        .getAmount()
+                        .multiply(new BigDecimal(amount)),
                     o.getPremium()
                         .getCurrency(),
                     a.getCurrency()
@@ -155,6 +158,7 @@ public class TradingServiceImpl implements TradingService {
                     ),
                     o.getPremium()
                         .getAmount()
+                        .multiply(new BigDecimal(amount))
                         .negate(),
                     new TxAsset.Monas(
                         new MonetaryAsset(
@@ -167,7 +171,8 @@ public class TradingServiceImpl implements TradingService {
                 new Posting(
                     new TxAccount.MemoryHole(),
                     o.getPremium()
-                        .getAmount(),
+                        .getAmount()
+                        .multiply(new BigDecimal(amount)),
                     new TxAsset.Monas(
                         new MonetaryAsset(
                             o.getPremium()
