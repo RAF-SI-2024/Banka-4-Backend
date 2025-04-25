@@ -509,6 +509,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     /**
      * Perform phase one of local transaction execution:
      *
+     * <p>
+     * <strong>You probably don't want to call this directly.</strong.
+     *
      * <blockquote> Firstly, upon receiving a transaction from an Initiating Bank (IB), a
      * transaction is <i>prepared</i>: all credited accounts have the transacted amount of assets
      * <i>reserved</i>. If this was not possible (for instance, because an account would be
@@ -523,7 +526,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      *
      * @throws TxLocalPartVotedNo if the local part of this transaction fails
      */
-    private void executeLocalPhase1(DoubleEntryTransaction tx) {
+    public void executeLocalPhase1(DoubleEntryTransaction tx) {
         if (!isTxBalanced(tx))
             throw new TxLocalPartVotedNo(tx, List.of(new NoVoteReason.UnbalancedTx()));
 
@@ -712,6 +715,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     /**
      * Roll back phase one of local transaction execution:
      *
+     * <p>
+     * <strong>You probably don't want to call this directly.</strong.
+     *
      * <blockquote>
      * <p>
      * Should a transaction fail after it has been
@@ -733,7 +739,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      *          transaction roll back if the list is non-empty.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    protected void rollbackLocalPhase1(DoubleEntryTransaction tx) {
+    public void rollbackLocalPhase1(DoubleEntryTransaction tx) {
         for (final var posting : tx.postings()) {
             if (
                 posting.account()

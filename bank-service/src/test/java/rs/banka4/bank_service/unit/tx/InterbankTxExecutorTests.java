@@ -22,6 +22,9 @@ import rs.banka4.bank_service.domain.user.client.db.Client;
 import rs.banka4.bank_service.domain.user.employee.db.Employee;
 import rs.banka4.bank_service.integration.generator.UserGenerator;
 import rs.banka4.bank_service.repositories.AccountRepository;
+import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
+import rs.banka4.bank_service.repositories.AssetRepository;
+import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
 import rs.banka4.bank_service.tx.data.DoubleEntryTransaction;
 import rs.banka4.bank_service.tx.data.NoVoteReason;
 import rs.banka4.bank_service.tx.data.Posting;
@@ -29,6 +32,7 @@ import rs.banka4.bank_service.tx.data.TxAccount;
 import rs.banka4.bank_service.tx.data.TxAsset;
 import rs.banka4.bank_service.tx.errors.TxLocalPartVotedNo;
 import rs.banka4.bank_service.tx.executor.InterbankTxExecutor;
+import rs.banka4.bank_service.utils.AssetGenerator;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.testlib.integration.DbEnabledTest;
 
@@ -50,6 +54,15 @@ public class InterbankTxExecutorTests {
     @Autowired
     TransactionTemplate txTemplate;
 
+    @Autowired
+    AssetRepository assetRepo;
+
+    @Autowired
+    AssetOwnershipService assetOwnershipService;
+
+    @Autowired
+    AssetOwnershipRepository assetOwnershipRepo;
+
     private String getAccountNumber(int userNr, CurrencyCode curr) {
         return "4440001000%03d%03d520".formatted(userNr, curr.ordinal());
     }
@@ -63,6 +76,8 @@ public class InterbankTxExecutorTests {
     List<Client> users;
 
     private static final BigDecimal BASELINE_BALANCE = new BigDecimal(1e9);
+    private static final UUID USER1_UUID = UUID.fromString("be4f05ae-678e-4b39-a493-e1bd3d48280c");
+    private static final UUID USER2_UUID = UUID.fromString("7c71c202-46cf-4491-a5a1-f457a36df516");
 
     @BeforeEach
     void beforeEach() {
@@ -74,11 +89,11 @@ public class InterbankTxExecutorTests {
         users =
             List.of(
                 userGen.createClient(
-                    x -> x.id(UUID.fromString("be4f05ae-678e-4b39-a493-e1bd3d48280c"))
+                    x -> x.id(USER1_UUID)
                         .email("foo1@t.co")
                 ),
                 userGen.createClient(
-                    x -> x.id(UUID.fromString("7c71c202-46cf-4491-a5a1-f457a36df516"))
+                    x -> x.id(USER2_UUID)
                         .email("foo2@t.co")
                 )
             );
@@ -109,6 +124,10 @@ public class InterbankTxExecutorTests {
             }
         }
         accRepo.flush();
+
+        AssetGenerator.makeExampleAssets()
+            .forEach(assetRepo::save);
+        assetRepo.flush();
     }
 
     @EnumSource(CurrencyCode.class)
@@ -138,6 +157,89 @@ public class InterbankTxExecutorTests {
         );
         assertThat(getAccount(0, cc).getAvailableBalance()).isEqualByComparingTo(
             BASELINE_BALANCE.add(BigDecimal.TEN)
+        );
+    }
+
+    @Test
+    void test_monetary_reservation_correct() {
+        txTemplate.executeWithoutResult(
+            s -> executor.executeLocalPhase1(
+                new DoubleEntryTransaction(
+                    List.of(
+                        new Posting(
+                            new TxAccount.Account(getAccountNumber(1, CurrencyCode.RSD)),
+                            BigDecimal.TEN.negate(),
+                            new TxAsset.Monas(CurrencyCode.RSD)
+                        ),
+                        new Posting(
+                            new TxAccount.Account(getAccountNumber(0, CurrencyCode.RSD)),
+                            BigDecimal.TEN,
+                            new TxAsset.Monas(CurrencyCode.RSD)
+                        )
+                    ),
+                    "foo",
+                    null
+                )
+            )
+        );
+
+        assertThat(getAccount(1, CurrencyCode.RSD).getBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE
+        );
+        assertThat(getAccount(1, CurrencyCode.RSD).getAvailableBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE.subtract(BigDecimal.TEN)
+        );
+
+        assertThat(getAccount(0, CurrencyCode.RSD).getBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE
+        );
+        assertThat(getAccount(0, CurrencyCode.RSD).getAvailableBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE
+        );
+    }
+
+    @Test
+    void test_monetary_rollback_correct() {
+        /* Prepare result similar to test above. */
+        txTemplate.executeWithoutResult(s -> {
+            final var user1Acc = getAccount(1, CurrencyCode.RSD);
+            user1Acc.setAvailableBalance(BASELINE_BALANCE.subtract(BigDecimal.TEN));
+            accRepo.save(user1Acc);
+        });
+
+        txTemplate.executeWithoutResult(
+            s -> executor.rollbackLocalPhase1(
+                new DoubleEntryTransaction(
+                    List.of(
+                        new Posting(
+                            new TxAccount.Account(getAccountNumber(1, CurrencyCode.RSD)),
+                            BigDecimal.TEN.negate(),
+                            new TxAsset.Monas(CurrencyCode.RSD)
+                        ),
+                        new Posting(
+                            new TxAccount.Account(getAccountNumber(0, CurrencyCode.RSD)),
+                            BigDecimal.TEN,
+                            new TxAsset.Monas(CurrencyCode.RSD)
+                        )
+                    ),
+                    "foo",
+                    null
+                )
+            )
+        );
+
+        assertThat(getAccount(1, CurrencyCode.RSD).getBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE
+        );
+        assertThat(getAccount(1, CurrencyCode.RSD).getAvailableBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE
+        );
+
+        assertThat(getAccount(0, CurrencyCode.RSD).getBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE
+        );
+        assertThat(getAccount(0, CurrencyCode.RSD).getAvailableBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE
         );
     }
 
@@ -251,4 +353,198 @@ public class InterbankTxExecutorTests {
         );
     }
 
+    @Test
+    void test_deposit_some_stocks() {
+        executor.submitImmediateTx(
+            new DoubleEntryTransaction(
+                List.of(
+                    new Posting(
+                        new TxAccount.MemoryHole(),
+                        BigDecimal.TEN.negate(),
+                        new TxAsset.Stock("EX1")
+                    ),
+                    new Posting(
+                        new TxAccount.Person(USER1_UUID),
+                        BigDecimal.TEN,
+                        new TxAsset.Stock("EX1")
+                    )
+                ),
+                "foo",
+                null
+            )
+        );
+
+        final var ownership =
+            assetOwnershipRepo.findByMyId(USER1_UUID, AssetGenerator.STOCK_EX1_UUID)
+                .orElseThrow();
+        assertThat(ownership).extracting("privateAmount", as(INTEGER))
+            .isEqualTo(10);
+        assertThat(ownership).extracting("reservedAmount", as(INTEGER))
+            .isEqualTo(0);
+        assertThat(ownership).extracting("publicAmount", as(INTEGER))
+            .isEqualTo(0);
+    }
+
+    @Test
+    void test_lose_some_stocks() {
+        txTemplate.executeWithoutResult(
+            s -> assetOwnershipService.changeAssetOwnership(
+                AssetGenerator.STOCK_EX1_UUID,
+                USER1_UUID,
+                100,
+                0,
+                0
+            )
+        );
+        executor.submitImmediateTx(
+            new DoubleEntryTransaction(
+                List.of(
+                    new Posting(
+                        new TxAccount.MemoryHole(),
+                        BigDecimal.TEN,
+                        new TxAsset.Stock("EX1")
+                    ),
+                    new Posting(
+                        new TxAccount.Person(USER1_UUID),
+                        BigDecimal.TEN.negate(),
+                        new TxAsset.Stock("EX1")
+                    )
+                ),
+                "foo",
+                null
+            )
+        );
+
+        final var ownership =
+            assetOwnershipRepo.findByMyId(USER1_UUID, AssetGenerator.STOCK_EX1_UUID)
+                .orElseThrow();
+        assertThat(ownership).extracting("privateAmount", as(INTEGER))
+            .isEqualTo(90);
+        assertThat(ownership).extracting("reservedAmount", as(INTEGER))
+            .isEqualTo(0);
+        assertThat(ownership).extracting("publicAmount", as(INTEGER))
+            .isEqualTo(0);
+    }
+
+    @Test
+    void test_stock_reservation_correct() {
+        txTemplate.executeWithoutResult(s -> {
+            assetOwnershipService.changeAssetOwnership(
+                AssetGenerator.STOCK_EX1_UUID,
+                USER1_UUID,
+                100,
+                0,
+                0
+            );
+            assetOwnershipService.changeAssetOwnership(
+                AssetGenerator.STOCK_EX1_UUID,
+                USER2_UUID,
+                100,
+                0,
+                0
+            );
+        });
+
+        txTemplate.executeWithoutResult(
+            s -> executor.executeLocalPhase1(
+                new DoubleEntryTransaction(
+                    List.of(
+                        new Posting(
+                            new TxAccount.Person(USER2_UUID),
+                            BigDecimal.TEN,
+                            new TxAsset.Stock("EX1")
+                        ),
+                        new Posting(
+                            new TxAccount.Person(USER1_UUID),
+                            BigDecimal.TEN.negate(),
+                            new TxAsset.Stock("EX1")
+                        )
+                    ),
+                    "foo",
+                    null
+                )
+            )
+        );
+
+        final var user1Ownership =
+            assetOwnershipRepo.findByMyId(USER1_UUID, AssetGenerator.STOCK_EX1_UUID)
+                .orElseThrow();
+        assertThat(user1Ownership).extracting("privateAmount", as(INTEGER))
+            .isEqualTo(90);
+        assertThat(user1Ownership).extracting("reservedAmount", as(INTEGER))
+            .isEqualTo(10);
+        assertThat(user1Ownership).extracting("publicAmount", as(INTEGER))
+            .isEqualTo(0);
+
+        final var user2Ownership =
+            assetOwnershipRepo.findByMyId(USER2_UUID, AssetGenerator.STOCK_EX1_UUID)
+                .orElseThrow();
+        assertThat(user2Ownership).extracting("privateAmount", as(INTEGER))
+            .isEqualTo(100);
+        assertThat(user2Ownership).extracting("reservedAmount", as(INTEGER))
+            .isEqualTo(0);
+        assertThat(user2Ownership).extracting("publicAmount", as(INTEGER))
+            .isEqualTo(0);
+    }
+
+    @Test
+    void test_stock_rollback_correct() {
+        txTemplate.executeWithoutResult(s -> {
+            assetOwnershipService.changeAssetOwnership(
+                AssetGenerator.STOCK_EX1_UUID,
+                USER1_UUID,
+                90,
+                0,
+                10
+            );
+            assetOwnershipService.changeAssetOwnership(
+                AssetGenerator.STOCK_EX1_UUID,
+                USER2_UUID,
+                100,
+                0,
+                0
+            );
+        });
+
+        txTemplate.executeWithoutResult(
+            s -> executor.rollbackLocalPhase1(
+                new DoubleEntryTransaction(
+                    List.of(
+                        new Posting(
+                            new TxAccount.Person(USER2_UUID),
+                            BigDecimal.TEN,
+                            new TxAsset.Stock("EX1")
+                        ),
+                        new Posting(
+                            new TxAccount.Person(USER1_UUID),
+                            BigDecimal.TEN.negate(),
+                            new TxAsset.Stock("EX1")
+                        )
+                    ),
+                    "foo",
+                    null
+                )
+            )
+        );
+
+        final var user1Ownership =
+            assetOwnershipRepo.findByMyId(USER1_UUID, AssetGenerator.STOCK_EX1_UUID)
+                .orElseThrow();
+        assertThat(user1Ownership).extracting("privateAmount", as(INTEGER))
+            .isEqualTo(100);
+        assertThat(user1Ownership).extracting("reservedAmount", as(INTEGER))
+            .isEqualTo(0);
+        assertThat(user1Ownership).extracting("publicAmount", as(INTEGER))
+            .isEqualTo(0);
+
+        final var user2Ownership =
+            assetOwnershipRepo.findByMyId(USER2_UUID, AssetGenerator.STOCK_EX1_UUID)
+                .orElseThrow();
+        assertThat(user2Ownership).extracting("privateAmount", as(INTEGER))
+            .isEqualTo(100);
+        assertThat(user2Ownership).extracting("reservedAmount", as(INTEGER))
+            .isEqualTo(0);
+        assertThat(user2Ownership).extracting("publicAmount", as(INTEGER))
+            .isEqualTo(0);
+    }
 }
