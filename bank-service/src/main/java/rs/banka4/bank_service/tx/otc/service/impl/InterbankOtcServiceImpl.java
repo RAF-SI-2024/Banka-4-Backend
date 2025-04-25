@@ -3,7 +3,6 @@ package rs.banka4.bank_service.tx.otc.service.impl;
 import java.io.IOException;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Service;
 import retrofit2.Response;
 import rs.banka4.bank_service.domain.assets.db.AssetOwnership;
@@ -262,7 +261,6 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
                 != ForeignBankId.OUR_ROUTING_NUMBER
         ) throw new WrongTurn();
         tradingService.sendPremiumAndGetOption(otc.get());
-        throw new NotImplementedException();
     }
 
     @Override
