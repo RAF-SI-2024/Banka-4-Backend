@@ -34,6 +34,7 @@ public class TradingServiceImpl implements TradingService {
     private final BankAccountService bankAccountService;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final TaxService taxService;
 
     @Override
     public void sendPremiumAndGetOption(OtcRequest otcRequest) {
@@ -350,6 +351,7 @@ public class TradingServiceImpl implements TradingService {
                 .used(true)
                 .build();
         orderRepository.save(order);
+        taxService.addTaxForOrderToDB(order);
     }
 
     /**
