@@ -299,7 +299,7 @@ public class OtcTests {
         );
 
         mvc.patch()
-            .uri("/stock/otc/reject/" + id.routingNumber() + "/" + id.id())
+            .uri("/stock/otc/reject/" + id.id() + "/" + id.routingNumber())
             .header("Authorization", "Bearer " + JwtPlaceholders.CLIENT_TOKEN)
             .assertThat()
             .hasStatusOk();
@@ -336,7 +336,7 @@ public class OtcTests {
         var updateDto = new OtcRequestUpdateDto(null, momo, null, LocalDate.parse("2025-04-11"));
         var body = objMapper.writeValueAsString(updateDto);
         mvc.patch()
-            .uri("/stock/otc/update/" + id.routingNumber() + "/" + id.id())
+            .uri("/stock/otc/update/" + id.id() + "/" + id.routingNumber())
             .header("Authorization", "Bearer " + JwtPlaceholders.CLIENT_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
