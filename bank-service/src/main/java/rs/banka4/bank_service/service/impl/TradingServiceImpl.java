@@ -54,7 +54,7 @@ public class TradingServiceImpl implements TradingService {
         var option =
             new TxAsset.Option(
                 new OptionDescription(
-                    ForeignBankId.our(otcRequest.getOptionId()),
+                    ForeignBankId.our(UUID.randomUUID()),
                     new StockDescription(
                         otcRequest.getStock()
                             .getTicker()
