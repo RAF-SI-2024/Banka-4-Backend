@@ -1163,7 +1163,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     );
             }
 
-            log.debug("need to resend {}", toResend);
+            log.trace("need to resend {}", toResend);
             for (final var msg : toResend) {
                 try {
                     final var message = objectMapper.readValue(msg.getRight(), Message.class);
