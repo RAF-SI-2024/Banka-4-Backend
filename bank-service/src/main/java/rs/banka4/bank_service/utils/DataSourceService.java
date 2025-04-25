@@ -489,18 +489,6 @@ public class DataSourceService {
         List<Client> clients =
             List.of(
                 Client.builder()
-                    .id(CLIENT_SINISA_MALI)
-                    .firstName("Sinisa")
-                    .lastName("Mali")
-                    .dateOfBirth(LocalDate.of(1995, 5, 15))
-                    .gender(Gender.MALE)
-                    .email("sinisa@kradja.com")
-                    .phone("+38162798543")
-                    .address("Dedinje 8")
-                    .password(passwordEncoder.encode("password"))
-                    .enabled(true)
-                    .build(),
-                Client.builder()
                     .id(CLIENT_JOHN)
                     .firstName("John")
                     .lastName("Doe")
@@ -1045,6 +1033,20 @@ public class DataSourceService {
 
         companyRepository.saveAndFlush(stateCompany);
 
+        clientRepository.saveAndFlush(
+            Client.builder()
+                .id(CLIENT_SINISA_MALI)
+                .firstName("Sinisa")
+                .lastName("Mali")
+                .dateOfBirth(LocalDate.of(1995, 5, 15))
+                .gender(Gender.MALE)
+                .email("sinisa@kradja.com")
+                .phone("+38162798543")
+                .address("Dedinje 8")
+                .password(passwordEncoder.encode("password"))
+                .enabled(true)
+                .build()
+        );
 
         Account stateAccount =
             Account.builder()
