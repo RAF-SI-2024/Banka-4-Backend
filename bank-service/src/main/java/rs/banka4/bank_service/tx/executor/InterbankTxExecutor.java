@@ -1076,6 +1076,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
     @Override
     public ForeignBankId submitTx(final DoubleEntryTransaction tx_) {
+        log.debug("IBEX taking tx {}", tx_);
         final var destinations = collectAndValidateDestinations(tx_);
         if (!destinations.contains(ForeignBankId.OUR_ROUTING_NUMBER))
             throw new IllegalArgumentException("Transaction is not in our bank");
@@ -1117,6 +1118,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         /* does this make sense even? */ isolation = Isolation.SERIALIZABLE
     )
     public ForeignBankId submitImmediateTx(final DoubleEntryTransaction tx_) {
+        log.debug("IBEX taking tx {}", tx_);
         final var destinations = collectAndValidateDestinations(tx_);
         if (!destinations.contains(ForeignBankId.OUR_ROUTING_NUMBER))
             throw new IllegalArgumentException("Transaction is not in our bank");
