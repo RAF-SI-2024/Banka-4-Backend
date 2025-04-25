@@ -18,7 +18,7 @@ public class InboxMessage {
     @Column(
         /* If null, the response is empty. */
         nullable = true,
-        columnDefinition = "jsonb"
+        columnDefinition = "text"
     )
     /** Encoded response body. */
     private String responseBody;

@@ -4,7 +4,7 @@ create table outbox
     last_send_time                                    timestamp(6) with time zone,
     message_key_destination                           bigint       not null,
     message_key_idempotence_key_routing_number        bigint       not null,
-    message_body                                      jsonb        not null,
+    message_body                                      text         not null,
     message_key_idempotence_key_locally_generated_key varchar(255) not null,
     primary key (message_key_destination, message_key_idempotence_key_routing_number,
                  message_key_idempotence_key_locally_generated_key)
@@ -14,7 +14,7 @@ create table inbox
 (
     key_routing_number        bigint       not null,
     key_locally_generated_key varchar(255) not null,
-    response_body             jsonb,
+    response_body             text,
     primary key (key_routing_number, key_locally_generated_key)
 );
 
@@ -25,7 +25,7 @@ create table active_tx
     votes_cast        integer      not null,
     id_routing_number bigint       not null,
     id_id             varchar(255) not null,
-    tx_object         jsonb        not null,
+    tx_object         text         not null,
     primary key (id_routing_number, id_id)
 );
 

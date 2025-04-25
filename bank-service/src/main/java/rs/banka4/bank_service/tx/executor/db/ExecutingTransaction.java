@@ -21,7 +21,7 @@ public class ExecutingTransaction {
     /* lol */
     @Column(
         nullable = false,
-        columnDefinition = "jsonb"
+        columnDefinition = "text"
     )
     private String txObject;
 

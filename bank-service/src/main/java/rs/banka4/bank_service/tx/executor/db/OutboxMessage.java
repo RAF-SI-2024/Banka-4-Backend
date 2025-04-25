@@ -20,7 +20,7 @@ public class OutboxMessage {
 
     @Column(
         nullable = false,
-        columnDefinition = "jsonb"
+        columnDefinition = "text"
     )
     /** Encoded message body. Contains the idempotence key also, sadly. */
     private String messageBody;
