@@ -11,9 +11,9 @@ public class TxLocalPartVotedNo extends TxException {
     private DoubleEntryTransaction transaction;
     private List<NoVoteReason> reasons;
 
-    public TxLocalPartVotedNo(DoubleEntryTransaction transaction, List<NoVoteReason> reasons) {
-        super("Local part of a transaction %s voted no".formatted(transaction));
-        this.transaction = transaction;
+    public TxLocalPartVotedNo(DoubleEntryTransaction tx, List<NoVoteReason> reasons) {
+        super("Local part of transaction %s voted no. Reasons: %s".formatted(tx, reasons));
+        this.transaction = tx;
         this.reasons = Collections.unmodifiableList(reasons);
     }
 
