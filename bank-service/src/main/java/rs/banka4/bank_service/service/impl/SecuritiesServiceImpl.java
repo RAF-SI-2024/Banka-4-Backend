@@ -15,6 +15,7 @@ import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.listing.db.Listing;
 import rs.banka4.bank_service.domain.options.db.Asset;
 import rs.banka4.bank_service.domain.options.db.Option;
+import rs.banka4.bank_service.domain.options.db.OptionType;
 import rs.banka4.bank_service.domain.security.SecurityDto;
 import rs.banka4.bank_service.domain.security.forex.db.ForexPair;
 import rs.banka4.bank_service.domain.security.future.db.Future;
@@ -56,6 +57,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
     public Page<SecurityHoldingDto> getMyPortfolio(UUID myId, Pageable pageable) {
         var ownerships = assetOwnershipRepository.findByUserId(myId, pageable);
         return ownerships.map(ownership -> {
+            OptionType optionType = null;
             var asset =
                 ownership.getId()
                     .getAsset();
@@ -63,6 +65,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
             int totalAmount = ownership.getPrivateAmount() + publicAmount;
             Optional<Listing> optionalListing;
             if (asset instanceof Option option) {
+                optionType = option.getOptionType();
                 optionalListing =
                     listingRepository.getLatestListing(
                         option.getStock()
@@ -90,6 +93,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
                 asset.getId(),
                 mapToAssetTypeDto(asset),
                 ticker,
+                optionType,
                 totalAmount,
                 currentPrice,
                 profit,
