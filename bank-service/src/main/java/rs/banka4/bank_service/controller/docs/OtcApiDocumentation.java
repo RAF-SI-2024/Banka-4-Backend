@@ -98,8 +98,8 @@ public interface OtcApiDocumentation {
         }
     )
     ResponseEntity<Void> rejectOtcRequest(
-        @Parameter(description = "id of the otc request") Long idId,
-        @Parameter(description = "routing num of the bank") String routingNumber
+        @Parameter(description = "id of the otc request") String idId,
+        @Parameter(description = "routing num of the bank") long routingNumber
 
     );
 
@@ -132,8 +132,8 @@ public interface OtcApiDocumentation {
             description = "Data Transfer Object representing the update information for the OTC request negotiation"
         ) OtcRequestUpdateDto otcRequestUpdateDto,
 
-        @Parameter(description = "id of the otc request") Long idId,
-        @Parameter(description = "routing num of the bank") String routingNumber,
+        @Parameter(description = "id of the otc request") String idId,
+        @Parameter(description = "routing num of the bank") long routingNumber,
         Authentication auth
     );
 
@@ -192,8 +192,8 @@ public interface OtcApiDocumentation {
         }
     )
     ResponseEntity<Void> acceptOtcRequest(
-        @Parameter(description = "id of the otc request") Long idId,
-        @Parameter(description = "routing num of the bank") String routingNumber,
+        @Parameter(description = "id of the otc request") String idId,
+        @Parameter(description = "routing num of the bank") long routingNumber,
         Authentication auth
     );
 }

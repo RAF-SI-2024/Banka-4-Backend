@@ -54,10 +54,10 @@ public class OtcController implements OtcApiDocumentation {
     @Override
     @PatchMapping("/reject/{idId}/{routingNumber}")
     public ResponseEntity<Void> rejectOtcRequest(
-        @PathVariable("idId") Long idId,
-        @PathVariable("routingNumber") String routingNumber
+        @PathVariable("idId") String idId,
+        @PathVariable("routingNumber") long routingNumber
     ) {
-        ForeignBankId requestId = new ForeignBankId(idId, routingNumber);
+        ForeignBankId requestId = new ForeignBankId(routingNumber, idId);
         otcRequestService.rejectOtc(requestId);
         return ResponseEntity.ok()
             .build();
@@ -67,11 +67,11 @@ public class OtcController implements OtcApiDocumentation {
     @PatchMapping("/update/{idId}/{routingNumber}")
     public ResponseEntity<Void> updateOtcRequest(
         @RequestBody OtcRequestUpdateDto otcRequestUpdateDto,
-        @PathVariable("idId") Long idId,
-        @PathVariable("routingNumber") String routingNumber,
+        @PathVariable("idId") String idId,
+        @PathVariable("routingNumber") long routingNumber,
         Authentication auth
     ) {
-        ForeignBankId id = new ForeignBankId(idId, routingNumber);
+        ForeignBankId id = new ForeignBankId(routingNumber, idId);
 
         final var ourAuth = (AuthenticatedBankUserAuthentication) auth;
         var myId =
@@ -100,11 +100,11 @@ public class OtcController implements OtcApiDocumentation {
     @Override
     @PatchMapping("/accept/{idId}/{routingNumber}")
     public ResponseEntity<Void> acceptOtcRequest(
-        @PathVariable("idId") Long idId,
-        @PathVariable("routingNumber") String routingNumber,
+        @PathVariable("idId") String idId,
+        @PathVariable("routingNumber") long routingNumber,
         Authentication auth
     ) {
-        ForeignBankId requestId = new ForeignBankId(idId, routingNumber);
+        ForeignBankId requestId = new ForeignBankId(routingNumber, idId);
         final var ourAuth = (AuthenticatedBankUserAuthentication) auth;
         var myId =
             ourAuth.getPrincipal()
