@@ -50,6 +50,8 @@ public class DataSourceService {
     public static final UUID EMPLOYEE_CHRIS =
         UUID.fromString("D55C2670-F40D-4DF6-B06A-0CADB80AE023");
 
+    public static final UUID CLIENT_SINISA_MALI =
+        UUID.fromString("39e006da-722c-4118-8a42-9bbf3d2c9d9b");
     public static final UUID CLIENT_JOHN = UUID.fromString("D96CBD90-4DA2-44C4-866C-E0E37754F95D");
     public static final UUID CLIENT_JANE = UUID.fromString("44ADDAB9-F74D-4974-9733-4B23E6D4DCC9");
     public static final UUID CLIENT_DANIEL =
@@ -486,6 +488,18 @@ public class DataSourceService {
     private void clientSeeder() {
         List<Client> clients =
             List.of(
+                Client.builder()
+                    .id(CLIENT_SINISA_MALI)
+                    .firstName("Sinisa")
+                    .lastName("Mali")
+                    .dateOfBirth(LocalDate.of(1995, 5, 15))
+                    .gender(Gender.MALE)
+                    .email("sinisa@kradja.com")
+                    .phone("+38162798543")
+                    .address("Dedinje 8")
+                    .password(passwordEncoder.encode("password"))
+                    .enabled(true)
+                    .build(),
                 Client.builder()
                     .id(CLIENT_JOHN)
                     .firstName("John")
@@ -1048,6 +1062,14 @@ public class DataSourceService {
                 .accountType(AccountType.DOO)
                 .company(stateCompany)
                 .currency(CurrencyCode.RSD)
+                .employee(
+                    employeeRepository.findById(EMPLOYEE_DAVID)
+                        .get()
+                )
+                .client(
+                    clientRepository.findById(CLIENT_SINISA_MALI)
+                        .get()
+                )
                 .build();
 
         accountRepository.saveAndFlush(stateAccount);
