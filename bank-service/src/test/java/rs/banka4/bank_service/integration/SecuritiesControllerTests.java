@@ -327,7 +327,7 @@ public class SecuritiesControllerTests {
                   "assetType": OPTION,
                   "amount": 1,
                   "price": {"amount":75.14 , "currency": "USD"},
-                  "profit": {"amount": -150.0, "currency": "USD"},
+                  "profit": {"amount": -96.36, "currency": "USD"},
                   "publicAmount": 0
                 }
               ],
@@ -376,7 +376,7 @@ public class SecuritiesControllerTests {
                 {
                   "amount": 1,
                   "price": {"amount": 75.14, "currency": "USD"},
-                  "profit": {"amount": 9336.0, "currency": "USD"},
+                  "profit": {"amount": 93.36, "currency": "USD"},
                   "publicAmount": 0
                 }
               ],

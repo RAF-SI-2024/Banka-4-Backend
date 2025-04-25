@@ -918,7 +918,7 @@ public class TaxTests {
         ListingGenerator.makeExampleListings(stock1, ber1, listingRepo, listingHistoryRepo);
         var option = assetRepository.findById(AssetGenerator.OPTION_EX1_PUT_UUID);
 
-        taxService.addTaxForOtcToDB((Option) option.get(), account);
+        taxService.addTaxForOtcToDB((Option) option.get(), account, 1);
 
         var debt =
             userTaxDebtsRepository.findByAccount_AccountNumber(account.getAccountNumber())
@@ -926,7 +926,7 @@ public class TaxTests {
         assertEquals(
             0,
             debt.getDebtAmount()
-                .compareTo(BigDecimal.valueOf(1400.4000))
+                .compareTo(BigDecimal.valueOf(14.0040))
         );
     }
 }
