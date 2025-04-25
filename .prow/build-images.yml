@@ -31,6 +31,7 @@ postsubmits:
             - /bin/bash
             - -c
             - |
+              set -eux
               start-docker.sh
               docker login \
                      -u "${HARBOR_USERNAME}" \
