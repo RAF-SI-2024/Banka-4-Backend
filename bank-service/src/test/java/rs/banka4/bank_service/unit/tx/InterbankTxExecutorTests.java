@@ -1,18 +1,21 @@
 package rs.banka4.bank_service.unit.tx;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.InstanceOfAssertFactories.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.context.bean.override.mockito.*;
+import org.springframework.transaction.support.TransactionTemplate;
 import rs.banka4.bank_service.domain.account.db.Account;
 import rs.banka4.bank_service.domain.account.db.AccountType;
 import rs.banka4.bank_service.domain.user.client.db.Client;
@@ -20,9 +23,11 @@ import rs.banka4.bank_service.domain.user.employee.db.Employee;
 import rs.banka4.bank_service.integration.generator.UserGenerator;
 import rs.banka4.bank_service.repositories.AccountRepository;
 import rs.banka4.bank_service.tx.data.DoubleEntryTransaction;
+import rs.banka4.bank_service.tx.data.NoVoteReason;
 import rs.banka4.bank_service.tx.data.Posting;
 import rs.banka4.bank_service.tx.data.TxAccount;
 import rs.banka4.bank_service.tx.data.TxAsset;
+import rs.banka4.bank_service.tx.errors.TxLocalPartVotedNo;
 import rs.banka4.bank_service.tx.executor.InterbankTxExecutor;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.testlib.integration.DbEnabledTest;
@@ -41,6 +46,9 @@ public class InterbankTxExecutorTests {
 
     @Autowired
     AccountRepository accRepo;
+
+    @Autowired
+    TransactionTemplate txTemplate;
 
     private String getAccountNumber(int userNr, CurrencyCode curr) {
         return "4440001000%03d%03d520".formatted(userNr, curr.ordinal());
@@ -158,4 +166,89 @@ public class InterbankTxExecutorTests {
             BASELINE_BALANCE.subtract(BigDecimal.TEN)
         );
     }
+
+    @Test
+    void test_immediate_transfer_money_from_user_broke() {
+        final var moreThanBaseline = BASELINE_BALANCE.add(new BigDecimal(100));
+
+        final var insufficientPosting =
+            new Posting(
+                new TxAccount.Account(getAccountNumber(0, CurrencyCode.GBP)),
+                moreThanBaseline.negate(),
+                new TxAsset.Monas(CurrencyCode.GBP)
+            );
+        assertThatExceptionOfType(TxLocalPartVotedNo.class).isThrownBy(
+            () -> txTemplate.executeWithoutResult(
+                s -> executor.submitImmediateTx(
+                    new DoubleEntryTransaction(
+                        List.of(
+                            new Posting(
+                                new TxAccount.MemoryHole(),
+                                moreThanBaseline,
+                                new TxAsset.Monas(CurrencyCode.GBP)
+                            ),
+                            insufficientPosting
+                        ),
+                        "foo",
+                        null
+                    )
+                )
+            )
+        )
+            .extracting(TxLocalPartVotedNo::getReasons, as(LIST))
+            .singleElement()
+            .asInstanceOf(type(NoVoteReason.InsufficientAsset.class))
+            .extracting("posting", type(Posting.class))
+            .isEqualTo(insufficientPosting);
+
+        assertThat(getAccount(0, CurrencyCode.GBP).getBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE
+        );
+        assertThat(getAccount(0, CurrencyCode.GBP).getAvailableBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE
+        );
+    }
+
+    @Test
+    void test_immediate_transfer_money_from_user_wrong_currency() {
+        final var moreThanBaseline = BASELINE_BALANCE.add(new BigDecimal(100));
+
+        final var insufficientPosting =
+            new Posting(
+                new TxAccount.Account(getAccountNumber(0, CurrencyCode.GBP)),
+                moreThanBaseline.negate(),
+                new TxAsset.Monas(CurrencyCode.RSD)
+            );
+        assertThatExceptionOfType(TxLocalPartVotedNo.class).isThrownBy(
+            () -> txTemplate.executeWithoutResult(
+                s -> executor.submitImmediateTx(
+                    new DoubleEntryTransaction(
+                        List.of(
+                            new Posting(
+                                new TxAccount.MemoryHole(),
+                                moreThanBaseline,
+                                new TxAsset.Monas(CurrencyCode.RSD)
+                            ),
+                            insufficientPosting
+                        ),
+                        "foo",
+                        null
+                    )
+                )
+            )
+        )
+            .extracting(TxLocalPartVotedNo::getReasons, as(LIST))
+            .singleElement()
+            .asInstanceOf(type(NoVoteReason.UnacceptableAsset.class))
+            .extracting("posting", type(Posting.class))
+            .isEqualTo(insufficientPosting);
+
+        assertThat(getAccount(0, CurrencyCode.GBP).getBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE
+        );
+        assertThat(getAccount(0, CurrencyCode.GBP).getAvailableBalance()).isEqualByComparingTo(
+            BASELINE_BALANCE
+        );
+    }
+
 }
