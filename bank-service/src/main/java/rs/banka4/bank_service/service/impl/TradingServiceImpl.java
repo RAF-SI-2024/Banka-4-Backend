@@ -1,6 +1,7 @@
 package rs.banka4.bank_service.service.impl;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -9,8 +10,15 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import rs.banka4.bank_service.domain.account.db.Account;
 import rs.banka4.bank_service.domain.options.db.Option;
+import rs.banka4.bank_service.domain.orders.db.Direction;
+import rs.banka4.bank_service.domain.orders.db.Order;
+import rs.banka4.bank_service.domain.orders.db.OrderType;
+import rs.banka4.bank_service.domain.orders.db.Status;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.domain.trading.db.OtcRequest;
+import rs.banka4.bank_service.exceptions.user.UserNotFound;
+import rs.banka4.bank_service.repositories.OrderRepository;
+import rs.banka4.bank_service.repositories.UserRepository;
 import rs.banka4.bank_service.service.abstraction.*;
 import rs.banka4.bank_service.tx.TxExecutor;
 import rs.banka4.bank_service.tx.data.*;
@@ -24,6 +32,8 @@ public class TradingServiceImpl implements TradingService {
     private final AssetOwnershipService assetOwnershipService;
     private final ExchangeRateService exchangeRateService;
     private final BankAccountService bankAccountService;
+    private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
     @Override
     public void sendPremiumAndGetOption(OtcRequest otcRequest) {
@@ -313,6 +323,33 @@ public class TradingServiceImpl implements TradingService {
             0,
             0
         );
+        var u =
+            userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFound(userId.toString()));
+        var order =
+            Order.builder()
+                .user(u)
+                .asset(o.getStock())
+                .orderType(OrderType.MARKET)
+                .quantity(amount)
+                .contractSize(1)
+                .pricePerUnit(o.getStrikePrice())
+                .direction(Direction.SELL)
+                .status(Status.APPROVED)
+                .approvedBy(null)
+                .isDone(true)
+                .lastModified(OffsetDateTime.now())
+                .createdAt(OffsetDateTime.now())
+                .remainingPortions(0)
+                .afterHours(false)
+                .limitValue(null)
+                .stopValue(null)
+                .allOrNothing(true)
+                .margin(false)
+                .account(a)
+                .used(true)
+                .build();
+        orderRepository.save(order);
     }
 
     /**
@@ -429,6 +466,33 @@ public class TradingServiceImpl implements TradingService {
             0,
             0
         );
+        var u =
+            userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFound(userId.toString()));
+        var order =
+            Order.builder()
+                .user(u)
+                .asset(o.getStock())
+                .orderType(OrderType.MARKET)
+                .quantity(amount)
+                .contractSize(1)
+                .pricePerUnit(o.getStrikePrice())
+                .direction(Direction.BUY)
+                .status(Status.APPROVED)
+                .approvedBy(null)
+                .isDone(true)
+                .lastModified(OffsetDateTime.now())
+                .createdAt(OffsetDateTime.now())
+                .remainingPortions(0)
+                .afterHours(false)
+                .limitValue(null)
+                .stopValue(null)
+                .allOrNothing(true)
+                .margin(false)
+                .account(a)
+                .used(true)
+                .build();
+        orderRepository.save(order);
     }
 
     @Override
@@ -472,5 +536,33 @@ public class TradingServiceImpl implements TradingService {
                 null
             )
         );
+        var u = userRepository.findById(UUID.fromString(buyerId.id()));
+        if (u.isPresent()) {
+            var a = accountService.getAccountByAccountNumber(buyerAccount);
+            var order =
+                Order.builder()
+                    .user(u.get())
+                    .asset(o.getStock())
+                    .orderType(OrderType.MARKET)
+                    .quantity(amount)
+                    .contractSize(1)
+                    .pricePerUnit(o.getStrikePrice())
+                    .direction(Direction.BUY)
+                    .status(Status.APPROVED)
+                    .approvedBy(null)
+                    .isDone(true)
+                    .lastModified(OffsetDateTime.now())
+                    .createdAt(OffsetDateTime.now())
+                    .remainingPortions(0)
+                    .afterHours(false)
+                    .limitValue(null)
+                    .stopValue(null)
+                    .allOrNothing(true)
+                    .margin(false)
+                    .account(a)
+                    .used(true)
+                    .build();
+            orderRepository.save(order);
+        }
     }
 }
