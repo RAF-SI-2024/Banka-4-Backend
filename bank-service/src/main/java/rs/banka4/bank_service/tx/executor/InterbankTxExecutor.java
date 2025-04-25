@@ -86,7 +86,6 @@ import rs.banka4.rafeisen.common.currency.CurrencyCode;
 public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final InterbankConfig interbankConfig;
     private final TransactionTemplate txTemplate;
-    private final TransactionTemplate txNestedTemplate;
     private final ObjectMapper objectMapper;
     private final AccountRepository accountRepo;
     private final AccountService accountService;
@@ -127,10 +126,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.txTemplate = new TransactionTemplate(transactionManager);
         this.txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.txTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
-
-        this.txNestedTemplate = new TransactionTemplate(transactionManager);
-        this.txNestedTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
-        this.txNestedTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
 
         this.objectMapper = objectMapper;
         this.accountRepo = accountRepo;
@@ -520,7 +515,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      * (voting is described later). Otherwise, a YES vote is cast. </blockquote>
      *
      * <p>
-     * Executes in a nested transaction, so local changes should be reverted.
+     * This function is not transactional: on failure, it will leave half-written crap in the DB.
      *
      * <p>
      * Caller should hold {@link #transactionKey}.
@@ -531,16 +526,15 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         if (!isTxBalanced(tx))
             throw new TxLocalPartVotedNo(tx, List.of(new NoVoteReason.UnbalancedTx()));
 
-        txNestedTemplate.executeWithoutResult(s -> {
-            final var noReasons = new ArrayList<NoVoteReason>();
-            for (final var posting : tx.postings()) {
-                if (
-                    posting.account()
+        final var noReasons = new ArrayList<NoVoteReason>();
+        for (final var posting : tx.postings()) {
+            if (
+                posting.account()
                         .routingNumber()
-                        != ForeignBankId.OUR_ROUTING_NUMBER
-                ) continue;
+                != ForeignBankId.OUR_ROUTING_NUMBER
+            ) continue;
 
-                switch (posting.account()) {
+            switch (posting.account()) {
                 case TxAccount.Person(ForeignBankId personId) -> {
                     final var person_ = userRepo.findById(UUID.fromString(personId.id()));
                     if (!person_.isPresent()) {
@@ -550,34 +544,34 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     final var person = person_.get();
 
                     switch (posting.asset()) {
-                    case TxAsset.Monas(MonetaryAsset asset)
-                        -> throw new IllegalArgumentException(
-                            "must preprocess tx with resolvePersonMonetaryAssetPostings"
-                        );
-                    case TxAsset.Stock(StockDescription asset)
-                        -> personStockPostingPhase1(person, asset, posting).ifPresent(
-                            noReasons::add
-                        );
-                    case TxAsset.Option(OptionDescription option) -> {
-                        if (
-                            posting.amount()
-                                .equals(new BigDecimal("-1"))
-                        ) {
-                            createAndReserveOptionPhase1(person, option, posting).ifPresent(
+                        case TxAsset.Monas(MonetaryAsset asset)
+                            -> throw new IllegalArgumentException(
+                                "must preprocess tx with resolvePersonMonetaryAssetPostings"
+                            );
+                        case TxAsset.Stock(StockDescription asset)
+                            -> personStockPostingPhase1(person, asset, posting).ifPresent(
                                 noReasons::add
                             );
-                        } else
+                        case TxAsset.Option(OptionDescription option) -> {
                             if (
-                                (posting.amount()
-                                    .equals(new BigDecimal("1")))
+                                posting.amount()
+                                        .equals(new BigDecimal("-1"))
                             ) {
-                                depositOptionPhase1(person, option, posting).ifPresent(
+                                createAndReserveOptionPhase1(person, option, posting).ifPresent(
                                     noReasons::add
                                 );
-                            } else {
-                                noReasons.add(new NoVoteReason.InsufficientAsset(posting));
-                            }
-                    }
+                            } else
+                                if (
+                                    (posting.amount()
+                                            .equals(new BigDecimal("1")))
+                                ) {
+                                    depositOptionPhase1(person, option, posting).ifPresent(
+                                        noReasons::add
+                                    );
+                                } else {
+                                    noReasons.add(new NoVoteReason.InsufficientAsset(posting));
+                                }
+                        }
                     }
                 }
 
@@ -677,10 +671,10 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
                     if (
                         /* Monetary assets are the only kind depositable to accounts. */
-                    !(posting.asset() instanceof TxAsset.Monas(MonetaryAsset asset))
-                        /* ... but their currencies must match. */
-                        || !asset.currency()
-                            .equals(acc.getCurrency())
+                        !(posting.asset() instanceof TxAsset.Monas(MonetaryAsset asset))
+                            /* ... but their currencies must match. */
+                            || !asset.currency()
+                                    .equals(acc.getCurrency())
                     ) {
                         noReasons.add(new NoVoteReason.UnacceptableAsset(posting));
                         continue;
@@ -689,10 +683,10 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     /* See Note [Phase-by-phase balance changes]. */
                     final var newAvBalance =
                         acc.getAvailableBalance()
-                            .add(
-                                posting.amount()
-                                    .min(BigDecimal.ZERO)
-                            );
+                                .add(
+                                    posting.amount()
+                                            .min(BigDecimal.ZERO)
+                                );
 
                     if (newAvBalance.signum() < 0) {
                         noReasons.add(new NoVoteReason.InsufficientAsset(posting));
@@ -706,14 +700,12 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 case TxAccount.MemoryHole() -> {
                     /* Always OK. */
                 }
-                }
             }
+        }
 
-            if (!noReasons.isEmpty()) {
-                s.setRollbackOnly();
-                throw new TxLocalPartVotedNo(tx, noReasons);
-            }
-        });
+        if (!noReasons.isEmpty()) {
+            throw new TxLocalPartVotedNo(tx, noReasons);
+        }
     }
 
     /**
@@ -1305,19 +1297,21 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     }
 
     public TransactionVote processNewTxMessage(Message.NewTx message) {
-        return doIdempotentMessageHandling(message, TransactionVote.class, m -> {
-            try {
+        try {
+            return doIdempotentMessageHandling(message, TransactionVote.class, m -> {
                 final var tx = preprocessDoubleEntryTx(message.message());
                 recordTx(tx, 2);
                 executeLocalPhase1(tx);
                 return new TransactionVote.Yes();
-            } catch (TxLocalPartVotedNo reason) {
+            });
+        } catch (TxLocalPartVotedNo reason) {
+            return doIdempotentMessageHandling(message, TransactionVote.class, m -> {
                 final var ectx = recordTx(message.message(), 2);
                 ectx.setVotesAreYes(false);
                 execTxRepo.save(ectx);
                 return new TransactionVote.No(reason.getReasons());
-            }
-        });
+            });
+        }
     }
 
     public void processCommitOrRollbackMessage(Message message) {
