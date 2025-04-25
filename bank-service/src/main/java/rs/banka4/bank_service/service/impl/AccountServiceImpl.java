@@ -38,6 +38,7 @@ import rs.banka4.bank_service.exceptions.user.employee.EmployeeNotFound;
 import rs.banka4.bank_service.repositories.*;
 import rs.banka4.bank_service.service.abstraction.*;
 import rs.banka4.bank_service.utils.specification.AccountSpecification;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.rafeisen.common.dto.AccountNumberDto;
 import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
 import rs.banka4.rafeisen.common.security.UserType;
@@ -427,4 +428,22 @@ public class AccountServiceImpl implements AccountService {
         );
     }
 
+    @Override
+    public Optional<AccountNumberDto> getRequiredAccount(
+        UUID userId,
+        CurrencyCode currencyCode,
+        BigDecimal premium
+    ) {
+        final var accounts = this.getAccountsForUser(userId);
+        for (var account : accounts) {
+            if (
+                account.currency()
+                    .equals(currencyCode)
+                    && account.availableBalance()
+                        .compareTo(premium)
+                        >= 0
+            ) return Optional.of(account);
+        }
+        return Optional.empty();
+    }
 }

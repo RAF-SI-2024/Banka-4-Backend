@@ -1,16 +1,19 @@
 package rs.banka4.bank_service.tx.otc.service;
 
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.domain.trading.dtos.PublicStocksDto;
 import rs.banka4.bank_service.tx.data.OtcNegotiation;
 import rs.banka4.bank_service.tx.data.OtcOffer;
 import rs.banka4.bank_service.tx.data.PublicStock;
-import rs.banka4.bank_service.tx.data.UserInformation;
 
 public interface InterbankOtcService {
     List<PublicStock> sendPublicStocks();
 
     List<PublicStock> fetchPublicStocks();
+
+    List<PublicStocksDto> getPublicStocks(Pageable pageable, String token);
 
     ForeignBankId createOtc(OtcOffer offer);
 
@@ -31,8 +34,4 @@ public interface InterbankOtcService {
     void acceptNegotiation(ForeignBankId id);
 
     void sendAcceptNegotiation(ForeignBankId id, long routingNumber);
-
-    UserInformation getUserInfo(ForeignBankId id);
-
-    UserInformation sendGetUserInfo(ForeignBankId id);
 }

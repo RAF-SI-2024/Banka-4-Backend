@@ -47,8 +47,8 @@ import rs.banka4.bank_service.repositories.OptionsRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
 import rs.banka4.bank_service.repositories.UserRepository;
+import rs.banka4.bank_service.service.abstraction.AccountService;
 import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
-import rs.banka4.bank_service.service.abstraction.OtcRequestService;
 import rs.banka4.bank_service.tx.TxExecutor;
 import rs.banka4.bank_service.tx.TxUtils;
 import rs.banka4.bank_service.tx.config.InterbankConfig;
@@ -88,6 +88,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final TransactionTemplate txNestedTemplate;
     private final ObjectMapper objectMapper;
     private final AccountRepository accountRepo;
+    private final AccountService accountService;
     private final OutboxRepository outboxRepo;
     private final ExecutingTransactionRepository execTxRepo;
     private final TaskScheduler taskScheduler;
@@ -99,7 +100,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final OptionsRepository optionsRepo;
     private final OtcRequestRepository otcRequestRepo;
     private final AssetOwnershipService assetOwnershipService;
-    private final OtcRequestService otcRequestService;
 
     /* Synchronization key for transaction execution. */
     private final Object transactionKey = new Object();
@@ -120,7 +120,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         OptionsRepository optionsRepo,
         OtcRequestRepository otcRequestRepository,
         AssetOwnershipService assetOwnershipService,
-        OtcRequestService otcRequestService
+        AccountService accountService
     ) {
         this.interbankConfig = config;
         this.txTemplate = new TransactionTemplate(transactionManager);
@@ -133,6 +133,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
         this.objectMapper = objectMapper;
         this.accountRepo = accountRepo;
+        this.accountService = accountService;
         this.outboxRepo = outboxRepo;
         this.execTxRepo = execTxRepo;
         this.taskScheduler = taskScheduler;
@@ -144,7 +145,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.optionsRepo = optionsRepo;
         this.otcRequestRepo = otcRequestRepository;
         this.assetOwnershipService = assetOwnershipService;
-        this.otcRequestService = otcRequestService;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -481,7 +481,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         switch (posting.asset()) {
             case TxAsset.Monas(MonetaryAsset(CurrencyCode currency)) -> {
                 final var depositAcc =
-                    otcRequestService.getRequiredAccount(
+                    accountService.getRequiredAccount(
                         sellerUuid,
                         currency,
                         BigDecimal.ZERO
@@ -639,7 +639,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                             final var seller = offer.getMadeFor();
                             assert seller.routingNumber() == ForeignBankId.OUR_ROUTING_NUMBER;
                             if (
-                                otcRequestService.getRequiredAccount(
+                                accountService.getRequiredAccount(
                                     UUID.fromString(seller.id()),
                                     currency,
                                     BigDecimal.ZERO
@@ -1030,7 +1030,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 person.id()
                     .id()
             );
-        return otcRequestService.getRequiredAccount(
+        return accountService.getRequiredAccount(
             userId,
             currencyCode,
             posting.amount()

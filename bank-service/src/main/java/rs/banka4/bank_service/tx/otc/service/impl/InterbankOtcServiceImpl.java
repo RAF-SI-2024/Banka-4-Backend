@@ -1,23 +1,29 @@
 package rs.banka4.bank_service.tx.otc.service.impl;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import retrofit2.Response;
 import rs.banka4.bank_service.domain.assets.db.AssetOwnership;
+import rs.banka4.bank_service.domain.assets.mappers.AssetMapper;
+import rs.banka4.bank_service.domain.listing.dtos.SecurityType;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.domain.trading.db.OtcRequest;
 import rs.banka4.bank_service.domain.trading.db.RequestStatus;
+import rs.banka4.bank_service.domain.trading.dtos.PublicStocksDto;
 import rs.banka4.bank_service.exceptions.AssetNotFound;
 import rs.banka4.bank_service.exceptions.OtcNotFoundException;
 import rs.banka4.bank_service.exceptions.RequestFailed;
 import rs.banka4.bank_service.exceptions.WrongTurn;
-import rs.banka4.bank_service.exceptions.user.UserNotFound;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
-import rs.banka4.bank_service.repositories.UserRepository;
+import rs.banka4.bank_service.service.abstraction.ForeignBankService;
+import rs.banka4.bank_service.service.abstraction.ListingService;
 import rs.banka4.bank_service.service.abstraction.TradingService;
 import rs.banka4.bank_service.tx.data.*;
 import rs.banka4.bank_service.tx.data.OtcOffer;
@@ -29,14 +35,16 @@ import rs.banka4.bank_service.tx.otc.mapper.InterbankOtcMapper;
 import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class InterbankOtcServiceImpl implements InterbankOtcService {
+    private final StockRepository stockRepository;
     private final AssetOwnershipRepository assetOwnershipRepository;
     private final InterbankRetrofitProvider interbankRetrofit;
-    private final StockRepository stockRepository;
+    private final ListingService listingService;
     private final OtcRequestRepository otcRequestRepository;
-    private final UserRepository userRepository;
     private final TradingService tradingService;
+    private final ForeignBankService foreignBankService;
 
     /**
      * Fetches all asset ownership from our bank, filters only ones that have publicAmount > 0 and
@@ -278,24 +286,72 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
         }
     }
 
-    @Override
-    public UserInformation getUserInfo(ForeignBankId id) {
-        UUID myId = UUID.fromString(id.id());
-        var user = userRepository.findById(myId);
-        if (user.isEmpty()) throw new UserNotFound(myId.toString());
-        return new UserInformation("Rafeisen", user.get().email);
+    private List<PublicStocksDto> convertToPublicStocksDto(PublicStock dto) {
+        List<PublicStocksDto> publicStocksDtos = new ArrayList<>();
+        final var stock =
+            stockRepository.findByTicker(
+                dto.stock()
+                    .ticker()
+            )
+                .orElseThrow(AssetNotFound::new);
+        final var latestPrice = listingService.getLatestPriceForStock(stock.getId());
+        for (var x : dto.sellers()) {
+            try {
+                var userInfo = foreignBankService.getUserInfoFor(x.seller());
+                publicStocksDtos.add(
+                    new PublicStocksDto(
+                        SecurityType.STOCK,
+                        x.seller(),
+                        stock.getId(),
+                        userInfo.map(UserInformation::displayName)
+                            .orElse(null),
+                        stock.getTicker(),
+                        stock.getName(),
+                        x.amount(),
+                        latestPrice,
+                        OffsetDateTime.now()
+                    )
+                );
+            } catch (IOException error) {
+                log.error("failed to resolve username for {}", x.seller(), error);
+                throw new RequestFailed();
+            }
+        }
+        return publicStocksDtos;
     }
 
     @Override
-    public UserInformation sendGetUserInfo(ForeignBankId id) {
-        try {
-            var call =
-                interbankRetrofit.get(id.routingNumber())
-                    .getUserInfo(id.routingNumber(), id.id());
-            var response = call.execute();
-            return response.body();
-        } catch (IOException e) {
-            throw new RequestFailed();
+    public List<PublicStocksDto> getPublicStocks(Pageable pageable, String token) {
+        final var allPublic = assetOwnershipRepository.findAllByPublicAmountGreaterThan(0);
+        var otherBank = fetchPublicStocks();
+        List<PublicStocksDto> publicStocksOtherBank = new ArrayList<>();
+        for (var x : otherBank) {
+            publicStocksOtherBank.addAll(convertToPublicStocksDto(x));
         }
+
+        List<PublicStocksDto> ourPublicStocks = new ArrayList<>();
+
+        for (var s : allPublic) {
+            final var lastPrice =
+                listingService.getLatestPriceForStock(
+                    s.getId()
+                        .getAsset()
+                        .getId()
+                );
+            ourPublicStocks.add(
+                AssetMapper.INSTANCE.mapPublicStocksDto(
+                    s,
+                    SecurityType.STOCK,
+                    s.getId()
+                        .getUser()
+                        .getEmail(),
+                    lastPrice,
+                    OffsetDateTime.now()
+                )
+            );
+        }
+
+        publicStocksOtherBank.addAll(ourPublicStocks);
+        return publicStocksOtherBank;
     }
 }

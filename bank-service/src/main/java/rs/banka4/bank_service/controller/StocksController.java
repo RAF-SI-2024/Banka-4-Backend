@@ -16,6 +16,7 @@ import rs.banka4.bank_service.domain.assets.dtos.TransferDto;
 import rs.banka4.bank_service.domain.trading.dtos.PublicStocksDto;
 import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
 import rs.banka4.bank_service.service.abstraction.ListingService;
+import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
 import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
 
 @RestController
@@ -23,6 +24,7 @@ import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
 @RequiredArgsConstructor
 public class StocksController implements StocksApiDocumentation {
     private final AssetOwnershipService assetOwnershipService;
+    private final InterbankOtcService interbankOtcService;
     private final ListingService listingService;
 
     @Override
@@ -59,7 +61,7 @@ public class StocksController implements StocksApiDocumentation {
         final var ourAuth = (AuthenticatedBankUserAuthentication) auth;
         var token = ourAuth.getToken();
         return new ResponseEntity<>(
-            assetOwnershipService.getPublicStocks(pageable, token),
+            interbankOtcService.getPublicStocks(pageable, token),
             HttpStatus.OK
         );
     }

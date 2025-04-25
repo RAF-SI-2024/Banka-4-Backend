@@ -1,6 +1,5 @@
 package rs.banka4.bank_service.service.impl;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +18,10 @@ import rs.banka4.bank_service.exceptions.*;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
-import rs.banka4.bank_service.service.abstraction.AccountService;
 import rs.banka4.bank_service.service.abstraction.OtcRequestService;
 import rs.banka4.bank_service.service.abstraction.TradingService;
 import rs.banka4.bank_service.tx.otc.mapper.InterbankOtcMapper;
 import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
-import rs.banka4.rafeisen.common.currency.CurrencyCode;
-import rs.banka4.rafeisen.common.dto.AccountNumberDto;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +30,6 @@ public class OtcRequestServiceImp implements OtcRequestService {
     private final OtcMapper otcMapper;
     private final AssetOwnershipRepository assetOwnershipRepository;
     private final TradingService tradingService;
-    private final AccountService accountService;
     private final InterbankOtcService interbankOtcService;
     private final StockRepository stockRepository;
 
@@ -165,24 +160,6 @@ public class OtcRequestServiceImp implements OtcRequestService {
         } else {
             throw new CantAcceptThisOffer("You are not in this offer", userId);
         }
-    }
-
-    public Optional<AccountNumberDto> getRequiredAccount(
-        UUID userId,
-        CurrencyCode currencyCode,
-        BigDecimal premium
-    ) {
-        final var accounts = accountService.getAccountsForUser(userId);
-        for (var account : accounts) {
-            if (
-                account.currency()
-                    .equals(currencyCode)
-                    && account.availableBalance()
-                        .compareTo(premium)
-                        >= 0
-            ) return Optional.of(account);
-        }
-        return Optional.empty();
     }
 
     private long routingNumber(OtcRequest otcRequest) {

@@ -52,7 +52,7 @@ public interface OptionsRepository extends JpaRepository<Option, UUID> {
     )
     void deactivateAll();
 
-    @Query("SELECT o FROM Option o WHERE o.id = :id")
+    @Query("SELECT o FROM options o WHERE o.id = :id")
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Option> findAndLockById(UUID id);
 }
