@@ -17,7 +17,7 @@ public class TxUtils {
             .forEach(p -> txBalance.merge(p.asset(), p.amount(), BigDecimal::add));
         return txBalance.values()
             .stream()
-            .allMatch(BigDecimal.ZERO::equals);
+            .allMatch(x -> x.compareTo(BigDecimal.ZERO) == 0);
     }
 
     public static Set<Long> collectDestinations(final DoubleEntryTransaction tx) {

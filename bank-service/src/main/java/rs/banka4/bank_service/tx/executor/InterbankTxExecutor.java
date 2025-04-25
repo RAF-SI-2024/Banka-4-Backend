@@ -497,7 +497,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 final var stock = resolveStock(sd).orElseThrow(() -> new IllegalStateException("Invalid tx?"));
                 if (!assetOwnershipService.changeAssetOwnership(option.getId(), sellerUuid, -1, 0, 0))
                     throw new IllegalStateException("Invalid tx?");
-                assert posting.amount().equals(new BigDecimal(-offer.getAmount()));
+                assert posting.amount().compareTo(new BigDecimal(-offer.getAmount())) == 0;
                 if (!assetOwnershipService.changeAssetOwnership(stock.getId(), sellerUuid, 0, 0, -offer.getAmount()))
                     throw new IllegalStateException("Invalid tx?");
             }
@@ -555,15 +555,15 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                         case TxAsset.Option(OptionDescription option) -> {
                             if (
                                 posting.amount()
-                                        .equals(new BigDecimal("-1"))
+                                        .compareTo(new BigDecimal("-1")) == 0
                             ) {
                                 createAndReserveOptionPhase1(person, option, posting).ifPresent(
                                     noReasons::add
                                 );
                             } else
                                 if (
-                                    (posting.amount()
-                                            .equals(new BigDecimal("1")))
+                                    posting.amount()
+                                            .compareTo(new BigDecimal("1")) == 0
                                 ) {
                                     depositOptionPhase1(person, option, posting).ifPresent(
                                         noReasons::add
@@ -614,7 +614,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                                 noReasons.add(new NoVoteReason.InsufficientAsset(posting));
                                 continue;
                             }
-                            if (!posting.amount().equals(new BigDecimal(-offer.getAmount()))) {
+                            if (posting.amount().compareTo(new BigDecimal(-offer.getAmount())) != 0) {
                                 noReasons.add(new NoVoteReason.OptionAmountIncorrect(posting));
                                 continue;
                             }
@@ -626,9 +626,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                                 continue;
                             }
                             if (
-                                !pricePer.getAmount()
+                                pricePer.getAmount()
                                         .multiply(new BigDecimal(offer.getAmount()))
-                                        .equals(posting.amount())
+                                        .compareTo(posting.amount()) != 0
                             ) {
                                 noReasons.add(new NoVoteReason.OptionAmountIncorrect(posting));
                                 continue;
@@ -755,13 +755,13 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 case TxAsset.Option(OptionDescription option) -> {
                     if (
                         posting.amount()
-                            .equals(new BigDecimal("-1"))
+                            .compareTo(new BigDecimal(-1)) == 0
                     ) {
                         createAndReserveOptionPhase1Rollback(person, option, posting);
                     } else
                         if (
                             (posting.amount()
-                                .equals(new BigDecimal("1")))
+                                .compareTo(new BigDecimal(1))) == 0
                         ) {
                             depositOptionPhase1Rollback(person, option, posting);
                         } else {
@@ -843,13 +843,13 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 case TxAsset.Option(OptionDescription option) -> {
                     if (
                         posting.amount()
-                            .equals(new BigDecimal("-1"))
+                            .compareTo(new BigDecimal(-1)) == 0
                     ) {
                         createAndReserveOptionPhase2(person, option, posting);
                     } else
                         if (
                             posting.amount()
-                                .equals(new BigDecimal("1"))
+                                .compareTo(new BigDecimal(1)) == 0
                         ) {
                             depositOptionPhase2(person, option, posting);
                         } else {
@@ -1040,7 +1040,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             .orElseGet(
                 () -> new ResolvePersonMonetaryAssetPostingResult.Failed(
                     posting.amount()
-                        .equals(BigDecimal.ZERO)
+                        .compareTo(BigDecimal.ZERO)
+                        == 0
                             ? new NoVoteReason.UnacceptableAsset(posting)
                             : new NoVoteReason.InsufficientAsset(posting)
                 )
