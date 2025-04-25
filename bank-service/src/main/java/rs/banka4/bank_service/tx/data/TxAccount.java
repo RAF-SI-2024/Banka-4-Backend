@@ -3,6 +3,7 @@ package rs.banka4.bank_service.tx.data;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import java.util.UUID;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 
 @JsonTypeInfo(
@@ -19,6 +20,10 @@ public sealed interface TxAccount {
 
     @JsonTypeName("PERSON")
     public record Person(ForeignBankId id) implements TxAccount {
+        public Person(UUID ourUuid) {
+            this(ForeignBankId.our(ourUuid));
+        }
+
         public long routingNumber() {
             return id.routingNumber();
         }
