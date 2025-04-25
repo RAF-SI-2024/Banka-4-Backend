@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import rs.banka4.bank_service.domain.options.db.Option;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 
 
 @Repository
@@ -52,7 +53,7 @@ public interface OptionsRepository extends JpaRepository<Option, UUID> {
     )
     void deactivateAll();
 
-    @Query("SELECT o FROM options o WHERE o.id = :id")
+    @Query("SELECT o FROM options o WHERE o.foreignId = :id")
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<Option> findAndLockById(UUID id);
+    Optional<Option> findAndLockByFBId(ForeignBankId id);
 }

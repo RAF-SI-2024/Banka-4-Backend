@@ -447,10 +447,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
     /* ==== Option execution. Used when an option gets used. ==== */
     private Optional<Pair<OtcRequest, Option>> resolveOptionPseudo(ForeignBankId foreignOptionId) {
-        final var optionId = UUID.fromString(foreignOptionId.id());
-        return optionsRepo.findAndLockById(optionId)
+        return optionsRepo.findAndLockByFBId(foreignOptionId)
             .flatMap(
-                o -> otcRequestRepo.findAndLockByOptionId(optionId)
+                o -> otcRequestRepo.findAndLockByOptionId(o.getId())
                     .map(r -> Pair.of(r, o))
             );
     }
