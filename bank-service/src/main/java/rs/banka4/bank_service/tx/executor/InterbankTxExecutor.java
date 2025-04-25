@@ -20,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -40,6 +39,7 @@ import rs.banka4.bank_service.domain.options.db.Option;
 import rs.banka4.bank_service.domain.options.db.OptionType;
 import rs.banka4.bank_service.domain.security.stock.db.Stock;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.domain.trading.db.OtcRequest;
 import rs.banka4.bank_service.domain.trading.db.RequestStatus;
 import rs.banka4.bank_service.domain.user.User;
 import rs.banka4.bank_service.repositories.AccountRepository;
@@ -48,6 +48,7 @@ import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
 import rs.banka4.bank_service.repositories.UserRepository;
 import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
+import rs.banka4.bank_service.service.abstraction.OtcRequestService;
 import rs.banka4.bank_service.tx.TxExecutor;
 import rs.banka4.bank_service.tx.TxUtils;
 import rs.banka4.bank_service.tx.config.InterbankConfig;
@@ -74,6 +75,7 @@ import rs.banka4.bank_service.tx.executor.db.OutboxMessage;
 import rs.banka4.bank_service.tx.executor.db.OutboxMessageId;
 import rs.banka4.bank_service.tx.executor.db.OutboxRepository;
 import rs.banka4.bank_service.tx.otc.config.InterbankRetrofitProvider;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 
 /**
  * A transaction executor capable of delivering transactions across banks.
@@ -97,6 +99,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final OptionsRepository optionsRepo;
     private final OtcRequestRepository otcRequestRepo;
     private final AssetOwnershipService assetOwnershipService;
+    private final OtcRequestService otcRequestService;
 
     /* Synchronization key for transaction execution. */
     private final Object transactionKey = new Object();
@@ -116,7 +119,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         StockRepository stockRepo,
         OptionsRepository optionsRepo,
         OtcRequestRepository otcRequestRepository,
-        AssetOwnershipService assetOwnershipService
+        AssetOwnershipService assetOwnershipService,
+        OtcRequestService otcRequestService
     ) {
         this.interbankConfig = config;
         this.txTemplate = new TransactionTemplate(transactionManager);
@@ -140,6 +144,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.optionsRepo = optionsRepo;
         this.otcRequestRepo = otcRequestRepository;
         this.assetOwnershipService = assetOwnershipService;
+        this.otcRequestService = otcRequestService;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -439,6 +444,68 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         ) throw new IllegalStateException("invalid option tx?");
     }
 
+
+    /* ==== Option execution. Used when an option gets used. ==== */
+    private Optional<Pair<OtcRequest, Option>> resolveOptionPseudo(ForeignBankId foreignOptionId) {
+        final var optionId = UUID.fromString(foreignOptionId.id());
+        return optionsRepo.findAndLockById(optionId)
+            .flatMap(
+                o -> otcRequestRepo.findAndLockByOptionId(optionId)
+                    .map(r -> Pair.of(r, o))
+            );
+    }
+
+    private void commitOptionExecute(OtcRequest offer, Option option, Posting posting) {
+        /* @formatter:off
+         * A transaction wants to execute an option.  The option is formed like so:
+         *
+         * In order to execute an option, an Executing Bank should form a transaction of the form:
+         *
+         * - Debit option pseudo-account for p*k where p is the price per unit stock and k is the
+         *   amount of stocks in the option, <<<<
+         * - Credit the buyer for p*k
+         * - Credit option pseudo-account for k stocks,    <<<<
+         * - Debit relevant receiving accounts for k assets
+         *
+         * The bank shall, upon the correct usage of an option, mark the option as used and prevent
+         * further usage of it.
+         *
+         * Lines marked with "<<<<" are relevant here.
+         * @formatter:off
+         */
+
+        final var seller = offer.getMadeFor();
+        assert seller.routingNumber() == ForeignBankId.OUR_ROUTING_NUMBER;
+        final var sellerUuid = UUID.fromString(seller.id());
+
+        switch (posting.asset()) {
+            case TxAsset.Monas(MonetaryAsset(CurrencyCode currency)) -> {
+                final var depositAcc =
+                    otcRequestService.getRequiredAccount(
+                        sellerUuid,
+                        currency,
+                        BigDecimal.ZERO
+                    )
+                        .orElseThrow(() -> new IllegalStateException("Invalid tx?"));
+
+                final var realAcc =
+                    accountRepo.getAccountByAccountNumber(depositAcc.accountNumber())
+                            .orElseThrow(() -> new IllegalStateException("Invalid tx?"));
+                realAcc.setAvailableBalance(realAcc.getAvailableBalance().add(posting.amount()));
+                realAcc.setBalance(realAcc.getBalance().add(posting.amount()));
+            }
+            case TxAsset.Stock(StockDescription sd) -> {
+                final var stock = resolveStock(sd).orElseThrow(() -> new IllegalStateException("Invalid tx?"));
+                if (!assetOwnershipService.changeAssetOwnership(option.getId(), sellerUuid, -1, 0, 0))
+                    throw new IllegalStateException("Invalid tx?");
+                assert posting.amount().equals(new BigDecimal(-offer.getAmount()));
+                if (!assetOwnershipService.changeAssetOwnership(stock.getId(), sellerUuid, 0, 0, -offer.getAmount()))
+                    throw new IllegalStateException("Invalid tx?");
+            }
+            default -> throw new IllegalStateException("Invalid tx?");
+        }
+    }
+
     /**
      * Perform phase one of local transaction execution:
      *
@@ -509,8 +576,89 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     }
                     }
                 }
+
                 case TxAccount.Option(ForeignBankId optionId) -> {
-                    throw new NotImplementedException();
+                    /* @formatter:off
+                     * A transaction wants to execute an option.  The option is formed like so:
+                     *
+                     * In order to execute an option, an Executing Bank should form a transaction of
+                     * the form:
+                     *
+                     * - Debit option pseudo-account for p*k where p is the price per unit stock and
+                     *   k is the amount of stocks in the option,      <<<<
+                     * - Credit the buyer for p*k
+                     * - Credit option pseudo-account for k stocks,    <<<<
+                     * - Debit relevant receiving accounts for k assets
+                     *
+                     * The bank shall, upon the correct usage of an option, mark the option as used
+                     * and prevent further usage of it.
+                     *
+                     * Lines marked with "<<<<" are relevant here.
+                     * @formatter:off
+                     */
+                    final var offerOption_ = resolveOptionPseudo(optionId);
+                    if (offerOption_.isEmpty()) {
+                        noReasons.add(new NoVoteReason.NoSuchAccount(posting));
+                        continue;
+                    }
+                    final var offerOption = offerOption_.get();
+                    final var offer = offerOption.getLeft();
+                    final var option = offerOption.getRight();
+
+                    if (offer.getStatus() != RequestStatus.FINISHED) {
+                        noReasons.add(new NoVoteReason.OptionUsedOrExpired(posting));
+                        continue;
+                    }
+
+                    switch (posting.asset()) {
+                        case TxAsset.Stock(StockDescription(String ticker)) -> {
+                            if (!option.getStock().getTicker().equals(ticker)) {
+                                noReasons.add(new NoVoteReason.InsufficientAsset(posting));
+                                continue;
+                            }
+                            if (!posting.amount().equals(new BigDecimal(-offer.getAmount()))) {
+                                noReasons.add(new NoVoteReason.OptionAmountIncorrect(posting));
+                                continue;
+                            }
+                        }
+                        case TxAsset.Monas(MonetaryAsset(CurrencyCode currency)) -> {
+                            final var pricePer = option.getStrikePrice();
+                            if (!pricePer.getCurrency().equals(currency)) {
+                                noReasons.add(new NoVoteReason.UnacceptableAsset(posting));
+                                continue;
+                            }
+                            if (
+                                !pricePer.getAmount()
+                                        .multiply(new BigDecimal(offer.getAmount()))
+                                        .equals(posting.amount())
+                            ) {
+                                noReasons.add(new NoVoteReason.OptionAmountIncorrect(posting));
+                                continue;
+                            }
+                            assert posting.amount().signum() >= 0;
+                            final var seller = offer.getMadeFor();
+                            assert seller.routingNumber() == ForeignBankId.OUR_ROUTING_NUMBER;
+                            if (
+                                otcRequestService.getRequiredAccount(
+                                    UUID.fromString(seller.id()),
+                                    currency,
+                                    BigDecimal.ZERO
+                                ).isEmpty()
+                            ) {
+                                noReasons.add(new NoVoteReason.UnacceptableAsset(posting));
+                                continue;
+                            }
+                        }
+
+                        default -> {
+                            noReasons.add(new NoVoteReason.UnacceptableAsset(posting));
+                            continue;
+                        }
+                    }
+
+                    /* Reserve it. */
+                    offer.setStatus(RequestStatus.USED);
+                    otcRequestRepo.save(offer);
                 }
 
                 case TxAccount.Account(String accNumber) -> {
@@ -626,7 +774,14 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 }
                 }
             }
-            case TxAccount.Option(ForeignBankId optionId) -> throw new NotImplementedException();
+
+            case TxAccount.Option(ForeignBankId optionId) -> {
+                final var offerOption = resolveOptionPseudo(optionId)
+                        .orElseThrow(() -> new IllegalStateException("Invalid tx?"));
+
+                offerOption.getLeft().setStatus(RequestStatus.FINISHED);
+                otcRequestRepo.save(offerOption.getLeft());
+            }
 
             case TxAccount.Account(String accNumber) -> {
                 final var acc =
@@ -707,7 +862,12 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 }
                 }
             }
-            case TxAccount.Option(ForeignBankId optionId) -> throw new NotImplementedException();
+
+            case TxAccount.Option(ForeignBankId optionId) -> {
+                final var offerOption = resolveOptionPseudo(optionId)
+                        .orElseThrow(() -> new IllegalStateException("Invalid tx?"));
+                commitOptionExecute(offerOption.getLeft(), offerOption.getRight(), posting);
+            }
 
             case TxAccount.Account(String accNumber) -> {
                 final var acc =

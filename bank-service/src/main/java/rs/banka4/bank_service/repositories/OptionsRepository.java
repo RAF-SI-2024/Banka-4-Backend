@@ -1,9 +1,12 @@
 package rs.banka4.bank_service.repositories;
 
+import jakarta.persistence.LockModeType;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -48,4 +51,8 @@ public interface OptionsRepository extends JpaRepository<Option, UUID> {
         nativeQuery = true
     )
     void deactivateAll();
+
+    @Query("SELECT o FROM Option o WHERE o.id = :id")
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<Option> findAndLockById(UUID id);
 }

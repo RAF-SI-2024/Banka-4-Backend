@@ -1,5 +1,6 @@
 package rs.banka4.bank_service.repositories;
 
+import jakarta.persistence.LockModeType;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -7,6 +8,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
@@ -36,6 +38,10 @@ public interface OtcRequestRepository extends JpaRepository<OtcRequest, ForeignB
     );
 
     Optional<OtcRequest> findByOptionId(UUID optionId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT o FROM OtcRequest o WHERE o.optionId = :optionId")
+    Optional<OtcRequest> findAndLockByOptionId(UUID optionId);
 
     List<OtcRequest> findAllByStatusAndSettlementDateBefore(RequestStatus status, LocalDate date);
 }
