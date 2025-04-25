@@ -205,10 +205,6 @@ public class ProfitCalculationServiceImpl implements ProfitCalculationService {
                 lots.removeFirst();
             }
         }
-        /// This will never throw
-        if (remainingToMatch.compareTo(BigDecimal.ZERO) > 0) {
-            throw new IllegalStateException("You are trying to sell more then you have");
-        }
 
         var profit = sellNet.subtract(consumedCost);
         return new MonetaryAmount(
