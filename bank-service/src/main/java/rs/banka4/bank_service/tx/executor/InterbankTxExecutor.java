@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -163,8 +164,11 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private Set<Long> collectAndValidateDestinations(DoubleEntryTransaction tx) {
         final var dests = TxUtils.collectDestinations(tx);
         final var validDests =
-            interbankConfig.getRoutingTable()
-                .keySet();
+            new HashSet<>(
+                interbankConfig.getRoutingTable()
+                    .keySet()
+            );
+        validDests.add(ForeignBankId.OUR_ROUTING_NUMBER);
         if (!validDests.containsAll(dests))
             throw new IllegalArgumentException(
                 "Destination(s) %s are invalid".formatted(
@@ -1116,7 +1120,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         final var destinations = collectAndValidateDestinations(tx_);
         if (!destinations.contains(ForeignBankId.OUR_ROUTING_NUMBER))
             throw new IllegalArgumentException("Transaction is not in our bank");
-        if (destinations.size() == 1)
+        if (destinations.size() != 1)
             throw new IllegalArgumentException("Transaction is not fully in our bank");
         final var tx =
             preprocessDoubleEntryTx(tx_).withTransactionId(ForeignBankId.our(UUID.randomUUID()));
