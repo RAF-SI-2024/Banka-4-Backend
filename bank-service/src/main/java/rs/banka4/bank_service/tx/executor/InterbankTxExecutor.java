@@ -230,6 +230,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         try {
             amount =
                 posting.amount()
+                    .min(BigDecimal.ZERO)
                     .intValueExact();
         } catch (ArithmeticException e) {
             throw new IllegalStateException("invalid tx?", e);
