@@ -530,6 +530,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             throw new TxLocalPartVotedNo(tx, List.of(new NoVoteReason.UnbalancedTx()));
 
         final var noReasons = new ArrayList<NoVoteReason>();
+        final var weSetAsFinished = new HashSet<ForeignBankId>();
         for (final var posting : tx.postings()) {
             if (
                 posting.account()
@@ -606,7 +607,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     final var offer = offerOption.getLeft();
                     final var option = offerOption.getRight();
 
-                    if (offer.getStatus() != RequestStatus.FINISHED) {
+                    if (offer.getStatus() != RequestStatus.FINISHED
+                        && !weSetAsFinished.contains(optionId)) {
                         noReasons.add(new NoVoteReason.OptionUsedOrExpired(posting));
                         continue;
                     }
@@ -659,6 +661,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
                     /* Reserve it. */
                     offer.setStatus(RequestStatus.USED);
+                    weSetAsFinished.add(optionId);
                     otcRequestRepo.save(offer);
                 }
 
