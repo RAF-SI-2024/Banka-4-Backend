@@ -26,6 +26,7 @@ import rs.banka4.bank_service.domain.taxes.db.dto.UserTaxInfoDto;
 import rs.banka4.bank_service.exceptions.AssetNotFound;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.ListingRepository;
+import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.UserTaxDebtsRepository;
 import rs.banka4.bank_service.service.abstraction.ExchangeRateService;
 import rs.banka4.bank_service.service.abstraction.ProfitCalculationService;
@@ -43,6 +44,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
     private final ExchangeRateService exchangeRateService;
     private final UserTaxDebtsRepository userTaxDebtsRepository;
     private final TaxCalculationService taxCalculationService;
+    private final OtcRequestRepository otcRequestRepository;
 
     @Override
     public ResponseEntity<Page<SecurityDto>> getSecurities(
@@ -72,6 +74,11 @@ public class SecuritiesServiceImpl implements SecuritiesService {
                             .getId(),
                         Limit.of(1)
                     );
+                var otc = otcRequestRepository.findByOptionId(option.getId());
+                if (otc.isPresent())
+                    totalAmount =
+                        otc.get()
+                            .getAmount();
             } else {
                 optionalListing = listingRepository.getLatestListing(asset.getId(), Limit.of(1));
             }
