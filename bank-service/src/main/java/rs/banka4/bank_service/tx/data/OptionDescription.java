@@ -5,11 +5,10 @@ import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 
 public record OptionDescription(
-    ForeignBankId id,
+    ForeignBankId negotiationId,
     StockDescription stock,
     MonetaryAmount pricePerUnit,
     OffsetDateTime settlementDate,
-    int amount,
-    ForeignBankId negotiationId
+    int amount
 ) {
 }

@@ -300,7 +300,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             optionsRepo.save(
                 new Option(
                     remoteToLocalOptionNameMap.computeIfAbsent(
-                        optDesc.id(),
+                        optDesc.negotiationId(),
                         k -> UUID.randomUUID()
                     ),
                     null,
@@ -318,7 +318,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     0,
                     optDesc.settlementDate(),
                     false,
-                    optDesc.id()
+                    optDesc.negotiationId()
                 )
             )
         );

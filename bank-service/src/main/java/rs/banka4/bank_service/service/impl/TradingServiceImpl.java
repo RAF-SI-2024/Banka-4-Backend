@@ -65,15 +65,14 @@ public class TradingServiceImpl implements TradingService {
         var option =
             new TxAsset.Option(
                 new OptionDescription(
-                    ForeignBankId.our(UUID.randomUUID()),
+                    otcRequest.getId(),
                     new StockDescription(
                         otcRequest.getStock()
                             .getTicker()
                     ),
                     otcRequest.getPricePerStock(),
                     InterbankOtcMapper.midnightSettlementDate(otcRequest),
-                    otcRequest.getAmount(),
-                    otcRequest.getId()
+                    otcRequest.getAmount()
                 )
             );
         Posting buyerDebitOption = new Posting(buyer, BigDecimal.ONE, option);
