@@ -32,7 +32,7 @@ public interface TaxService {
      * Calculates realized profit for a completed otc trade and records the corresponding tax debt.
      * <p>
      * It computes realized profit via
-     * {@link ProfitCalculationService#calculateOptionProfit(Option)}, then delegates to
+     * {@link ProfitCalculationService#calculateOptionProfit(Option,int)}, then delegates to
      * {@link #addTaxAmountToDB} to persist or update the tax debt.
      *
      * @param option the option for which to calculate and record tax; must be non-null
