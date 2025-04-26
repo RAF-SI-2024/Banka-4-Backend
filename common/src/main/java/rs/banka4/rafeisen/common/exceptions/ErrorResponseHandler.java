@@ -14,6 +14,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import rs.banka4.rafeisen.common.exceptions.jwt.ExpiredJwt;
+import rs.banka4.rafeisen.common.exceptions.jwt.NoJwtProvided;
+import rs.banka4.rafeisen.common.exceptions.jwt.Unauthorized;
 
 @RestControllerAdvice
 @Log4j2
@@ -45,7 +48,11 @@ public class ErrorResponseHandler {
 
     @ExceptionHandler(BaseApiException.class)
     public ResponseEntity<Map<String, ?>> handleErrorResponse(BaseApiException ex) {
-        log.debug("Reporting API error in API call", ex);
+        if (
+            !(ex instanceof NoJwtProvided)
+                && !(ex instanceof ExpiredJwt)
+                && !(ex instanceof Unauthorized)
+        ) log.debug("Reporting API error in API call", ex);
         return ResponseEntity.status(ex.getStatus())
             .body(formatErrorBody(ex.getClass(), ex.getExtra()));
     }
