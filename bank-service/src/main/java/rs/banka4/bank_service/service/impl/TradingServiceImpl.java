@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import rs.banka4.bank_service.domain.account.db.Account;
 import rs.banka4.bank_service.domain.options.db.Option;
+import rs.banka4.bank_service.domain.options.db.OptionType;
 import rs.banka4.bank_service.domain.orders.db.Direction;
 import rs.banka4.bank_service.domain.orders.db.Order;
 import rs.banka4.bank_service.domain.orders.db.OrderType;
@@ -326,6 +327,14 @@ public class TradingServiceImpl implements TradingService {
         var u =
             userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFound(userId.toString()));
+        var price = o.getStrikePrice();
+        price.setAmount(
+            price.getAmount()
+                .add(
+                    o.getPremium()
+                        .getAmount()
+                )
+        );
         var order =
             Order.builder()
                 .user(u)
@@ -333,7 +342,7 @@ public class TradingServiceImpl implements TradingService {
                 .orderType(OrderType.MARKET)
                 .quantity(amount)
                 .contractSize(1)
-                .pricePerUnit(o.getStrikePrice())
+                .pricePerUnit(price)
                 .direction(Direction.SELL)
                 .status(Status.APPROVED)
                 .approvedBy(null)
@@ -470,6 +479,14 @@ public class TradingServiceImpl implements TradingService {
         var u =
             userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFound(userId.toString()));
+        var price = o.getStrikePrice();
+        price.setAmount(
+            price.getAmount()
+                .add(
+                    o.getPremium()
+                        .getAmount()
+                )
+        );
         var order =
             Order.builder()
                 .user(u)
@@ -477,7 +494,7 @@ public class TradingServiceImpl implements TradingService {
                 .orderType(OrderType.MARKET)
                 .quantity(amount)
                 .contractSize(1)
-                .pricePerUnit(o.getStrikePrice())
+                .pricePerUnit(price)
                 .direction(Direction.BUY)
                 .status(Status.APPROVED)
                 .approvedBy(null)
@@ -540,6 +557,14 @@ public class TradingServiceImpl implements TradingService {
         var u = userRepository.findById(UUID.fromString(buyerId.id()));
         if (u.isPresent()) {
             var a = accountService.getAccountByAccountNumber(buyerAccount);
+            var price = o.getStrikePrice();
+            price.setAmount(
+                price.getAmount()
+                    .add(
+                        o.getPremium()
+                            .getAmount()
+                    )
+            );
             var order =
                 Order.builder()
                     .user(u.get())
@@ -547,7 +572,7 @@ public class TradingServiceImpl implements TradingService {
                     .orderType(OrderType.MARKET)
                     .quantity(amount)
                     .contractSize(1)
-                    .pricePerUnit(o.getStrikePrice())
+                    .pricePerUnit(price)
                     .direction(Direction.BUY)
                     .status(Status.APPROVED)
                     .approvedBy(null)
@@ -563,6 +588,24 @@ public class TradingServiceImpl implements TradingService {
                     .account(a)
                     .used(true)
                     .build();
+            if (sellerId.routingNumber() == ForeignBankId.OUR_ROUTING_NUMBER) {
+                var accNum =
+                    accountService.getRequiredAccount(
+                        UUID.fromString(sellerId.id()),
+                        o.getStrikePrice()
+                            .getCurrency(),
+                        BigDecimal.ZERO
+                    );
+                if (accNum.isPresent()) {
+                    var acc =
+                        accountService.getAccountByAccountNumber(
+                            accNum.get()
+                                .accountNumber()
+                        );
+                    o.setOptionType(OptionType.PUT);
+                    taxService.addTaxForOtcToDB(o, acc, amount);
+                }
+            }
             orderRepository.save(order);
         }
     }

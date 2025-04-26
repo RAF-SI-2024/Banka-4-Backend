@@ -1,5 +1,6 @@
 package rs.banka4.bank_service.service.impl;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,9 @@ import rs.banka4.bank_service.exceptions.*;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
+import rs.banka4.bank_service.service.abstraction.AccountService;
 import rs.banka4.bank_service.service.abstraction.OtcRequestService;
+import rs.banka4.bank_service.service.abstraction.TaxService;
 import rs.banka4.bank_service.service.abstraction.TradingService;
 import rs.banka4.bank_service.tx.otc.mapper.InterbankOtcMapper;
 import rs.banka4.bank_service.tx.otc.service.InterbankOtcService;
@@ -32,6 +35,8 @@ public class OtcRequestServiceImp implements OtcRequestService {
     private final TradingService tradingService;
     private final InterbankOtcService interbankOtcService;
     private final StockRepository stockRepository;
+    private final TaxService taxService;
+    private final AccountService accountService;
 
     @Override
     public Page<OtcRequest> getMyRequests(Pageable pageable, UUID myId) {
@@ -151,8 +156,50 @@ public class OtcRequestServiceImp implements OtcRequestService {
                 // send update to other bank
                 if (routingNumber(otc) != -1) {
                     interbankOtcService.sendAcceptNegotiation(requestId, routingNumber(otc));
+                    if (
+                        otc.getMadeFor()
+                            .routingNumber()
+                            == ForeignBankId.OUR_ROUTING_NUMBER
+                    ) {
+                        var accNum =
+                            accountService.getRequiredAccount(
+                                UUID.fromString(
+                                    otc.getMadeFor()
+                                        .id()
+                                ),
+                                otc.getPremium()
+                                    .getCurrency(),
+                                BigDecimal.ZERO
+                            );
+                        if (accNum.isPresent()) {
+                            var acc =
+                                accountService.getAccountByAccountNumber(
+                                    accNum.get()
+                                        .accountNumber()
+                                );
+                            taxService.addTaxAmountToDB(otc.getPremium(), acc);
+                        }
+                    }
                 } else {
                     tradingService.sendPremiumAndGetOption(otc);
+                    var accNum =
+                        accountService.getRequiredAccount(
+                            UUID.fromString(
+                                otc.getMadeFor()
+                                    .id()
+                            ),
+                            otc.getPremium()
+                                .getCurrency(),
+                            BigDecimal.ZERO
+                        );
+                    if (accNum.isPresent()) {
+                        var acc =
+                            accountService.getAccountByAccountNumber(
+                                accNum.get()
+                                    .accountNumber()
+                            );
+                        taxService.addTaxAmountToDB(otc.getPremium(), acc);
+                    }
                 }
             } else {
                 throw new CantAcceptThisOffer("Other side has to accept the offer", userId);
