@@ -43,13 +43,13 @@ public class PaymentSpecification {
     public static Specification<Transaction> hasFromAccount(Account fromAccount) {
         return (root, query, criteriaBuilder) -> fromAccount == null
             ? criteriaBuilder.conjunction()
-            : criteriaBuilder.equal(root.get("fromAccount"), fromAccount);
+            : criteriaBuilder.equal(root.get("fromAccount"), fromAccount.getAccountNumber());
     }
 
     public static Specification<Transaction> hasToAccount(Account toAccount) {
         return (root, query, criteriaBuilder) -> toAccount == null
             ? criteriaBuilder.conjunction()
-            : criteriaBuilder.equal(root.get("toAccount"), toAccount);
+            : criteriaBuilder.equal(root.get("toAccount"), toAccount.getAccountNumber());
     }
 
     public static Specification<Transaction> isNotTransfer() {

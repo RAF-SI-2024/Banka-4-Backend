@@ -274,10 +274,13 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal monthlyLimit = fromAccount.getMonthlyLimit();
 
         BigDecimal totalDailyTransactions =
-            transactionRepository.getTotalDailyTransactions(fromAccount.getId(), LocalDate.now());
+            transactionRepository.getTotalDailyTransactions(
+                fromAccount.getAccountNumber(),
+                LocalDate.now()
+            );
         BigDecimal totalMonthlyTransactions =
             transactionRepository.getTotalMonthlyTransactions(
-                fromAccount.getId(),
+                fromAccount.getAccountNumber(),
                 LocalDate.now()
                     .getMonthValue()
             );
@@ -655,8 +658,8 @@ public class TransactionServiceImpl implements TransactionService {
                 UUID.randomUUID()
                     .toString()
             )
-            .fromAccount(fromAccount)
-            .toAccount(toAccount)
+            .fromAccount(fromAccount.getAccountNumber())
+            .toAccount(toAccount.getAccountNumber())
             .from(new MonetaryAmount(createPaymentDto.fromAmount(), fromAccount.getCurrency()))
             .to(new MonetaryAmount(toAmount, toAccount.getCurrency()))
             .fee(new MonetaryAmount(fee, fromAccount.getCurrency()))
@@ -688,8 +691,8 @@ public class TransactionServiceImpl implements TransactionService {
                 UUID.randomUUID()
                     .toString()
             )
-            .fromAccount(fromAccount)
-            .toAccount(toAccount)
+            .fromAccount(fromAccount.getAccountNumber())
+            .toAccount(toAccount.getAccountNumber())
             .from(new MonetaryAmount(createTransferDto.fromAmount(), fromAccount.getCurrency()))
             .to(new MonetaryAmount(toAmount, toAccount.getCurrency()))
             .fee(new MonetaryAmount(fee, fromAccount.getCurrency()))
@@ -790,8 +793,8 @@ public class TransactionServiceImpl implements TransactionService {
                 UUID.randomUUID()
                     .toString()
             )
-            .fromAccount(fromAccount)
-            .toAccount(toAccount)
+            .fromAccount(fromAccount.getAccountNumber())
+            .toAccount(toAccount.getAccountNumber())
             .from(new MonetaryAmount(fromAmount, fromAccount.getCurrency()))
             .to(new MonetaryAmount(toAmount, toAccount.getCurrency()))
             .fee(new MonetaryAmount(fee, fromAccount.getCurrency()))

@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
-import rs.banka4.bank_service.domain.account.db.Account;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 
 @Entity
@@ -28,19 +27,17 @@ public class Transaction {
     )
     private String transactionNumber;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(
-        name = "from_account_id",
+    @Column(
+        name = "from_account",
         nullable = false
     )
-    private Account fromAccount;
+    private String fromAccount;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(
-        name = "to_account_id",
+    @Column(
+        name = "to_account",
         nullable = false
     )
-    private Account toAccount;
+    private String toAccount;
 
     @Embedded
     private MonetaryAmount from;

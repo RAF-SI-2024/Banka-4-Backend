@@ -19,23 +19,32 @@ public interface TransactionRepository extends
     JpaSpecificationExecutor<Transaction> {
     Optional<Transaction> findByTransactionNumber(String transactionNumber);
 
+    @Query("""
+        SELECT t FROM Transaction t
+               WHERE t.fromAccount IN (SELECT a.accountNumber FROM Account a
+                                                              WHERE a.client = :client)
+        """)
     Page<Transaction> findAllByFromAccount_ClientAndIsTransferTrue(
         Client client,
         Pageable pageable
     );
 
     @Query(
-        "SELECT COALESCE(SUM(t.from.amount), 0) FROM Transaction t WHERE t.fromAccount.id = :accountId AND t.paymentDateTime >= CURRENT_DATE"
+        "SELECT COALESCE(SUM(t.from.amount), 0) FROM Transaction t WHERE t.fromAccount = :accNo AND t.paymentDateTime >= CURRENT_DATE"
     )
-    BigDecimal getTotalDailyTransactions(UUID accountId, LocalDate date);
+    BigDecimal getTotalDailyTransactions(String accNo, LocalDate date);
 
     @Query(
-        "SELECT COALESCE(SUM(t.from.amount), 0) FROM Transaction t WHERE t.fromAccount.id = :accountId AND MONTH(t.paymentDateTime) = :month"
+        "SELECT COALESCE(SUM(t.from.amount), 0) FROM Transaction t WHERE t.fromAccount = :accNo AND MONTH(t.paymentDateTime) = :month"
     )
-    BigDecimal getTotalMonthlyTransactions(UUID accountId, int month);
+    BigDecimal getTotalMonthlyTransactions(String accNo, int month);
 
     @Query(
-        "SELECT t FROM Transaction t WHERE t.fromAccount.company = :company OR t.toAccount.company = :company"
+        """
+            SELECT t FROM Transaction t
+                   WHERE t.fromAccount IN (SELECT a.accountNumber FROM Account a WHERE a.company = :company)
+                         OR t.toAccount IN (SELECT a.accountNumber FROM Account a WHERE a.company = :company)
+            """
     )
     Page<Transaction> findAllByCompany(@Param("company") Company company, Pageable pageable);
 }
