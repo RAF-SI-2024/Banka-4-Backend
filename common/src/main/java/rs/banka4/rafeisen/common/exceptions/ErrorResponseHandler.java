@@ -94,23 +94,18 @@ public class ErrorResponseHandler {
     @ExceptionHandler(TypeMismatchException.class)
     public ResponseEntity<Map<String, ?>> handleTypeMismatchException(TypeMismatchException e) {
         log.debug("Reporting type-mismatch error in API call", e);
+        final var extraData = new HashMap<String, Object>();
+        extraData.put("errorCode", e.getErrorCode());
+        extraData.put("propertyName", e.getPropertyName());
+        extraData.put(
+            /* Nullable. lmao. */
+            "expectedType",
+            Optional.ofNullable(e.getRequiredType())
+                .map(Class::getSimpleName)
+                .orElse(null)
+        );
+        extraData.put("badValue", e.getValue());
         return ResponseEntity.badRequest()
-            .body(
-                formatErrorBody(
-                    "TypeMismatch",
-                    Map.ofEntries(
-                        Map.entry("errorCode", e.getErrorCode()),
-                        Map.entry("propertyName", e.getPropertyName()),
-                        Map.entry(
-                            /* Nullable. lmao. */
-                            "expectedType",
-                            Optional.ofNullable(e.getRequiredType())
-                                .map(Class::getSimpleName)
-                                .orElse(null)
-                        ),
-                        Map.entry("badValue", e.getValue())
-                    )
-                )
-            );
+            .body(formatErrorBody("TypeMismatch", extraData));
     }
 }
