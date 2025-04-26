@@ -32,6 +32,7 @@ import rs.banka4.bank_service.domain.user.employee.dtos.EmployeeDto;
 import rs.banka4.bank_service.domain.user.employee.dtos.UpdateEmployeeDto;
 import rs.banka4.bank_service.generator.EmployeeObjectMother;
 import rs.banka4.bank_service.service.abstraction.EmployeeService;
+import rs.banka4.bank_service.tx.config.InterbankConfig;
 import rs.banka4.bank_service.util.MockMvcUtil;
 import rs.banka4.rafeisen.common.dto.EmployeeResponseDto;
 import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
@@ -124,6 +125,11 @@ public class EmployeeControllerTests {
         @Bean
         public EmployeeService employeeService() {
             return Mockito.mock(EmployeeService.class);
+        }
+
+        @Bean
+        public InterbankConfig interbankConfig() {
+            return new InterbankConfig();
         }
 
         @Bean

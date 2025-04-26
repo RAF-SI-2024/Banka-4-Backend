@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -30,5 +31,24 @@ public class InterbankConfig {
         private String apiKey;
         @Nonnull
         private String baseUrl;
+        @Nonnull
+        private String receptionKey;
+    }
+
+    /**
+     * Given an API key {@code apiKey}, check which bank is the sender.
+     *
+     * @return Sending bank routing number, if found.
+     */
+    public Optional<Long> resolveApiKey(String apiKey) {
+        return routingTable.entrySet()
+            .stream()
+            .filter(
+                e -> e.getValue()
+                    .getReceptionKey()
+                    .equals(apiKey)
+            )
+            .map(Map.Entry::getKey)
+            .findAny();
     }
 }

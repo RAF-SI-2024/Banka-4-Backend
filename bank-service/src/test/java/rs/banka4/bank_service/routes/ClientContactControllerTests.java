@@ -29,6 +29,7 @@ import rs.banka4.bank_service.domain.user.client.dtos.ClientContactRequest;
 import rs.banka4.bank_service.generator.ClientObjectMother;
 import rs.banka4.bank_service.service.abstraction.ClientContactService;
 import rs.banka4.bank_service.service.abstraction.JwtService;
+import rs.banka4.bank_service.tx.config.InterbankConfig;
 import rs.banka4.bank_service.util.MockMvcUtil;
 import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 
@@ -123,6 +124,11 @@ public class ClientContactControllerTests {
         @Bean
         public JwtService jwtUtil() {
             return Mockito.mock(JwtService.class);
+        }
+
+        @Bean
+        public InterbankConfig interbankConfig() {
+            return new InterbankConfig();
         }
 
         @Bean

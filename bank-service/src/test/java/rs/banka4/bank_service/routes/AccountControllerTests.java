@@ -30,6 +30,7 @@ import rs.banka4.bank_service.generator.AccountObjectMother;
 import rs.banka4.bank_service.service.abstraction.AccountService;
 import rs.banka4.bank_service.service.abstraction.BankAccountService;
 import rs.banka4.bank_service.service.abstraction.TotpService;
+import rs.banka4.bank_service.tx.config.InterbankConfig;
 import rs.banka4.bank_service.util.MockMvcUtil;
 import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 
@@ -109,6 +110,11 @@ public class AccountControllerTests {
         @Bean
         public TotpService totpService() {
             return Mockito.mock(TotpService.class);
+        }
+
+        @Bean
+        public InterbankConfig interbankConfig() {
+            return new InterbankConfig();
         }
 
         @Bean

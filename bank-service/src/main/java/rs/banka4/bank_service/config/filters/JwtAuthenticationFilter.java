@@ -49,6 +49,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         FilterChain filterChain
     ) throws ServletException,
         IOException {
+        final var secContext = SecurityContextHolder.getContext();
+        if (secContext.getAuthentication() != null) {
+            /* Pre-authenticted by something. */
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final var rawToken = parseAuthHeader(request.getHeader("Authorization"));
 
         /* TODO(arsen): remove */
@@ -70,8 +77,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-            SecurityContextHolder.getContext()
-                .setAuthentication(authentication);
+            secContext.setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);

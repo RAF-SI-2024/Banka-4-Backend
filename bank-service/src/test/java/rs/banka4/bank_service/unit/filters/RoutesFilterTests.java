@@ -127,7 +127,7 @@ public class RoutesFilterTests {
         // Act & Assert
         assertThrows(NoJwtProvided.class, () -> {
             invalidRouteFilter.doFilterInternal(request, response, filterChain);
-            jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+            jwtAuthenticationFilter.doFilterInternal(request, response, new MockFilterChain());
         });
     }
 
