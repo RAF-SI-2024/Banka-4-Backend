@@ -104,7 +104,6 @@ public class ErrorResponseHandler {
                 .map(Class::getSimpleName)
                 .orElse(null)
         );
-        extraData.put("badValue", e.getValue());
         return ResponseEntity.badRequest()
             .body(formatErrorBody("TypeMismatch", extraData));
     }
