@@ -5,13 +5,17 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.logging.HttpLoggingInterceptor.Level;
 import org.springframework.stereotype.Service;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 import rs.banka4.bank_service.tx.config.InterbankConfig;
 
 @Service
+@Slf4j
 public class InterbankRetrofitProvider {
     private final Map<Long, OkHttpClient> clients = new HashMap<>();
     private final Map<Long, Retrofit> retrofits = new HashMap<>();
@@ -25,15 +29,18 @@ public class InterbankRetrofitProvider {
             final var bankId = route.getKey();
             final var bankCfg = route.getValue();
 
+            final var logger = new HttpLoggingInterceptor(m -> log.trace("{}", m));
+            logger.setLevel(Level.BODY);
             final var client =
-                new OkHttpClient.Builder().addInterceptor(
-                    chain -> chain.proceed(
-                        chain.request()
-                            .newBuilder()
-                            .header("X-Api-Key", bankCfg.getApiKey())
-                            .build()
+                new OkHttpClient.Builder().addInterceptor(logger)
+                    .addInterceptor(
+                        chain -> chain.proceed(
+                            chain.request()
+                                .newBuilder()
+                                .header("X-Api-Key", bankCfg.getApiKey())
+                                .build()
+                        )
                     )
-                )
                     .build();
             clients.put(bankId, client);
             final var retrofit =
