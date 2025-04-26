@@ -124,7 +124,7 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
                     return response.body()
                         .stream();
                 } catch (IOException e) {
-                    throw new RequestFailed();
+                    throw new RequestFailed(e);
                 }
             })
             .toList();
@@ -180,7 +180,7 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
             otcRequest.setStock(stock.get());
             otcRequestRepository.save(otcRequest);
         } catch (IOException e) {
-            throw new RequestFailed();
+            throw new RequestFailed(e);
         }
     }
 
@@ -206,7 +206,7 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
             var response = call.execute();
             if (!response.isSuccessful()) throw new WrongTurn();
         } catch (IOException e) {
-            throw new RequestFailed();
+            throw new RequestFailed(e);
         }
     }
 
@@ -232,7 +232,7 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
             var response = call.execute();
             return response.body();
         } catch (IOException e) {
-            throw new RequestFailed();
+            throw new RequestFailed(e);
         }
     }
 
@@ -254,7 +254,7 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
             var response = call.execute();
             if (!response.isSuccessful()) throw new OtcNotFoundException(id);
         } catch (IOException e) {
-            throw new RequestFailed();
+            throw new RequestFailed(e);
         }
     }
 
@@ -282,7 +282,7 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
 
 
         } catch (IOException e) {
-            throw new RequestFailed();
+            throw new RequestFailed(e);
         }
     }
 
@@ -314,7 +314,7 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
                 );
             } catch (IOException error) {
                 log.error("failed to resolve username for {}", x.seller(), error);
-                throw new RequestFailed();
+                throw new RequestFailed(error);
             }
         }
         return publicStocksDtos;

@@ -56,7 +56,7 @@ public class OtcRequestServiceImp implements OtcRequestService {
         if (
             !otc.getStatus()
                 .equals(RequestStatus.ACTIVE)
-        ) throw new RequestFailed();
+        ) throw new RequestFailed(null);
         otc.setStatus(RequestStatus.REJECTED);
         otcRequestRepository.save(otc);
         // send update to other bank
@@ -113,7 +113,7 @@ public class OtcRequestServiceImp implements OtcRequestService {
                         )
                     );
             if (assetOwner.getPublicAmount() < otcRequestCreateDto.amount())
-                throw new RequestFailed();
+                throw new RequestFailed(null);
         }
 
         var me = ForeignBankId.our(idMy);
