@@ -76,76 +76,10 @@ public class OrderExecutionService {
         order.setUsed(true);
         orderRepository.save(order);
 
-        Posting orderPosting =
-            new Posting(
-                new TxAccount.Account(
-                    order.getAccount()
-                        .getAccountNumber()
-                ),
-                order.getDirection() == Direction.BUY
-                    ? order.getPricePerUnit()
-                        .getAmount()
-                        .multiply(BigDecimal.valueOf(order.getQuantity()))
-                        .negate()
-                    : order.getPricePerUnit()
-                        .getAmount()
-                        .multiply(BigDecimal.valueOf(order.getQuantity())),
-                new TxAsset.Monas(
-                    order.getPricePerUnit()
-                        .getCurrency()
-                )
-            );
-
-        Posting matchOrderPosting =
-            new Posting(
-                new TxAccount.Account(
-                    matchedOrder.getAccount()
-                        .getAccountNumber()
-                ),
-                order.getDirection() == Direction.SELL
-                    ? order.getPricePerUnit()
-                        .getAmount()
-                        .multiply(BigDecimal.valueOf(order.getQuantity()))
-                        .negate()
-                    : order.getPricePerUnit()
-                        .getAmount()
-                        .multiply(BigDecimal.valueOf(order.getQuantity())),
-                new TxAsset.Monas(
-                    order.getPricePerUnit()
-                        .getCurrency()
-                )
-            );
-
-//        Posting orderPostingStock = new Posting(
-//            new TxAccount.Person(order.getAccount().getClient().getId()),
-//            order.getDirection() == Direction.BUY ?
-//                BigDecimal.valueOf(order.getQuantity())
-//                :
-//                BigDecimal.valueOf(order.getQuantity()).negate(),
-//            new TxAsset.Stock(order.getAsset().getTicker())
-//        );
-//
-//        Posting matchOrderPostingStock = new Posting(
-//            new TxAccount.Person(matchedOrder.getAccount().getClient().getId()),
-//            order.getDirection() == Direction.SELL ?
-//                BigDecimal.valueOf(order.getQuantity())
-//                :
-//                BigDecimal.valueOf(order.getQuantity()).negate(),
-//            new TxAsset.Stock(order.getAsset().getTicker())
-//        );
-
-        DoubleEntryTransaction transaction =
-            new DoubleEntryTransaction(
-                List.of(orderPosting, matchOrderPosting),
-                "Order execution between buyer and seller",
-                ForeignBankId.our(UUID.randomUUID())
-            );
-
         try {
-            txExecutor.submitImmediateTx(transaction);
+            createOrderTransaction(order, matchedOrder);
         } catch (Exception e) {
             log.error("Failed to submit transaction for orders {} {}", order, matchedOrder, e);
-            return CompletableFuture.failedFuture(e);
         }
 
         /**
@@ -295,7 +229,14 @@ public class OrderExecutionService {
                 }
 
             }
-            // TODO: Make transaction between order's client and matchedOrder's client
+
+            try {
+                createOrderTransaction(order, matchedOrder);
+            } catch (Exception e) {
+                log.error("Failed to submit transaction for orders {} {}", order, matchedOrder, e);
+            }
+
+            calculateAssetOwnerships(order, matchedOrder);
 
             if (lockedOrder.getRemainingPortions() == 0) {
                 lockedOrder.setDone(true);
@@ -327,6 +268,63 @@ public class OrderExecutionService {
                 lockedOrder.getId()
             );
             return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    @Transactional
+    protected void createOrderTransaction(Order order, Order matchedOrder) {
+        Posting orderPosting =
+            new Posting(
+                new TxAccount.Account(
+                    order.getAccount()
+                        .getAccountNumber()
+                ),
+                order.getDirection() == Direction.BUY
+                    ? order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity()))
+                        .negate()
+                    : order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity())),
+                new TxAsset.Monas(
+                    order.getPricePerUnit()
+                        .getCurrency()
+                )
+            );
+
+        Posting matchOrderPosting =
+            new Posting(
+                new TxAccount.Account(
+                    matchedOrder.getAccount()
+                        .getAccountNumber()
+                ),
+                order.getDirection() == Direction.SELL
+                    ? order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity()))
+                        .negate()
+                    : order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity())),
+                new TxAsset.Monas(
+                    order.getPricePerUnit()
+                        .getCurrency()
+                )
+            );
+
+        DoubleEntryTransaction transaction =
+            new DoubleEntryTransaction(
+                List.of(orderPosting, matchOrderPosting),
+                "Order execution between buyer and seller",
+                ForeignBankId.our(UUID.randomUUID())
+            );
+
+        try {
+            txExecutor.submitImmediateTx(transaction);
+        } catch (Exception e) {
+            log.error("Failed to submit transaction for orders {} {}", order, matchedOrder, e);
+            throw new RuntimeException("Failed to submit transaction", e);
         }
     }
 
