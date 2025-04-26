@@ -1220,11 +1220,14 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private void sendStoredMessage(OutboxMessageId msgId, Message particularMessage)
         throws IOException {
         final var remote = interbanks.get(msgId.destination());
+
+        log.trace("sending message to bank {}: {}", msgId.destination(), particularMessage);
         final var response = (switch (particularMessage) {
         case Message.NewTx newTx -> remote.sendNewTx(newTx);
         case Message.CommitTx commitTx -> remote.sendCommit(commitTx);
         case Message.RollbackTx rollbackTx -> remote.sendRollback(rollbackTx);
         }).execute();
+        log.trace("received response from bank {}: {}", msgId.destination(), response);
 
         if (response.code() == 202) {
             /* No response yet. The DB was already updated with the next resend time. */
