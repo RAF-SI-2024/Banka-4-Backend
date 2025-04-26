@@ -707,8 +707,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             }
         }
 
-        if (!noReasons.isEmpty()) {throw new TxLocalPartVotedNo(tx, noReasons);
-        }
+        if (!noReasons.isEmpty())
+            throw new TxLocalPartVotedNo(tx, noReasons);
     }
 
     /**
