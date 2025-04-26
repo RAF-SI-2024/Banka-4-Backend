@@ -1031,31 +1031,32 @@ public class DataSourceService {
     }
 
     private void seedStateCompany() {
-        Company stateCompany =
-            Company.builder()
-                .id(STATE_COMPANY)
-                .name("The State")
-                .tin("100100100")
-                .crn("200200200")
-                .address("Government Square, Belgrade")
-                .build();
+        final var theState =
+            companyRepository.saveAndFlush(
+                Company.builder()
+                    .id(STATE_COMPANY)
+                    .name("The State")
+                    .tin("100100100")
+                    .crn("200200200")
+                    .address("Government Square, Belgrade")
+                    .build()
+            );
 
-        companyRepository.saveAndFlush(stateCompany);
-
-        clientRepository.saveAndFlush(
-            Client.builder()
-                .id(CLIENT_SINISA_MALI)
-                .firstName("Sinisa")
-                .lastName("Mali")
-                .dateOfBirth(LocalDate.of(1995, 5, 15))
-                .gender(Gender.MALE)
-                .email("sinisa@kradja.com")
-                .phone("+38162798543")
-                .address("Dedinje 8")
-                .password(passwordEncoder.encode("password"))
-                .enabled(true)
-                .build()
-        );
+        final var siniša =
+            clientRepository.saveAndFlush(
+                Client.builder()
+                    .id(CLIENT_SINISA_MALI)
+                    .firstName("Sinisa")
+                    .lastName("Mali")
+                    .dateOfBirth(LocalDate.of(1995, 5, 15))
+                    .gender(Gender.MALE)
+                    .email("sinisa@kradja.com")
+                    .phone("+38162798543")
+                    .address("Dedinje 8")
+                    .password(passwordEncoder.encode("password"))
+                    .enabled(true)
+                    .build()
+            );
 
         Account stateAccount =
             Account.builder()
@@ -1071,16 +1072,9 @@ public class DataSourceService {
                 )
                 .active(true)
                 .accountType(AccountType.DOO)
-                .company(stateCompany)
+                .company(theState)
                 .currency(CurrencyCode.RSD)
-                .employee(
-                    employeeRepository.findById(EMPLOYEE_DAVID)
-                        .get()
-                )
-                .client(
-                    clientRepository.findById(CLIENT_SINISA_MALI)
-                        .get()
-                )
+                .client(siniša)
                 .build();
 
         accountRepository.saveAndFlush(stateAccount);
