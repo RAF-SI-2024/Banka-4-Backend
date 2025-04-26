@@ -5,6 +5,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,12 +19,17 @@ import org.springframework.test.context.bean.override.mockito.*;
 import org.springframework.transaction.support.TransactionTemplate;
 import rs.banka4.bank_service.domain.account.db.Account;
 import rs.banka4.bank_service.domain.account.db.AccountType;
+import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.domain.transaction.db.Transaction;
+import rs.banka4.bank_service.domain.transaction.db.TransactionStatus;
 import rs.banka4.bank_service.domain.user.client.db.Client;
 import rs.banka4.bank_service.domain.user.employee.db.Employee;
 import rs.banka4.bank_service.integration.generator.UserGenerator;
 import rs.banka4.bank_service.repositories.AccountRepository;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.AssetRepository;
+import rs.banka4.bank_service.repositories.TransactionRepository;
 import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
 import rs.banka4.bank_service.tx.data.DoubleEntryTransaction;
 import rs.banka4.bank_service.tx.data.NoVoteReason;
@@ -32,6 +38,8 @@ import rs.banka4.bank_service.tx.data.TxAccount;
 import rs.banka4.bank_service.tx.data.TxAsset;
 import rs.banka4.bank_service.tx.errors.TxLocalPartVotedNo;
 import rs.banka4.bank_service.tx.executor.InterbankTxExecutor;
+import rs.banka4.bank_service.tx.executor.db.ExecutingTransaction;
+import rs.banka4.bank_service.tx.executor.db.ExecutingTransactionRepository;
 import rs.banka4.bank_service.utils.AssetGenerator;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.testlib.integration.DbEnabledTest;
@@ -62,6 +70,12 @@ public class InterbankTxExecutorTests {
 
     @Autowired
     AssetOwnershipRepository assetOwnershipRepo;
+
+    @Autowired
+    ExecutingTransactionRepository txLog;
+
+    @Autowired
+    TransactionRepository userFacingTxRepo;
 
     private String getAccountNumber(int userNr, CurrencyCode curr) {
         return "4440001000%03d%03d520".formatted(userNr, curr.ordinal());
@@ -546,5 +560,104 @@ public class InterbankTxExecutorTests {
             .isEqualTo(0);
         assertThat(user2Ownership).extracting("publicAmount", as(INTEGER))
             .isEqualTo(0);
+    }
+
+    @Test
+    void test_that_stale_user_facing_tx_status_gets_updated_after_commit() {
+        final var excTxId = ForeignBankId.our(UUID.randomUUID());
+        txLog.saveAndFlush(new ExecutingTransaction(excTxId, "unimportant", 5, 5, true));
+        final var txId = UUID.randomUUID();
+        userFacingTxRepo.saveAndFlush(
+            Transaction.builder()
+                .id(txId)
+                .transactionNumber("unimportant")
+                .fromAccount("123")
+                .toAccount("456")
+                .from(new MonetaryAmount(BigDecimal.valueOf(1.00), CurrencyCode.EUR))
+                .to(new MonetaryAmount(BigDecimal.valueOf(1.00), CurrencyCode.RSD))
+                .fee(new MonetaryAmount(BigDecimal.valueOf(0.10), CurrencyCode.EUR))
+                .recipient("what?")
+                .paymentCode("289")
+                .referenceNumber("1176926")
+                .paymentPurpose("Testing")
+                .paymentDateTime(LocalDateTime.of(2021, 3, 21, 23, 59, 59))
+                .status(TransactionStatus.IN_PROGRESS)
+                .executingTransaction(excTxId)
+                .build()
+        );
+
+        executor.updateStaleTxStatuses();
+
+        final var tx = userFacingTxRepo.findById(txId);
+
+        assertThat(tx).get()
+            .extracting("status", type(TransactionStatus.class))
+            .isEqualTo(TransactionStatus.REALIZED);
+    }
+
+    @Test
+    void test_that_stale_user_facing_tx_status_gets_updated_after_rollback() {
+        final var excTxId = ForeignBankId.our(UUID.randomUUID());
+        txLog.saveAndFlush(new ExecutingTransaction(excTxId, "unimportant", 5, 5, false));
+        final var txId = UUID.randomUUID();
+        userFacingTxRepo.saveAndFlush(
+            Transaction.builder()
+                .id(txId)
+                .transactionNumber("unimportant")
+                .fromAccount("123")
+                .toAccount("456")
+                .from(new MonetaryAmount(BigDecimal.valueOf(1.00), CurrencyCode.EUR))
+                .to(new MonetaryAmount(BigDecimal.valueOf(1.00), CurrencyCode.RSD))
+                .fee(new MonetaryAmount(BigDecimal.valueOf(0.10), CurrencyCode.EUR))
+                .recipient("what?")
+                .paymentCode("289")
+                .referenceNumber("1176926")
+                .paymentPurpose("Testing")
+                .paymentDateTime(LocalDateTime.of(2021, 3, 21, 23, 59, 59))
+                .status(TransactionStatus.IN_PROGRESS)
+                .executingTransaction(excTxId)
+                .build()
+        );
+
+        executor.updateStaleTxStatuses();
+
+        final var tx = userFacingTxRepo.findById(txId);
+
+        assertThat(tx).get()
+            .extracting("status", type(TransactionStatus.class))
+            .isEqualTo(TransactionStatus.REJECTED);
+    }
+
+    @Test
+    void test_that_processing_transactions_dont_update_status() {
+        final var excTxId = ForeignBankId.our(UUID.randomUUID());
+        txLog.saveAndFlush(new ExecutingTransaction(excTxId, "unimportant", 4, 5, false));
+        final var txId = UUID.randomUUID();
+        userFacingTxRepo.saveAndFlush(
+            Transaction.builder()
+                .id(txId)
+                .transactionNumber("unimportant")
+                .fromAccount("123")
+                .toAccount("456")
+                .from(new MonetaryAmount(BigDecimal.valueOf(1.00), CurrencyCode.EUR))
+                .to(new MonetaryAmount(BigDecimal.valueOf(1.00), CurrencyCode.RSD))
+                .fee(new MonetaryAmount(BigDecimal.valueOf(0.10), CurrencyCode.EUR))
+                .recipient("what?")
+                .paymentCode("289")
+                .referenceNumber("1176926")
+                .paymentPurpose("Testing")
+                .paymentDateTime(LocalDateTime.of(2021, 3, 21, 23, 59, 59))
+                .status(TransactionStatus.IN_PROGRESS)
+                .executingTransaction(excTxId)
+                .build()
+        );
+
+        executor.updateStaleTxStatuses();
+
+        final var tx = userFacingTxRepo.findById(txId);
+
+        assertThat(tx).get()
+            .extracting("status", type(TransactionStatus.class))
+            .isEqualTo(TransactionStatus.IN_PROGRESS);
     }
 }

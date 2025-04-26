@@ -1,6 +1,8 @@
 package rs.banka4.bank_service.tx;
 
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.domain.transaction.db.Transaction;
+import rs.banka4.bank_service.domain.transaction.db.TransactionStatus;
 import rs.banka4.bank_service.tx.data.DoubleEntryTransaction;
 
 /**
@@ -11,6 +13,11 @@ import rs.banka4.bank_service.tx.data.DoubleEntryTransaction;
  * Submitting a transaction involves writing it down into a database first, so that it may be
  * executed upon recovery in case of a crash. The executor shall only succeed if the transaction was
  * written down.
+ *
+ * <p>
+ * The transaction system will also update the {@link Transaction} table, setting all
+ * {@link Transaction#setStatus(TransactionStatus)} to {@link TransactionStatus#REALIZED} upon
+ * commit, and {@link TransactionStatus#REJECTED} upon rollback.
  */
 public interface TxExecutor {
     /**

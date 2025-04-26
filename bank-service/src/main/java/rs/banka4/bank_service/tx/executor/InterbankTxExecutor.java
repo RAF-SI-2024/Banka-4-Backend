@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -42,6 +44,7 @@ import rs.banka4.bank_service.domain.security.stock.db.Stock;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.domain.trading.db.OtcRequest;
 import rs.banka4.bank_service.domain.trading.db.RequestStatus;
+import rs.banka4.bank_service.domain.transaction.db.Transaction;
 import rs.banka4.bank_service.domain.user.User;
 import rs.banka4.bank_service.repositories.AccountRepository;
 import rs.banka4.bank_service.repositories.OptionsRepository;
@@ -732,6 +735,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      * </blockquote>
      *
      * <p>
+     * In addition, updates all {@link Transaction} statuses accordingly.
+     *
+     * <p>
      * Caller should hold {@link #transactionKey}.
      *
      * @returns A list of reasons not to accept a transaction. The caller is expected to make the
@@ -807,6 +813,12 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             }
             }
         }
+
+        execTxRepo.setTransactionStatusForExecutingTransactionConstituents(
+            tx.transactionId(),
+            /* Collides with TransactionStatus from Spring :( */
+            rs.banka4.bank_service.domain.transaction.db.TransactionStatus.REJECTED
+        );
     }
 
     /**
@@ -815,6 +827,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
      * <blockquote> Should all involved parties vote YES, the IB will send, to all involved parties,
      * a <i>commit</i> message. Upon receiving a commit message, the bank shall erase previously
      * reserved resources, and <i>debit</i> any new assets. </blockquote>
+     *
+     * <p>
+     * In addition, updates all {@link Transaction} statuses accordingly.
      *
      * <p>
      * Note that {@code tx} <strong>must be valid</strong>. No validation will be performed.
@@ -937,6 +952,12 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             }
             }
         }
+
+        execTxRepo.setTransactionStatusForExecutingTransactionConstituents(
+            tx.transactionId(),
+            /* Collides with TransactionStatus from Spring :( */
+            rs.banka4.bank_service.domain.transaction.db.TransactionStatus.REALIZED
+        );
     }
 
     /**
@@ -1135,6 +1156,22 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
             return tx.transactionId();
         }
+    }
+
+    /* =========================== User-facing TX status updates. =========================== */
+    /**
+     * For each user-facing transaction object (see {@link Transaction}) that is not yet {@code
+     * REALIZED} or {@code REJECTED}, update its status to match the status of its executing
+     * transaction. This fixes a race in which an executing transaction may commit faster than a
+     * user-facing transaction is created.
+     */
+    @Transactional
+    @Scheduled(
+        fixedDelay = 30,
+        timeUnit = TimeUnit.SECONDS
+    )
+    public void updateStaleTxStatuses() {
+        execTxRepo.updateStaleTxStatuses();
     }
 
     /* =============================== Inter-bank processing. =============================== */

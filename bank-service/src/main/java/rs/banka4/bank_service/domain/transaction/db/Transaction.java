@@ -7,6 +7,8 @@ import java.util.UUID;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.tx.TxExecutor;
 
 @Entity
 @Builder
@@ -72,6 +74,13 @@ public class Transaction {
 
     @Builder.Default
     private boolean isTransfer = false;
+
+    /**
+     * Set to an ID returned by a {@link TxExecutor} to have the executor automatically update this
+     * transactions {@link #status}.
+     */
+    @Column
+    private ForeignBankId executingTransaction;
 
     @Override
     public final boolean equals(Object o) {
