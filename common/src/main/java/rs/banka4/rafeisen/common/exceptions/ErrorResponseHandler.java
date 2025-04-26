@@ -52,6 +52,7 @@ public class ErrorResponseHandler {
             !(ex instanceof NoJwtProvided)
                 && !(ex instanceof ExpiredJwt)
                 && !(ex instanceof Unauthorized)
+                && !(ex instanceof RouteNotFound)
         ) log.debug("Reporting API error in API call", ex);
         return ResponseEntity.status(ex.getStatus())
             .body(formatErrorBody(ex.getClass(), ex.getExtra()));
