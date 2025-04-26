@@ -1308,6 +1308,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         Class<T> responseType,
         Function<M, T> handler
     ) {
+        log.trace("received remote message: {}", msg);
         final var idemKey = msg.idempotenceKey();
         final var isVoid = responseType.equals(Void.TYPE);
         synchronized (transactionKey) {
