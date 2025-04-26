@@ -1015,7 +1015,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 )
             );
         }
-        if (didSend)
+        if (!didSend)
             /* Probably forgot to do something. */
             throw new IllegalStateException("Didn't properly handle a lack of local message?");
     }
