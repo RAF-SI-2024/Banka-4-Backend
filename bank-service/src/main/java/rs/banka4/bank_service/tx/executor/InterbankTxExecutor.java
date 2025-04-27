@@ -10,7 +10,9 @@ import jakarta.persistence.LockModeType;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +52,7 @@ import rs.banka4.bank_service.repositories.AccountRepository;
 import rs.banka4.bank_service.repositories.OptionsRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.StockRepository;
+import rs.banka4.bank_service.repositories.TransactionRepository;
 import rs.banka4.bank_service.repositories.UserRepository;
 import rs.banka4.bank_service.service.abstraction.AccountService;
 import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
@@ -103,6 +106,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final OptionsRepository optionsRepo;
     private final OtcRequestRepository otcRequestRepo;
     private final AssetOwnershipService assetOwnershipService;
+    private final TransactionRepository userFacingTxRepo;
 
     /* Synchronization key for transaction execution. */
     private final Object transactionKey = new Object();
@@ -123,7 +127,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         OptionsRepository optionsRepo,
         OtcRequestRepository otcRequestRepository,
         AssetOwnershipService assetOwnershipService,
-        AccountService accountService
+        AccountService accountService,
+        TransactionRepository userFacingTxRepo
     ) {
         this.interbankConfig = config;
         this.txTemplate = new TransactionTemplate(transactionManager);
@@ -144,6 +149,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.optionsRepo = optionsRepo;
         this.otcRequestRepo = otcRequestRepository;
         this.assetOwnershipService = assetOwnershipService;
+        this.userFacingTxRepo = userFacingTxRepo;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -1360,6 +1366,82 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 }
             });
         }
+    }
+
+    /**
+     * This function is a hack that uses a heuristic described below to produce user-facing
+     * transaction objects (i.e. {@link Transaction}) for incoming transactions.
+     *
+     * <p>
+     * The heuristic is as follows: if {@code tx} consists of exactly two postings of monetary
+     * amounts to two accounts, then a transaction is produced from the account in the posting with
+     * a negative amount to the account with a posting of the positive amount.
+     *
+     * <p>
+     * This function assumes balanced transactions preprocessed with
+     * {@link #preprocessDoubleEntryTx(DoubleEntryTransaction)}.
+     *
+     * <p>
+     * Saves user-facing transactions as a side-effect.
+     *
+     * @param tx The 2E transaction to apply this heuristic to.
+     */
+    private void recordHeuristicIncomingTransaction(DoubleEntryTransaction tx) {
+        if (
+            tx.postings()
+                .size()
+                != 2
+        ) return;
+        if (
+            !tx.postings()
+                .stream()
+                .map(Posting::asset)
+                .allMatch(TxAsset.Monas.class::isInstance)
+        ) return;
+        if (
+            !tx.postings()
+                .stream()
+                .map(Posting::account)
+                .allMatch(TxAccount.Account.class::isInstance)
+        ) return;
+
+        final var send =
+            tx.postings()
+                .stream()
+                .min(Comparator.comparing(Posting::amount))
+                .orElseThrow(AssertionError::new);
+        final var receive =
+            tx.postings()
+                .stream()
+                .max(Comparator.comparing(Posting::amount))
+                .orElseThrow(AssertionError::new);
+        userFacingTxRepo.save(
+            new Transaction(
+                UUID.randomUUID(),
+                "%s-%s".formatted(
+                    tx.transactionId()
+                        .routingNumber(),
+                    tx.transactionId()
+                        .id()
+                ),
+                ((TxAccount.Account) send.account()).num(),
+                ((TxAccount.Account) receive.account()).num(),
+                send.amountAsMonetaryValue(),
+                receive.amountAsMonetaryValue(),
+                /* TODO(arsen): this is a placeholder. */
+                new MonetaryAmount(BigDecimal.ZERO, CurrencyCode.RSD),
+                /* TODO(arsen): what is a recipient? why is there no javadoc? */
+                ((TxAccount.Account) receive.account()).num(),
+                "",
+                "",
+                tx.message(),
+                LocalDateTime.now(),
+                rs.banka4.bank_service.domain.transaction.db.TransactionStatus.IN_PROGRESS,
+                /* Always between people. */
+                false,
+                tx.transactionId()
+            )
+        );
     }
 
     public TransactionVote processNewTxMessage(Message.NewTx message) {
