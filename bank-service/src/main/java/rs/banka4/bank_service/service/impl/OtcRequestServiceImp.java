@@ -130,9 +130,10 @@ public class OtcRequestServiceImp implements OtcRequestService {
                 RequestStatus.ACTIVE,
                 stock
             );
-        otcRequestRepository.save(newOtc);
         if (madeFor.routingNumber() != ForeignBankId.OUR_ROUTING_NUMBER)
             interbankOtcService.sendCreateOtc(InterbankOtcMapper.INSTANCE.toOtcOffer(newOtc));
+        else
+            otcRequestRepository.save(newOtc);
     }
 
     @Override
