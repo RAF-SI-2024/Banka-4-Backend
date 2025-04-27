@@ -6,6 +6,7 @@ import static rs.banka4.bank_service.utils.AssetGenerator.STOCK_EX1_UUID;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import rs.banka4.bank_service.integration.generator.PortfolioGenerator;
 import rs.banka4.bank_service.integration.generator.UserGenerator;
 import rs.banka4.bank_service.integration.generator.UserTaxGenerator;
 import rs.banka4.bank_service.repositories.*;
+import rs.banka4.bank_service.service.abstraction.EmployeeService;
 import rs.banka4.bank_service.service.abstraction.ExchangeRateService;
 import rs.banka4.bank_service.service.impl.TaxServiceImp;
 import rs.banka4.bank_service.utils.AssetGenerator;
@@ -34,6 +36,7 @@ import rs.banka4.bank_service.utils.DataSourceService;
 import rs.banka4.bank_service.utils.ExchangeGenerator;
 import rs.banka4.bank_service.utils.ListingGenerator;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
+import rs.banka4.rafeisen.common.security.Privilege;
 import rs.banka4.testlib.integration.DbEnabledTest;
 import rs.banka4.testlib.utils.JwtPlaceholders;
 
@@ -67,6 +70,10 @@ public class TaxTests {
     private ExchangeRepository exchangeRepo;
     @Autowired
     private ListingDailyPriceInfoRepository listingHistoryRepo;
+    @Autowired
+    private OrderRepository orderRepository;
+    @Autowired
+    private EmployeeService employeeService;
 
     private Client createTestClient() {
         final var assetOwner =
@@ -826,6 +833,96 @@ public class TaxTests {
             debt.getDebtAmount()
                 .compareTo(BigDecimal.valueOf(147.90))
         );
+    }
+
+    @Test
+    @Transactional
+    void aasdasdaddasadsdadbt() {
+        Client client = portfolioGenerator.createTestClientDiffIf();
+        var acts = portfolioGenerator.createTestActuary();
+        var clients =
+            acts.stream()
+                .map(act -> {
+                    var u = userRepository.findById(act.getUserId());
+                    u.get()
+                        .setPrivileges(List.of(Privilege.AGENT));
+                    return userRepository.save(u.get());
+                })
+                .toList();
+        final var ber1 = ExchangeGenerator.makeBer1();
+        exchangeRepo.save(ber1);
+        AssetGenerator.makeExampleAssets()
+            .forEach(assetRepository::saveAndFlush);
+        var stock = securityRepository.findById(STOCK_EX1_UUID);
+        ListingGenerator.makeExampleListings(
+            stock.orElseThrow(),
+            ber1,
+            listingRepo,
+            listingHistoryRepo
+        );
+        var orderB =
+            portfolioGenerator.createDummyBuyOrder(
+                client,
+                stock.get(),
+                100,
+                BigDecimal.valueOf(40),
+                CurrencyCode.EUR
+            );
+        var orderS =
+            portfolioGenerator.createDummySellOrder(
+                client,
+                stock.get(),
+                200,
+                BigDecimal.valueOf(50),
+                CurrencyCode.EUR
+            );
+        orderS.setUser(clients.get(0));
+        orderB.setUser(clients.get(0));
+        orderRepository.saveAllAndFlush(List.of(orderB, orderS));
+        String jwtToken = "Bearer " + JwtPlaceholders.ADMIN_EMPLOYEE_TOKEN;
+        userGen.createEmployee(
+            e -> e.id(JwtPlaceholders.CLIENT_ID)
+                .email("bala@bla.com")
+                .username("bala")
+        );
+        String json = """
+            {
+              "content": [
+                {
+                  "profit": {
+                    "amount": 116747.94841735054008,
+                    "currency": "RSD"
+                  },
+                  "name": "John",
+                  "surname": "Doe",
+                  "position": "Developer"
+                },
+                {
+                  "profit": {
+                    "amount": 0,
+                    "currency": "RSD"
+                  },
+                  "name": "John",
+                  "surname": "Doe",
+                  "position": "Developer"
+                }
+              ],
+              "page": {
+                "size": 10,
+                "number": 0,
+                "totalElements": 2,
+                "totalPages": 1
+              }
+            }""";
+
+        mvc.get()
+            .uri("/stock/securities/bank/profit")
+            .header(HttpHeaders.AUTHORIZATION, jwtToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .assertThat()
+            .hasStatusOk()
+            .bodyJson()
+            .isLenientlyEqualTo(json);
     }
 
     @Test

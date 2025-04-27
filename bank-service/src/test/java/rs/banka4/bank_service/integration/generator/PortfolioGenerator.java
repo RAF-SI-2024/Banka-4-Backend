@@ -2,9 +2,11 @@ package rs.banka4.bank_service.integration.generator;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import rs.banka4.bank_service.domain.actuaries.db.ActuaryInfo;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.assets.db.AssetOwnership;
 import rs.banka4.bank_service.domain.assets.db.AssetOwnershipId;
@@ -18,6 +20,7 @@ import rs.banka4.bank_service.domain.user.User;
 import rs.banka4.bank_service.domain.user.client.db.Client;
 import rs.banka4.bank_service.generator.AccountObjectMother;
 import rs.banka4.bank_service.repositories.*;
+import rs.banka4.bank_service.utils.ActuaryGenerator;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.testlib.utils.JwtPlaceholders;
 
@@ -257,5 +260,18 @@ public class PortfolioGenerator {
                     .email("johndqoe@example.com")
             );
         return userRepository.save(assetOwner);
+    }
+
+    public Client createTestClientDiffIf() {
+        final var assetOwner =
+            userGen.createClient(
+                x -> x.id(UUID.randomUUID())
+                    .email("johndqoe@example.com")
+            );
+        return userRepository.save(assetOwner);
+    }
+
+    public List<ActuaryInfo> createTestActuary() {
+        return ActuaryGenerator.makeExampleActuaries(userGen);
     }
 }
