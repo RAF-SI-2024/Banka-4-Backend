@@ -352,7 +352,7 @@ public class OrderExecutionService {
             assetOwnershipService.changeAssetOwnership(
                 matchedOrder.getAsset(),
                 matchedOrder.getUser(),
-                -matchedOrder.getQuantity(),
+                -order.getQuantity(),
                 0,
                 0
             );
@@ -360,7 +360,7 @@ public class OrderExecutionService {
             assetOwnershipService.changeAssetOwnership(
                 order.getAsset(),
                 order.getUser(),
-                -order.getQuantity(),
+                -matchedOrder.getQuantity(),
                 0,
                 0
             );
