@@ -128,6 +128,13 @@ public class SecurityConfig {
                             AuthorityAuthorizationManager.hasAuthority("ADMIN")
                         )
                     )
+                    .requestMatchers(HttpMethod.GET, "/stock/stock/securities/bank/profit")
+                    .access(
+                        AuthorizationManagers.anyOf(
+                            AuthorityAuthorizationManager.hasAuthority("SUPERVISOR"),
+                            AuthorityAuthorizationManager.hasAuthority("ADMIN")
+                        )
+                    )
                     /* All inter-bank routes. */
                     .requestMatchers("/interbank/**")
                     .hasAuthority(InterbankAuthentication.OTHER_BANK_AUTHORITY)
