@@ -10,17 +10,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import rs.banka4.bank_service.domain.actuaries.db.ActuaryInfo;
+import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.orders.db.Direction;
 import rs.banka4.bank_service.domain.orders.db.Order;
 import rs.banka4.bank_service.domain.orders.db.Status;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.exceptions.ActuaryNotFoundException;
 import rs.banka4.bank_service.exceptions.InsufficientVolume;
+import rs.banka4.bank_service.exceptions.TradingLimitException;
+import rs.banka4.bank_service.repositories.ActuaryRepository;
 import rs.banka4.bank_service.repositories.OrderRepository;
 import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
 import rs.banka4.bank_service.service.abstraction.ListingService;
 import rs.banka4.bank_service.service.abstraction.TaxService;
 import rs.banka4.bank_service.tx.TxExecutor;
 import rs.banka4.bank_service.tx.data.*;
+import rs.banka4.rafeisen.common.security.Privilege;
 
 @Slf4j
 @Service
@@ -32,6 +38,7 @@ public class OrderExecutionService {
     private final TaxService taxService;
     private final TxExecutor txExecutor;
     private final AssetOwnershipService assetOwnershipService;
+    private final ActuaryRepository actuaryRepository;
 
     /**
      * Processes an order in an all-or-nothing manner. If a matching order is found, it executes the
@@ -61,6 +68,8 @@ public class OrderExecutionService {
             log.warn("[AON] No single matching order can fulfill order {}.", order.getId());
             return CompletableFuture.completedFuture(false);
         }
+
+        ensureUsedLimitExceeded(order);
 
         Order matchedOrder = match.get();
         matchedOrder.setRemainingPortions(
@@ -147,6 +156,8 @@ public class OrderExecutionService {
                 return CompletableFuture.completedFuture(false);
             }
             matchedOrder = match.get();
+
+            ensureUsedLimitExceeded(order);
 
             while (remainingPortions > 0) {
                 int portionsToExecute = Math.min(remainingPortions, chunk);
@@ -361,6 +372,58 @@ public class OrderExecutionService {
                 0
             );
         }
+    }
+
+    @Transactional
+    protected void ensureUsedLimitExceeded(Order order) {
+        if (order.getDirection() != Direction.BUY) return;
+        if (
+            !order.getUser()
+                .getPrivileges()
+                .contains(Privilege.AGENT)
+        ) return;
+
+        ActuaryInfo actuaryInfo =
+            actuaryRepository.findByUserId(
+                order.getUser()
+                    .getId()
+            )
+                .orElseThrow(
+                    () -> new ActuaryNotFoundException(
+                        order.getUser()
+                            .getId()
+                    )
+                );
+
+        BigDecimal cost =
+            order.getPricePerUnit()
+                .getAmount()
+                .multiply(BigDecimal.valueOf(order.getQuantity()));
+
+        if (
+            actuaryInfo.getUsedLimit()
+                .getAmount()
+                .add(cost)
+                .compareTo(
+                    actuaryInfo.getLimit()
+                        .getAmount()
+                )
+                > 0
+        ) {
+            throw new TradingLimitException();
+        }
+
+        actuaryInfo.setUsedLimit(
+            new MonetaryAmount(
+                actuaryInfo.getUsedLimit()
+                    .getAmount()
+                    .add(cost),
+                actuaryInfo.getUsedLimit()
+                    .getCurrency()
+            )
+        );
+
+        actuaryRepository.save(actuaryInfo);
     }
 
     /**
