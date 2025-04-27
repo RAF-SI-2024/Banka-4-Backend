@@ -1011,7 +1011,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     new OutboxMessageId(message.idempotenceKey(), dest),
                     messageAsString,
                     false,
-                    Instant.MIN
+                    Instant.now()
+                        .minusSeconds(1)
                 )
             );
         }
@@ -1184,9 +1185,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         synchronized (messageSendKey) {
             final List<Pair<OutboxMessageId, String>> toResend;
             synchronized (transactionKey) {
-                final var lastSendInstant =
-                    Instant.now()
-                        .minus(interbankConfig.getResendDuration());
+                final var now = Instant.now();
+                final var lastSendInstant = now.minus(interbankConfig.getResendDuration());
                 toResend =
                     txTemplate.execute(
                         new TransactionCallback<List<Pair<OutboxMessageId, String>>>() {
@@ -1195,7 +1195,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                                 TransactionStatus status
                             ) {
                                 final var messages = outboxRepo.findAllSentBefore(lastSendInstant);
-                                messages.forEach(m -> m.setLastSendTime(lastSendInstant));
+                                messages.forEach(m -> m.setLastSendTime(now));
                                 outboxRepo.saveAll(messages);
                                 return messages.stream()
                                     .map(m -> Pair.of(m.getMessageKey(), m.getMessageBody()))
