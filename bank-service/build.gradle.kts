@@ -50,6 +50,9 @@ dependencies {
 	implementation("com.squareup.retrofit2:retrofit:2.11.0")
 	implementation("com.squareup.retrofit2:converter-jackson:2.11.0")
 
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation("io.lettuce:lettuce-core:6.5.5.RELEASE")
+
 	val hibernateVer = dependencyManagement.importedProperties["hibernate.version"]
 	annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVer}")
 
