@@ -1450,13 +1450,16 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 final var tx = preprocessDoubleEntryTx(message.message());
                 recordTx(tx, 2);
                 executeLocalPhase1(tx);
+                recordHeuristicIncomingTransaction(tx);
                 return new TransactionVote.Yes();
             });
         } catch (TxLocalPartVotedNo reason) {
             return doIdempotentMessageHandling(message, TransactionVote.class, m -> {
-                final var ectx = recordTx(message.message(), 2);
+                final var tx = message.message();
+                final var ectx = recordTx(tx, 2);
                 ectx.setVotesAreYes(false);
                 execTxRepo.save(ectx);
+                recordHeuristicIncomingTransaction(tx);
                 return new TransactionVote.No(reason.getReasons());
             });
         }
