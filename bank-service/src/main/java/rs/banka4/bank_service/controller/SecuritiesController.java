@@ -11,10 +11,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import rs.banka4.bank_service.controller.docs.SecuritiesApiDocumentation;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.actuaries.db.dto.ActuaryProfitDto;
 import rs.banka4.bank_service.domain.security.SecurityDto;
 import rs.banka4.bank_service.domain.security.responses.SecurityHoldingDto;
 import rs.banka4.bank_service.domain.taxes.db.dto.UserTaxInfoDto;
-import rs.banka4.bank_service.service.abstraction.SecuritiesService;
+import rs.banka4.bank_service.service.abstraction.*;
 import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
 
 @RestController
@@ -23,6 +24,9 @@ import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
 public class SecuritiesController implements SecuritiesApiDocumentation {
 
     private final SecuritiesService securityService;
+    private final EmployeeService employeeService;
+    private final ProfitCalculationService profitCalculationService;
+
 
     @Override
     @GetMapping
@@ -57,6 +61,35 @@ public class SecuritiesController implements SecuritiesApiDocumentation {
                 .userId();
         var amount = securityService.calculateTotalProfit(myId);
         return ResponseEntity.ok(amount);
+    }
+
+    @GetMapping("/bank/profit")
+    public ResponseEntity<Page<ActuaryProfitDto>> getBankProfit(
+        @RequestParam(required = false) String firstName,
+        @RequestParam(required = false) String lastName,
+        @RequestParam(required = false) String position,
+        @RequestParam(required = false) String email,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+
+        var actuaries =
+            employeeService.getAllActuaries(
+                firstName,
+                lastName,
+                email,
+                position,
+                PageRequest.of(page, size)
+            );
+        return ResponseEntity.ok(actuaries.map((actuary) -> {
+            var profit = profitCalculationService.calculateRealizedProfitForActuary(actuary);
+            return new ActuaryProfitDto(
+                profit,
+                actuary.getFirstName(),
+                actuary.getLastName(),
+                actuary.getPosition()
+            );
+        }));
     }
 
     @GetMapping("/tax")
