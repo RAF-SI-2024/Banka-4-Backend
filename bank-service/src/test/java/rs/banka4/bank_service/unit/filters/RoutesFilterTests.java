@@ -16,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
 import rs.banka4.bank_service.config.filters.InvalidRouteFilter;
@@ -53,6 +54,12 @@ public class RoutesFilterTests {
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
         filterChain = new MockFilterChain();
+
+        /* @formatter:off
+           I HATE GLOBAL STTATE
+              -- Arsen, and you should too.
+           @formatter:on */
+        SecurityContextHolder.clearContext();
     }
 
     @Disabled
@@ -119,7 +126,6 @@ public class RoutesFilterTests {
         });
     }
 
-    @Disabled
     @Test
     public void testValidRouteWithInvalidJwt() throws Exception {
         // Arrange
