@@ -19,10 +19,13 @@ import rs.banka4.bank_service.domain.orders.db.Order;
 import rs.banka4.bank_service.domain.security.forex.db.ForexPair;
 import rs.banka4.bank_service.domain.security.future.db.Future;
 import rs.banka4.bank_service.domain.security.stock.db.Stock;
+import rs.banka4.bank_service.domain.user.employee.db.Employee;
 import rs.banka4.bank_service.exceptions.AssetNotFound;
 import rs.banka4.bank_service.repositories.ListingRepository;
 import rs.banka4.bank_service.repositories.OrderRepository;
+import rs.banka4.bank_service.service.abstraction.ExchangeRateService;
 import rs.banka4.bank_service.service.abstraction.ProfitCalculationService;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 
 /**
  * A unified calculator that, for any asset type (Stock, Future, ForexPair, Option), determines
@@ -33,6 +36,7 @@ import rs.banka4.bank_service.service.abstraction.ProfitCalculationService;
 public class ProfitCalculationServiceImpl implements ProfitCalculationService {
     private final OrderRepository orderRepository;
     private final ListingRepository listingRepository;
+    private final ExchangeRateService exchangeRateService;
 
     /**
      * Calculates total profit (unrealized) for the given user and asset.
@@ -216,6 +220,38 @@ public class ProfitCalculationServiceImpl implements ProfitCalculationService {
             sellOrder.getPricePerUnit()
                 .getCurrency()
         );
+    }
+
+    @Override
+    public MonetaryAmount calculateRealizedProfitForActuary(Employee actuary) {
+        var sellOrders =
+            orderRepository.findByUserIdAndDirectionAndIsDone(actuary.id, Direction.SELL, true);
+        sellOrders.addAll(
+            orderRepository.findByUserIdAndDirectionAndIsDone(actuary.id, Direction.SELL, false)
+                .stream()
+                .peek(o -> o.setQuantity(o.getQuantity() - o.getRemainingPortions()))
+                .toList()
+        );
+        var profit =
+            sellOrders.stream()
+                .map(sell -> {
+                    var p = calculateRealizedProfitForSell(sell);
+                    var pAmount = p.getAmount();
+                    if (
+                        !p.getCurrency()
+                            .equals(CurrencyCode.RSD)
+                    ) {
+                        pAmount =
+                            exchangeRateService.convertCurrency(
+                                p.getAmount(),
+                                p.getCurrency(),
+                                CurrencyCode.RSD
+                            );
+                    }
+                    return pAmount;
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return new MonetaryAmount(profit, CurrencyCode.RSD);
     }
 
     /**
