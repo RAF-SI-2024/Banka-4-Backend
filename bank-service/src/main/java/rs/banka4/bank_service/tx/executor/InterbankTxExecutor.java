@@ -1035,7 +1035,10 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     messageAsString,
                     false,
                     Instant.now()
-                        .minusSeconds(1)
+                        .minus(
+                            interbankConfig.getResendDuration()
+                                .multipliedBy(2)
+                        )
                 )
             );
         }
