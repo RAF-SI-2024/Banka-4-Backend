@@ -887,10 +887,10 @@ public class TransactionServiceImpl implements TransactionService {
         String message;
         if (createTransactionDto instanceof CreatePaymentDto) {
             fromAmount = ((CreatePaymentDto) createTransactionDto).fromAmount();
-            message = "Payment transaction";
+            message = ((CreatePaymentDto) createTransactionDto).paymentPurpose();
         } else {
             fromAmount = ((CreateTransferDto) createTransactionDto).fromAmount();
-            message = "Transfer transaction";
+            message = "Internal transfer";
         }
 
         Posting posting =
