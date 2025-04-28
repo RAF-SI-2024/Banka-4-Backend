@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authorization.AuthorityAuthorizationManager;
@@ -16,7 +17,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import rs.banka4.bank_service.config.filters.*;
 import rs.banka4.bank_service.security.InterbankAuthentication;
@@ -37,7 +37,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
 
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
-            .cors((cors) -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(
                 auth -> auth.requestMatchers(WhiteListConfig.WHITE_LIST_URL)
                     .permitAll()
@@ -154,7 +153,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    @Profile("dev")
+    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
         configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
