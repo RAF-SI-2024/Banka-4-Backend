@@ -32,4 +32,7 @@ public interface AssetOwnershipService {
             reservedAmount
         );
     }
+
+    /** Removes an asset {@code assetId} from all owners. */
+    void clearOwnership(UUID assetId);
 }
