@@ -7,41 +7,41 @@ import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.tx.data.*;
 
 public interface InterbankService {
-    @GET("/public-stock")
+    @GET("public-stock")
     Call<List<PublicStock>> getPublicStocks();
 
-    @POST("/negotiations")
+    @POST("negotiations")
     Call<ForeignBankId> sendCreateOtc(@Body OtcOffer offer);
 
-    @PUT("/negotiations/{routingNumber}/{id}")
+    @PUT("negotiations/{routingNumber}/{id}")
     Call<ForeignBankId> sendUpdateOtc(
         @Body OtcOffer offer,
         @Path("routingNumber") long routingNumber,
         @Path("id") String id
     );
 
-    @GET("/negotiations/{routingNumber}/{id}")
+    @GET("negotiations/{routingNumber}/{id}")
     Call<OtcNegotiation> sendGetOtcNegotiation(
         @Path("routingNumber") long routingNumber,
         @Path("id") String id
     );
 
-    @POST("/interbank")
+    @POST("interbank")
     Call<TransactionVote> sendNewTx(@Body Message.NewTx newTx);
 
-    @POST("/interbank")
+    @POST("interbank")
     Call<Void> sendCommit(@Body Message.CommitTx commitTx);
 
-    @POST("/interbank")
+    @POST("interbank")
     Call<Void> sendRollback(@Body Message.RollbackTx rollbackTx);
 
-    @DELETE("/negotiations/{routingNumber}/{id}")
+    @DELETE("negotiations/{routingNumber}/{id}")
     Call<Void> closeNegotiation(@Path("routingNumber") long routingNumber, @Path("id") String id);
 
-    @GET("/negotiations/{routingNumber}/{id}/accept")
+    @GET("negotiations/{routingNumber}/{id}/accept")
     Call<Void> acceptNegotiation(@Path("routingNumber") long routingNumber, @Path("id") String id);
 
-    @GET("/user/{routingNumber}/{id}")
+    @GET("user/{routingNumber}/{id}")
     Call<UserInformation> getUserInfo(
         @Path("routingNumber") long routingNumber,
         @Path("id") String id
