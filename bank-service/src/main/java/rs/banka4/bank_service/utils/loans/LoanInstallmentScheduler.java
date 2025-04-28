@@ -202,7 +202,8 @@ public class LoanInstallmentScheduler {
 
             transactionService.createBankTransferTransaction(
                 account,
-                bankAccount,
+                bankAccount.getAccountNumber(),
+                bankAccount.getCurrency(),
                 installmentAmount,
                 "Loan installment payment"
             );
