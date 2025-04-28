@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+import rs.banka4.bank_service.domain.account.db.Account;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.options.db.Option;
 import rs.banka4.bank_service.domain.options.db.OptionType;
@@ -56,6 +57,8 @@ import rs.banka4.bank_service.repositories.TransactionRepository;
 import rs.banka4.bank_service.repositories.UserRepository;
 import rs.banka4.bank_service.service.abstraction.AccountService;
 import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
+import rs.banka4.bank_service.service.abstraction.BankAccountService;
+import rs.banka4.bank_service.service.abstraction.ExchangeRateService;
 import rs.banka4.bank_service.tx.TxExecutor;
 import rs.banka4.bank_service.tx.TxUtils;
 import rs.banka4.bank_service.tx.config.InterbankConfig;
@@ -107,6 +110,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final OtcRequestRepository otcRequestRepo;
     private final AssetOwnershipService assetOwnershipService;
     private final TransactionRepository userFacingTxRepo;
+    private final BankAccountService bankAccountService;
+    private final ExchangeRateService exchangeRateService;
 
     /* Synchronization key for transaction execution. */
     private final Object transactionKey = new Object();
@@ -128,7 +133,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         OtcRequestRepository otcRequestRepository,
         AssetOwnershipService assetOwnershipService,
         AccountService accountService,
-        TransactionRepository userFacingTxRepo
+        TransactionRepository userFacingTxRepo,
+        BankAccountService bankAccountService,
+        ExchangeRateService exchangeRateService
     ) {
         this.interbankConfig = config;
         this.txTemplate = new TransactionTemplate(transactionManager);
@@ -150,6 +157,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.otcRequestRepo = otcRequestRepository;
         this.assetOwnershipService = assetOwnershipService;
         this.userFacingTxRepo = userFacingTxRepo;
+        this.bankAccountService = bankAccountService;
+        this.exchangeRateService = exchangeRateService;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -1501,4 +1510,234 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
             }
         });
     }
+
+    public List<Posting> ensurePostingCurrency(
+        Posting posting,
+        CurrencyCode targetCurrencyCode,
+        TxAccount.Account targetAccount
+    ) {
+        if (posting.asset() instanceof TxAsset.Monas(MonetaryAsset asset)) {
+            if (asset.currency() != CurrencyCode.RSD && targetCurrencyCode != CurrencyCode.RSD) {
+                return handleForeignToForeignTx(posting, targetCurrencyCode, targetAccount);
+            } else {
+                return handleForeignAndRsdTx(posting, targetCurrencyCode, targetAccount);
+            }
+        }
+
+        // TODO: myb exception?
+        return new ArrayList<>();
+    }
+
+    private List<Posting> handleForeignToForeignTx(
+        Posting posting,
+        CurrencyCode targetCurrencyCode,
+        TxAccount.Account targetAccount
+    ) {
+        List<Posting> postings = new ArrayList<>();
+
+        if (posting.asset() instanceof TxAsset.Monas(MonetaryAsset asset)) {
+            Account bankAccountFrom =
+                bankAccountService.getBankAccountForCurrency(asset.currency());
+            Account bankAccountTo =
+                bankAccountService.getBankAccountForCurrency(targetCurrencyCode);
+            Account bankAccountRsd = bankAccountService.getBankAccountForCurrency(CurrencyCode.RSD);
+
+            postings.addAll(createFeePostings(posting, bankAccountFrom));
+
+            Posting removeFromClient =
+                new Posting(
+                    posting.account(),
+                    posting.amount()
+                        .negate(),
+                    posting.asset()
+                );
+
+            Posting addToBankAccountFrom =
+                new Posting(
+                    new TxAccount.Account(bankAccountFrom.getAccountNumber()),
+                    posting.amount(),
+                    posting.asset()
+                );
+
+            BigDecimal convertedAmountToRsd =
+                exchangeRateService.convertCurrency(
+                    addToBankAccountFrom.amount(),
+                    asset.currency(),
+                    CurrencyCode.RSD
+                );
+
+            Posting removeFromBankAccountFrom =
+                new Posting(
+                    new TxAccount.Account(bankAccountFrom.getAccountNumber()),
+                    posting.amount()
+                        .negate(),
+                    new TxAsset.Monas(asset.currency())
+                );
+
+            Posting addToBankAccountRsd =
+                new Posting(
+                    new TxAccount.Account(bankAccountRsd.getAccountNumber()),
+                    convertedAmountToRsd,
+                    new TxAsset.Monas(CurrencyCode.RSD)
+                );
+
+            BigDecimal convertedAmountToSpecificForeignCurrency =
+                exchangeRateService.convertCurrency(
+                    addToBankAccountFrom.amount(),
+                    CurrencyCode.RSD,
+                    targetCurrencyCode
+                );
+
+            Posting removeFromBankAccountRsd =
+                new Posting(
+                    new TxAccount.Account(bankAccountRsd.getAccountNumber()),
+                    convertedAmountToRsd.negate(),
+                    new TxAsset.Monas(asset.currency())
+                );
+
+            Posting addToBankAccountTo =
+                new Posting(
+                    new TxAccount.Account(bankAccountTo.getAccountNumber()),
+                    convertedAmountToSpecificForeignCurrency,
+                    new TxAsset.Monas(targetCurrencyCode)
+                );
+
+            Posting removeFromBankTo =
+                new Posting(
+                    new TxAccount.Account(bankAccountTo.getAccountNumber()),
+                    convertedAmountToSpecificForeignCurrency.negate(),
+                    new TxAsset.Monas(targetCurrencyCode)
+                );
+
+            Posting addToTargetClient =
+                new Posting(
+                    new TxAccount.Account(targetAccount.num()),
+                    convertedAmountToSpecificForeignCurrency,
+                    new TxAsset.Monas(targetCurrencyCode)
+                );
+
+            postings.addAll(
+                List.of(
+                    addToBankAccountFrom,
+                    addToBankAccountRsd,
+                    addToBankAccountTo,
+                    addToTargetClient
+                )
+            );
+            postings.addAll(
+                List.of(
+                    removeFromClient,
+                    removeFromBankAccountFrom,
+                    removeFromBankAccountRsd,
+                    removeFromBankTo
+                )
+            );
+        }
+
+        return postings;
+    }
+
+    private List<Posting> handleForeignAndRsdTx(
+        Posting posting,
+        CurrencyCode targetCurrency,
+        TxAccount.Account targetAccount
+    ) {
+
+        List<Posting> postings = new ArrayList<>();
+
+        if (posting.asset() instanceof TxAsset.Monas(MonetaryAsset asset)) {
+            Account bankAccountFrom =
+                bankAccountService.getBankAccountForCurrency(asset.currency());
+            Account bankAccountTo = bankAccountService.getBankAccountForCurrency(targetCurrency);
+
+            postings.addAll(createFeePostings(posting, bankAccountFrom));
+
+            Posting removeFromClient =
+                new Posting(
+                    posting.account(),
+                    posting.amount()
+                        .negate(),
+                    posting.asset()
+                );
+
+            Posting addToBankAccountFrom =
+                new Posting(
+                    new TxAccount.Account(bankAccountFrom.getAccountNumber()),
+                    posting.amount(),
+                    posting.asset()
+                );
+
+            BigDecimal convertedAmount =
+                exchangeRateService.convertCurrency(
+                    posting.amount(),
+                    asset.currency(),
+                    targetCurrency
+                );
+
+            Posting removeFromBankAccountFrom =
+                new Posting(
+                    new TxAccount.Account(bankAccountFrom.getAccountNumber()),
+                    posting.amount()
+                        .negate(),
+                    new TxAsset.Monas(asset.currency())
+                );
+
+            Posting addToBankAccountTo =
+                new Posting(
+                    new TxAccount.Account(bankAccountTo.getAccountNumber()),
+                    convertedAmount,
+                    new TxAsset.Monas(targetCurrency)
+                );
+
+            Posting removeFromBankTo =
+                new Posting(
+                    new TxAccount.Account(bankAccountTo.getAccountNumber()),
+                    convertedAmount.negate(),
+                    new TxAsset.Monas(targetCurrency)
+                );
+
+            Posting addToTargetClient =
+                new Posting(
+                    new TxAccount.Account(targetAccount.num()),
+                    convertedAmount,
+                    new TxAsset.Monas(targetCurrency)
+                );
+
+            postings.addAll(List.of(addToBankAccountFrom, addToBankAccountTo, addToTargetClient));
+            postings.addAll(List.of(removeFromClient, removeFromBankAccountFrom, removeFromBankTo));
+        }
+
+        return postings;
+    }
+
+    /**
+     * Creates a list of postings to represent the fee charged for a transaction.
+     * <p>
+     * This method generates two postings:
+     * <ul>
+     * <li>A posting that debits the fee amount from the client's account.</li>
+     * <li>A posting that credits the fee amount to the bank's account.</li>
+     * </ul>
+     *
+     * @param posting The original transaction posting.
+     * @param bankAccountFrom The bank account.
+     * @return A list of postings representing the fee transaction.
+     */
+    private List<Posting> createFeePostings(Posting posting, Account bankAccountFrom) {
+        BigDecimal fee =
+            exchangeRateService.calculateFee(posting.amount())
+                .multiply(BigDecimal.TWO);
+
+        Posting feePostingClient = new Posting(posting.account(), fee.negate(), posting.asset());
+
+        Posting feePostingBank =
+            new Posting(
+                new TxAccount.Account(bankAccountFrom.getAccountNumber()),
+                fee,
+                posting.asset()
+            );
+
+        return List.of(feePostingClient, feePostingBank);
+    }
+
 }
