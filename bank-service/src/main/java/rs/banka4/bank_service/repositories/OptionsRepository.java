@@ -54,6 +54,9 @@ public interface OptionsRepository extends JpaRepository<Option, UUID> {
     void deactivateAll();
 
     @Query("SELECT o FROM options o WHERE o.foreignId = :id")
+    Optional<Option> findByFBId(ForeignBankId id);
+
+    @Query("SELECT o FROM options o WHERE o.foreignId = :id")
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Option> findAndLockByFBId(ForeignBankId id);
 }

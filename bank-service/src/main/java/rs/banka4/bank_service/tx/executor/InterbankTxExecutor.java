@@ -5,8 +5,6 @@ import static rs.banka4.bank_service.tx.TxUtils.isTxBalanced;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -102,7 +100,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     private final OutboxRepository outboxRepo;
     private final ExecutingTransactionRepository execTxRepo;
     private final TaskScheduler taskScheduler;
-    private final EntityManager entityManager;
     private final InterbankRetrofitProvider interbanks;
     private final InboxRepository inboxRepo;
     private final UserRepository userRepo;
@@ -125,7 +122,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         OutboxRepository outboxRepo,
         ExecutingTransactionRepository execTxRepo,
         TaskScheduler taskScheduler,
-        EntityManager entityManager,
         InterbankRetrofitProvider interbanks,
         InboxRepository inboxRepo,
         UserRepository userRepo,
@@ -149,7 +145,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         this.outboxRepo = outboxRepo;
         this.execTxRepo = execTxRepo;
         this.taskScheduler = taskScheduler;
-        this.entityManager = entityManager;
         this.interbanks = interbanks;
         this.inboxRepo = inboxRepo;
         this.userRepo = userRepo;
@@ -466,9 +461,9 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
 
     /* ==== Option execution. Used when an option gets used. ==== */
     private Optional<Pair<OtcRequest, Option>> resolveOptionPseudo(ForeignBankId foreignOptionId) {
-        return optionsRepo.findAndLockByFBId(foreignOptionId)
+        return optionsRepo.findByFBId(foreignOptionId)
             .flatMap(
-                o -> otcRequestRepo.findAndLockByOptionId(o.getId())
+                o -> otcRequestRepo.findByOptionId(o.getId())
                     .map(r -> Pair.of(r, o))
             );
     }
@@ -707,8 +702,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                         continue;
                     }
                     final var acc = accMby.get();
-                    entityManager.lock(acc, LockModeType.PESSIMISTIC_WRITE);
-                    entityManager.refresh(acc);
 
                     if (
                         /* Monetary assets are the only kind depositable to accounts. */
@@ -829,8 +822,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 final var acc =
                     accountRepo.findAccountByAccountNumber(accNumber)
                         .orElseThrow(() -> new IllegalStateException("Invalid tx?"));
-                entityManager.lock(acc, LockModeType.PESSIMISTIC_WRITE);
-                entityManager.refresh(acc);
 
                 acc.setAvailableBalance(
                     acc.getAvailableBalance()
@@ -924,8 +915,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 final var acc =
                     accountRepo.findAccountByAccountNumber(accNumber)
                         .orElseThrow(() -> new IllegalStateException("Invalid tx?"));
-                entityManager.lock(acc, LockModeType.PESSIMISTIC_WRITE);
-                entityManager.refresh(acc);
 
                 /* @formatter:off
                  * Note [Phase-by-phase balance changes]
@@ -1285,7 +1274,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     @Transactional(propagation = Propagation.MANDATORY)
     protected void processVote(DoubleEntryTransaction tx, TransactionVote txVote) {
         final var ongoingTx =
-            execTxRepo.findAndLockTx(tx.transactionId())
+            execTxRepo.findById(tx.transactionId())
                 .orElseThrow(() -> new IllegalStateException("tx we sent vanished?"));
 
         ongoingTx.setVotesCast(ongoingTx.getVotesCast() + 1);
@@ -1350,7 +1339,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 @Override
                 @SneakyThrows
                 public T doInTransaction(TransactionStatus status) {
-                    final var prevMsg = inboxRepo.findAndLock(idemKey);
+                    final var prevMsg = inboxRepo.findById(idemKey);
                     if (prevMsg.isPresent()) {
                         /* Previously-handled message. */
                         final var oldResp =
