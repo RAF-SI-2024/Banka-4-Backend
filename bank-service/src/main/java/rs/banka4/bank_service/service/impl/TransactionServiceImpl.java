@@ -437,7 +437,7 @@ public class TransactionServiceImpl implements TransactionService {
         // Charge the fee
         transferAmount(fromAccount, rsdBankAccount, fee);
 
-        createFeeTransaction(fromAccount, rsdBankAccount, fee);
+        // createFeeTransaction(fromAccount, rsdBankAccount, fee);
 
         // Decrease the bank account in foreign currency for the full amount that the user receives
         Account foreignBankAccount =
@@ -522,7 +522,7 @@ public class TransactionServiceImpl implements TransactionService {
         // Charge the fee
         transferAmount(fromAccount, foreignBankAccount, fee);
 
-        createFeeTransaction(fromAccount, foreignBankAccount, fee);
+        // createFeeTransaction(fromAccount, foreignBankAccount, fee);
 
         // Transaction for conversion
         createConversionTransaction(foreignBankAccount, rsdBankAccount, convertedAmount);
@@ -594,7 +594,7 @@ public class TransactionServiceImpl implements TransactionService {
         // Fee
         transferAmount(fromAccount, foreignBankAccount, fee);
 
-        createFeeTransaction(fromAccount, foreignBankAccount, fee);
+        // createFeeTransaction(fromAccount, foreignBankAccount, fee);
 
         BigDecimal amountInForeignTo =
             exchangeRateService.convertCurrency(
@@ -705,7 +705,12 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-    private void createFeeTransaction(Account fromAccount, Account toAccount, BigDecimal fee) {
+    private void createFeeTransaction(
+        Account fromAccount,
+        Account toAccount,
+        BigDecimal fee,
+        ForeignBankId id
+    ) {
         BigDecimal toAmount =
             convertCurrency(fee, fromAccount.getCurrency(), toAccount.getCurrency());
 
@@ -721,6 +726,7 @@ public class TransactionServiceImpl implements TransactionService {
                 "FEE-" + UUID.randomUUID(),
                 "Transaction Fee"
             );
+        feeTransaction.setExecutingTransaction(id);
         transactionRepository.save(feeTransaction);
     }
 
@@ -815,6 +821,11 @@ public class TransactionServiceImpl implements TransactionService {
     ) {
         if (fromCurrency.equals(toCurrency)) {
             return amount;
+        }
+        if (!fromCurrency.equals(CurrencyCode.RSD) && !toCurrency.equals(CurrencyCode.RSD)) {
+            BigDecimal toRsd =
+                exchangeRateService.convertCurrency(amount, fromCurrency, CurrencyCode.RSD);
+            return exchangeRateService.convertCurrency(toRsd, CurrencyCode.RSD, toCurrency);
         }
         return exchangeRateService.convertCurrency(amount, fromCurrency, toCurrency);
     }
@@ -937,7 +948,80 @@ public class TransactionServiceImpl implements TransactionService {
         tx.setExecutingTransaction(id);
         transactionRepository.save(tx);
 
+        createSpecialTransactions(fromAccount, toAccount, fromAmount, fee, id);
+
         return tx;
+    }
+
+    private void createSpecialTransactions(
+        Account fromAccount,
+        Account toAccount,
+        BigDecimal amount,
+        BigDecimal fee,
+        ForeignBankId id
+    ) {
+        if (
+            fromAccount.getCurrency()
+                .equals(toAccount.getCurrency())
+        ) return;
+
+        Account fromBankAccount =
+            bankAccountServiceImpl.getBankAccountForCurrency(fromAccount.getCurrency());
+        Account toBankAccount =
+            bankAccountServiceImpl.getBankAccountForCurrency(toAccount.getCurrency());
+        createFeeTransaction(fromAccount, fromBankAccount, fee, id);
+
+        BigDecimal convertedAmount;
+
+        if (
+            fromAccount.getCurrency() != CurrencyCode.RSD
+                && toAccount.getCurrency() != CurrencyCode.RSD
+        ) {
+            BigDecimal convertedToRsd =
+                exchangeRateService.convertCurrency(
+                    amount,
+                    fromAccount.getCurrency(),
+                    CurrencyCode.RSD
+                );
+            convertedAmount =
+                exchangeRateService.convertCurrency(
+                    convertedToRsd,
+                    CurrencyCode.RSD,
+                    toAccount.getCurrency()
+                );
+        } else {
+            convertedAmount =
+                exchangeRateService.convertCurrency(
+                    amount,
+                    fromAccount.getCurrency(),
+                    toAccount.getCurrency()
+                );
+        }
+        createBankTransfer(fromAccount, fromBankAccount, amount, "Bank transfer", id);
+        createBankTransfer(toBankAccount, toAccount, convertedAmount, "Bank transfer", id);
+    }
+
+    public void createBankTransfer(
+        Account fromAccount,
+        Account toAccount,
+        BigDecimal amount,
+        String purpose,
+        ForeignBankId id
+    ) {
+        Transaction transaction =
+            buildSpecialTransaction(
+                fromAccount,
+                toAccount,
+                amount,
+                amount,
+                BigDecimal.ZERO,
+                "Bank Transfer",
+                "290",
+                "T-" + UUID.randomUUID(),
+                purpose
+            );
+        transaction.setExecutingTransaction(id);
+        transactionRepository.save(transaction);
     }
 
 }
