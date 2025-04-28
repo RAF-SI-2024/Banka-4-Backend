@@ -55,6 +55,7 @@ public class OrderServiceImpl implements OrderService {
     private final ExchangeRateService exchangeRateService;
     private final BankAccountService bankAccountService;
     private final TxExecutor txExecutor;
+    private final TransactionService transactionService;
 
     @Override
     public OrderDto createOrder(
@@ -121,13 +122,49 @@ public class OrderServiceImpl implements OrderService {
             userRepository.findById(userId)
                 .get();
 
+        Account account = accountService.getAccountByAccountNumber(dto.accountNumber());
+
+        BigDecimal convertedPrice;
+        if (
+            !exchange.getCurrency()
+                .equals(CurrencyCode.RSD)
+                && !account.getCurrency()
+                    .equals(CurrencyCode.RSD)
+        ) {
+            BigDecimal convertedRsd =
+                exchangeRateService.convertCurrency(
+                    pricePerUnit,
+                    exchange.getCurrency(),
+                    CurrencyCode.RSD
+                );
+            convertedPrice =
+                exchangeRateService.convertCurrency(
+                    convertedRsd,
+                    CurrencyCode.RSD,
+                    account.getCurrency()
+                );
+        } else
+            if (
+                exchange.getCurrency()
+                    .equals(account.getCurrency())
+            ) {
+                convertedPrice = pricePerUnit;
+            } else {
+                convertedPrice =
+                    exchangeRateService.convertCurrency(
+                        pricePerUnit,
+                        exchange.getCurrency(),
+                        account.getCurrency()
+                    );
+            }
+
         Order order = OrderMapper.INSTANCE.toEntity(dto);
         order.setUser(user);
         order.setAsset(asset);
         order.setOrderType(orderType);
         order.setQuantity(dto.quantity());
         order.setContractSize(getContractSize(asset));
-        order.setPricePerUnit(new MonetaryAmount(pricePerUnit, exchange.getCurrency()));
+        order.setPricePerUnit(new MonetaryAmount(convertedPrice, account.getCurrency()));
         order.setStatus(status);
         order.setApprovedBy(null);
         order.setDone(false);
@@ -135,7 +172,7 @@ public class OrderServiceImpl implements OrderService {
         order.setAllOrNothing(dto.allOrNothing());
         order.setAfterHours(afterHours);
         order.setUsed(false);
-        order.setAccount(accountService.getAccountByAccountNumber(dto.accountNumber()));
+        order.setAccount(account);
 
         Order savedOrder = orderRepository.saveAndFlush(order);
         return OrderMapper.INSTANCE.toDto(savedOrder);
@@ -731,7 +768,19 @@ public class OrderServiceImpl implements OrderService {
                 ForeignBankId.our(UUID.randomUUID())
             );
 
-        txExecutor.submitImmediateTx(transaction);
+        try {
+            ForeignBankId id = txExecutor.submitImmediateTx(transaction);
+            transactionService.createFeeTransaction(
+                order.getAccount(),
+                bankAccount.getAccountNumber(),
+                order.getAccount()
+                    .getCurrency(),
+                commission,
+                id
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to submit transaction", e);
+        }
     }
 
 }

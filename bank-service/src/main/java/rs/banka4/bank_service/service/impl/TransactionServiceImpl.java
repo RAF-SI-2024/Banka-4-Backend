@@ -402,7 +402,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-    private void createFeeTransaction(
+    @Override
+    public void createFeeTransaction(
         Account fromAccount,
         String toAccountNumber,
         CurrencyCode toCurrency,
@@ -713,6 +714,43 @@ public class TransactionServiceImpl implements TransactionService {
             );
         transaction.setExecutingTransaction(id);
         transactionRepository.save(transaction);
+    }
+
+    @Override
+    @Transactional
+    public void createOrderTransaction(
+        CreatePaymentDto createPaymentDto,
+        CurrencyCode toCurrency,
+        ForeignBankId id
+    ) {
+        Account fromAccount =
+            accountRepository.findAccountByAccountNumber(createPaymentDto.fromAccount())
+                .orElseThrow(AccountNotFound::new);
+
+        BigDecimal fee = exchangeRateService.calculateFee(createPaymentDto.fromAmount());
+
+        Transaction tx =
+            buildTransaction(
+                fromAccount,
+                createPaymentDto.toAccount(),
+                toCurrency,
+                createPaymentDto,
+                fee,
+                TransactionStatus.IN_PROGRESS
+            );
+
+        tx.setExecutingTransaction(id);
+        transactionRepository.save(tx);
+
+        createSpecialTransactions(
+            fromAccount,
+            createPaymentDto.toAccount(),
+            toCurrency,
+            createPaymentDto.fromAmount(),
+            fee,
+            id
+        );
+
     }
 
 }
