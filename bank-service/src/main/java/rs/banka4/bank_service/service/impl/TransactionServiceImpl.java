@@ -1,7 +1,5 @@
 package rs.banka4.bank_service.service.impl;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -59,7 +57,6 @@ public class TransactionServiceImpl implements TransactionService {
     private final ExchangeRateService exchangeRateService;
     private final BankAccountServiceImpl bankAccountServiceImpl;
     private final JwtService jwtService;
-    private final EntityManager entityManager;
     private final InterbankTxExecutor txExecutor;
 
     @Override
@@ -74,11 +71,12 @@ public class TransactionServiceImpl implements TransactionService {
             throw new NotValidTotpException();
         }
 
-        Map<String, Account> lockedAccounts =
-            lockAccounts(createPaymentDto.fromAccount(), createPaymentDto.toAccount());
-
-        Account fromAccount = lockedAccounts.get(createPaymentDto.fromAccount());
-        Account toAccount = lockedAccounts.get(createPaymentDto.toAccount());
+        Account fromAccount =
+            accountRepository.findAccountByAccountNumber(createPaymentDto.fromAccount())
+                .orElseThrow(AccountNotFound::new);
+        Account toAccount =
+            accountRepository.findAccountByAccountNumber(createPaymentDto.toAccount())
+                .orElseThrow(AccountNotFound::new);
 
         if (
             fromAccount.getClient()
@@ -124,11 +122,12 @@ public class TransactionServiceImpl implements TransactionService {
             throw new NotValidTotpException();
         }
 
-        Map<String, Account> lockedAccounts =
-            lockAccounts(createTransferDto.fromAccount(), createTransferDto.toAccount());
-
-        Account fromAccount = lockedAccounts.get(createTransferDto.fromAccount());
-        Account toAccount = lockedAccounts.get(createTransferDto.toAccount());
+        Account fromAccount =
+            accountRepository.findAccountByAccountNumber(createTransferDto.fromAccount())
+                .orElseThrow(AccountNotFound::new);
+        Account toAccount =
+            accountRepository.findAccountByAccountNumber(createTransferDto.toAccount())
+                .orElseThrow(AccountNotFound::new);
 
         if (fromAccount.equals(toAccount)) throw new ClientCannotTransferToSameAccount();
 
@@ -818,22 +817,6 @@ public class TransactionServiceImpl implements TransactionService {
             return amount;
         }
         return exchangeRateService.convertCurrency(amount, fromCurrency, toCurrency);
-    }
-
-    @Transactional
-    protected Map<String, Account> lockAccounts(String... accountNumbers) {
-        return Arrays.stream(accountNumbers)
-            .distinct() // Remove duplicates
-            .map(
-                accNum -> accountRepository.findAccountByAccountNumber(accNum)
-                    .orElseThrow(AccountNotFound::new)
-            )
-            .sorted(Comparator.comparing(Account::getId)) // Deadlock prevention
-            .peek(account -> {
-                entityManager.lock(account, LockModeType.PESSIMISTIC_WRITE);
-                entityManager.refresh(account); // Refresh data
-            })
-            .collect(Collectors.toMap(Account::getAccountNumber, acc -> acc));
     }
 
     @Transactional
