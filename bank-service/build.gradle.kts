@@ -50,6 +50,9 @@ dependencies {
 	implementation("com.squareup.retrofit2:retrofit:2.11.0")
 	implementation("com.squareup.retrofit2:converter-jackson:2.11.0")
 
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation("io.lettuce:lettuce-core:6.5.5.RELEASE")
+
 	val hibernateVer = dependencyManagement.importedProperties["hibernate.version"]
 	annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVer}")
 
@@ -59,6 +62,10 @@ dependencies {
 	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
+
+        implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
+	implementation("com.squareup.okhttp3:okhttp")
+	implementation("com.squareup.okhttp3:logging-interceptor")
 
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")

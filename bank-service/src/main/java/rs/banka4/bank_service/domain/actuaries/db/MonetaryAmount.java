@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.With;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
 
 @Embeddable
@@ -13,13 +14,12 @@ import rs.banka4.rafeisen.common.currency.CurrencyCode;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@With
 public class MonetaryAmount {
-    @Column(nullable = false)
+    @Column()
     private BigDecimal amount;
+
     @Enumerated(EnumType.STRING)
-    @Column(
-        columnDefinition = "currency",
-        nullable = false
-    )
+    @Column(columnDefinition = "currency")
     private CurrencyCode currency;
 }

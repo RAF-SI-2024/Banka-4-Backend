@@ -21,7 +21,7 @@ import rs.banka4.bank_service.domain.security.stock.db.Stock;
 public class OtcRequest {
     @Id
     @Builder.Default
-    private UUID id = UUID.randomUUID();
+    private ForeignBankId id = ForeignBankId.our(UUID.randomUUID());
 
     @ManyToOne(optional = false)
     private Stock stock;

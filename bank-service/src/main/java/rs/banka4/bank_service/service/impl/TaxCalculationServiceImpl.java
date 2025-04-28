@@ -8,9 +8,9 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import rs.banka4.bank_service.domain.account.db.Account;
+import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.taxes.db.UserTaxDebts;
 import rs.banka4.bank_service.domain.taxes.db.dto.UserTaxInfoDto;
-import rs.banka4.bank_service.domain.transaction.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.transaction.db.Transaction;
 import rs.banka4.bank_service.domain.transaction.db.TransactionStatus;
 import rs.banka4.bank_service.exceptions.transaction.InsufficientFunds;
@@ -135,8 +135,8 @@ public class TaxCalculationServiceImpl implements TaxCalculationService {
                 UUID.randomUUID()
                     .toString()
             )
-            .fromAccount(fromAccount)
-            .toAccount(toAccount)
+            .fromAccount(fromAccount.getAccountNumber())
+            .toAccount(toAccount.getAccountNumber())
             .from(new MonetaryAmount(fromAmount, fromAccount.getCurrency()))
             .to(new MonetaryAmount(toAmount, toAccount.getCurrency()))
             .recipient(toAccount.getClient().firstName)

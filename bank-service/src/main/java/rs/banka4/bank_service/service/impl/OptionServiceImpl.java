@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import rs.banka4.bank_service.domain.options.db.Option;
 import rs.banka4.bank_service.domain.options.db.OptionType;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.exceptions.*;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.OptionsRepository;
@@ -13,7 +14,6 @@ import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.service.abstraction.OptionService;
 import rs.banka4.bank_service.service.abstraction.OtcRequestService;
 import rs.banka4.bank_service.service.abstraction.TradingService;
-import rs.banka4.rafeisen.common.dto.AccountNumberDto;
 
 @Service
 @RequiredArgsConstructor
@@ -75,7 +75,13 @@ public class OptionServiceImpl implements OptionService {
                     <= stockOwnership.get()
                         .getPrivateAmount()
             ) {
-                tradingService.usePutOption(option, userId, accountNumber);
+                tradingService.usePutOption(
+                    option,
+                    userId,
+                    accountNumber,
+                    ownership.get()
+                        .getPrivateAmount()
+                );
             } else {
                 throw new NotEnoughStock();
             }
@@ -83,31 +89,21 @@ public class OptionServiceImpl implements OptionService {
             var otcRequest = otcRequestRepository.findByOptionId(optionId);
             if (otcRequest.isEmpty()) {
                 // exchange option
-                tradingService.useCallOptionFromExchange(option, userId, accountNumber);
-            } else {
-                // otc option
-                AccountNumberDto sellerAccount =
-                    otcRequestService.getRequiredAccount(
-                        UUID.fromString(
-                            otcRequest.get()
-                                .getMadeFor()
-                                .userId()
-                        ),
-                        otcRequest.get()
-                            .getPricePerStock()
-                            .getCurrency(),
-                        null
-                    );
-                tradingService.useCallOptionFromOtc(
+                tradingService.useCallOptionFromExchange(
                     option,
                     userId,
-                    UUID.fromString(
-                        otcRequest.get()
-                            .getMadeFor()
-                            .userId()
-                    ),
                     accountNumber,
-                    sellerAccount.accountNumber(),
+                    ownership.get()
+                        .getPrivateAmount()
+                );
+            } else {
+                // otc option
+                tradingService.useCallOptionFromOtc(
+                    option,
+                    ForeignBankId.our(userId),
+                    otcRequest.get()
+                        .getMadeFor(),
+                    accountNumber,
                     otcRequest.get()
                         .getAmount()
                 );

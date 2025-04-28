@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import rs.banka4.bank_service.domain.account.db.Account;
-import rs.banka4.bank_service.domain.transaction.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.transaction.db.Transaction;
 import rs.banka4.bank_service.domain.transaction.db.TransactionStatus;
 import rs.banka4.bank_service.domain.transaction.dtos.CreatePaymentDto;
@@ -71,8 +71,8 @@ public class TransactionObjectMother {
         return Transaction.builder()
             .id(UUID.fromString("8b14aa1d-0633-44d3-a74a-e699b35909d2"))
             .transactionNumber("1265463698391")
-            .fromAccount(fromAccount)
-            .toAccount(toAccount)
+            .fromAccount(fromAccount.getAccountNumber())
+            .toAccount(toAccount.getAccountNumber())
             .from(new MonetaryAmount(BigDecimal.valueOf(1.00), generateCurrency(CurrencyCode.EUR)))
             .to(new MonetaryAmount(BigDecimal.valueOf(1.00), generateCurrency(CurrencyCode.RSD)))
             .fee(new MonetaryAmount(BigDecimal.valueOf(0.10), generateCurrency(CurrencyCode.EUR)))
@@ -128,8 +128,8 @@ public class TransactionObjectMother {
         return Transaction.builder()
             .id(id)
             .transactionNumber(id.toString())
-            .fromAccount(fromAccount)
-            .toAccount(toAccount)
+            .fromAccount(fromAccount.getAccountNumber())
+            .toAccount(toAccount.getAccountNumber())
             .from(new MonetaryAmount(amount, currency))
             .to(new MonetaryAmount(amount, currency))
             .fee(new MonetaryAmount(BigDecimal.valueOf(0.10), currency))

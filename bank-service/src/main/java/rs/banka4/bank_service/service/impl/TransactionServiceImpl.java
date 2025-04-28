@@ -1,7 +1,5 @@
 package rs.banka4.bank_service.service.impl;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,7 +13,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.bank_service.domain.account.db.Account;
-import rs.banka4.bank_service.domain.transaction.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.domain.transaction.db.Transaction;
 import rs.banka4.bank_service.domain.transaction.db.TransactionStatus;
 import rs.banka4.bank_service.domain.transaction.dtos.*;
@@ -37,6 +36,11 @@ import rs.banka4.bank_service.service.abstraction.ExchangeRateService;
 import rs.banka4.bank_service.service.abstraction.JwtService;
 import rs.banka4.bank_service.service.abstraction.TotpService;
 import rs.banka4.bank_service.service.abstraction.TransactionService;
+import rs.banka4.bank_service.tx.data.DoubleEntryTransaction;
+import rs.banka4.bank_service.tx.data.Posting;
+import rs.banka4.bank_service.tx.data.TxAccount;
+import rs.banka4.bank_service.tx.data.TxAsset;
+import rs.banka4.bank_service.tx.executor.InterbankTxExecutor;
 import rs.banka4.bank_service.utils.specification.PaymentSpecification;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.rafeisen.common.utils.specification.SpecificationCombinator;
@@ -53,7 +57,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final ExchangeRateService exchangeRateService;
     private final BankAccountServiceImpl bankAccountServiceImpl;
     private final JwtService jwtService;
-    private final EntityManager entityManager;
+    private final InterbankTxExecutor txExecutor;
 
     @Override
     @Transactional
@@ -67,11 +71,12 @@ public class TransactionServiceImpl implements TransactionService {
             throw new NotValidTotpException();
         }
 
-        Map<String, Account> lockedAccounts =
-            lockAccounts(createPaymentDto.fromAccount(), createPaymentDto.toAccount());
-
-        Account fromAccount = lockedAccounts.get(createPaymentDto.fromAccount());
-        Account toAccount = lockedAccounts.get(createPaymentDto.toAccount());
+        Account fromAccount =
+            accountRepository.findAccountByAccountNumber(createPaymentDto.fromAccount())
+                .orElseThrow(AccountNotFound::new);
+        Account toAccount =
+            accountRepository.findAccountByAccountNumber(createPaymentDto.toAccount())
+                .orElseThrow(AccountNotFound::new);
 
         if (
             fromAccount.getClient()
@@ -89,13 +94,7 @@ public class TransactionServiceImpl implements TransactionService {
         );
         validateDailyAndMonthlyLimit(fromAccount, createPaymentDto.fromAmount());
 
-        Transaction transaction =
-            processTransaction(
-                fromAccount,
-                toAccount,
-                createPaymentDto.fromAmount(),
-                createPaymentDto
-            );
+        Transaction transaction = processTransaction(fromAccount, toAccount, createPaymentDto);
 
         if (createPaymentDto.saveRecipient()) {
             ClientContact clientContact =
@@ -123,11 +122,12 @@ public class TransactionServiceImpl implements TransactionService {
             throw new NotValidTotpException();
         }
 
-        Map<String, Account> lockedAccounts =
-            lockAccounts(createTransferDto.fromAccount(), createTransferDto.toAccount());
-
-        Account fromAccount = lockedAccounts.get(createTransferDto.fromAccount());
-        Account toAccount = lockedAccounts.get(createTransferDto.toAccount());
+        Account fromAccount =
+            accountRepository.findAccountByAccountNumber(createTransferDto.fromAccount())
+                .orElseThrow(AccountNotFound::new);
+        Account toAccount =
+            accountRepository.findAccountByAccountNumber(createTransferDto.toAccount())
+                .orElseThrow(AccountNotFound::new);
 
         if (fromAccount.equals(toAccount)) throw new ClientCannotTransferToSameAccount();
 
@@ -135,61 +135,9 @@ public class TransactionServiceImpl implements TransactionService {
         validateClientAccountOwnership(client, fromAccount, toAccount);
         validateSufficientFunds(fromAccount, createTransferDto.fromAmount());
 
-        Transaction transaction =
-            processTransaction(
-                fromAccount,
-                toAccount,
-                createTransferDto.fromAmount(),
-                createTransferDto
-            );
+        Transaction transaction = processTransaction(fromAccount, toAccount, createTransferDto);
 
         return TransactionMapper.INSTANCE.toDto(transaction);
-    }
-
-    @Override
-    @Transactional
-    public void createFeeTransaction(CreateFeeTransactionDto createFeeTransactionDto) {
-        Client client =
-            clientRepository.findById(UUID.fromString(createFeeTransactionDto.userId()))
-                .orElseThrow(() -> new UserNotFound(createFeeTransactionDto.userId()));
-
-        Account found =
-            accountRepository.findAccountByAccountNumber(createFeeTransactionDto.fromAccount())
-                .orElseThrow(() -> new AccountNotFound(createFeeTransactionDto.fromAccount()));
-
-        Account bankAccount =
-            bankAccountServiceImpl.getBankAccountForCurrency(
-                CurrencyCode.valueOf(
-                    createFeeTransactionDto.currencyCode()
-                        .name()
-                )
-            );
-
-        Map<String, Account> lockedAccounts =
-            lockAccounts(found.getAccountNumber(), bankAccount.getAccountNumber());
-
-        Account fromAccount = lockedAccounts.get(found.getAccountNumber());
-        Account toAccount = lockedAccounts.get(bankAccount.getAccountNumber());
-
-        validateAccountActive(fromAccount);
-        validateClientAccountOwnership(client, fromAccount);
-        validateSufficientFunds(
-            fromAccount,
-            createFeeTransactionDto.fromAmount()
-                .add(BigDecimal.ONE)
-        );
-        validateDailyAndMonthlyLimit(fromAccount, createFeeTransactionDto.fromAmount());
-
-        fromAccount.setBalance(
-            fromAccount.getBalance()
-                .subtract(createFeeTransactionDto.fromAmount())
-        );
-        toAccount.setBalance(
-            toAccount.getBalance()
-                .add(createFeeTransactionDto.fromAmount())
-        );
-
-        createFeeTransaction(fromAccount, toAccount, createFeeTransactionDto.fromAmount());
     }
 
     @Override
@@ -320,10 +268,13 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal monthlyLimit = fromAccount.getMonthlyLimit();
 
         BigDecimal totalDailyTransactions =
-            transactionRepository.getTotalDailyTransactions(fromAccount.getId(), LocalDate.now());
+            transactionRepository.getTotalDailyTransactions(
+                fromAccount.getAccountNumber(),
+                LocalDate.now()
+            );
         BigDecimal totalMonthlyTransactions =
             transactionRepository.getTotalMonthlyTransactions(
-                fromAccount.getId(),
+                fromAccount.getAccountNumber(),
                 LocalDate.now()
                     .getMonthValue()
             );
@@ -387,14 +338,7 @@ public class TransactionServiceImpl implements TransactionService {
             fromAccount.getCurrency()
                 .equals(toAccount.getCurrency())
         ) {
-            fromAccount.setBalance(
-                fromAccount.getBalance()
-                    .subtract(amount)
-            );
-            toAccount.setBalance(
-                toAccount.getBalance()
-                    .add(amount)
-            );
+            transferAmount(fromAccount, toAccount, amount);
         }
         // RSD -> Foreign
         else
@@ -458,7 +402,8 @@ public class TransactionServiceImpl implements TransactionService {
      * @throws InsufficientFunds if the account has insufficient funds to cover the transfer amount
      *         and fee
      */
-    private BigDecimal transferFromRsdToForeign(
+    @Transactional
+    protected BigDecimal transferFromRsdToForeign(
         Account fromAccount,
         Account toAccount,
         BigDecimal amount
@@ -471,14 +416,9 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Transfer Client RSD to bank's RSD account
         Account rsdBankAccount = bankAccountServiceImpl.getBankAccountForCurrency(CurrencyCode.RSD);
-        fromAccount.setBalance(
-            fromAccount.getBalance()
-                .subtract(amount)
-        );
-        rsdBankAccount.setBalance(
-            rsdBankAccount.getBalance()
-                .add(amount)
-        );
+
+        transferAmount(fromAccount, rsdBankAccount, amount);
+
         createBankTransferTransaction(
             fromAccount,
             rsdBankAccount,
@@ -495,29 +435,16 @@ public class TransactionServiceImpl implements TransactionService {
             );
 
         // Charge the fee
-        fromAccount.setBalance(
-            fromAccount.getBalance()
-                .subtract(fee)
-        );
-        rsdBankAccount.setBalance(
-            rsdBankAccount.getBalance()
-                .add(fee)
-        );
+        transferAmount(fromAccount, rsdBankAccount, fee);
+
         createFeeTransaction(fromAccount, rsdBankAccount, fee);
 
         // Decrease the bank account in foreign currency for the full amount that the user receives
         Account foreignBankAccount =
             bankAccountServiceImpl.getBankAccountForCurrency(toAccount.getCurrency());
-        foreignBankAccount.setBalance(
-            foreignBankAccount.getBalance()
-                .subtract(convertedAmount)
-        );
 
-        // Transfer the full amount to the user
-        toAccount.setBalance(
-            toAccount.getBalance()
-                .add(convertedAmount)
-        );
+        transferAmount(foreignBankAccount, toAccount, convertedAmount);
+
         createBankTransferTransaction(
             foreignBankAccount,
             toAccount,
@@ -547,7 +474,8 @@ public class TransactionServiceImpl implements TransactionService {
      * @throws InsufficientFunds if the account has insufficient funds to cover the transfer amount
      *         and fee
      */
-    private BigDecimal transferFromForeignToRsd(
+    @Transactional
+    protected BigDecimal transferFromForeignToRsd(
         Account fromAccount,
         Account toAccount,
         BigDecimal amount
@@ -561,14 +489,9 @@ public class TransactionServiceImpl implements TransactionService {
         // Transfer Foreign from client to Foreign bank account
         Account foreignBankAccount =
             bankAccountServiceImpl.getBankAccountForCurrency(fromAccount.getCurrency());
-        fromAccount.setBalance(
-            fromAccount.getBalance()
-                .subtract(amount)
-        );
-        foreignBankAccount.setBalance(
-            foreignBankAccount.getBalance()
-                .add(amount)
-        );
+
+        transferAmount(fromAccount, foreignBankAccount, amount);
+
         createBankTransferTransaction(
             fromAccount,
             foreignBankAccount,
@@ -586,14 +509,9 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Transfer RSD from RSD bank account to client
         Account rsdBankAccount = bankAccountServiceImpl.getBankAccountForCurrency(CurrencyCode.RSD);
-        rsdBankAccount.setBalance(
-            rsdBankAccount.getBalance()
-                .subtract(convertedAmount)
-        );
-        toAccount.setBalance(
-            toAccount.getBalance()
-                .add(convertedAmount)
-        );
+
+        transferAmount(rsdBankAccount, toAccount, convertedAmount);
+
         createBankTransferTransaction(
             rsdBankAccount,
             toAccount,
@@ -602,14 +520,8 @@ public class TransactionServiceImpl implements TransactionService {
         );
 
         // Charge the fee
-        fromAccount.setBalance(
-            fromAccount.getBalance()
-                .subtract(fee)
-        );
-        foreignBankAccount.setBalance(
-            foreignBankAccount.getBalance()
-                .add(fee)
-        );
+        transferAmount(fromAccount, foreignBankAccount, fee);
+
         createFeeTransaction(fromAccount, foreignBankAccount, fee);
 
         // Transaction for conversion
@@ -634,7 +546,8 @@ public class TransactionServiceImpl implements TransactionService {
      * @throws InsufficientFunds if the account has insufficient funds to cover the transfer amount
      *         and fee
      */
-    private BigDecimal transferFromForeignToForeign(
+    @Transactional
+    protected BigDecimal transferFromForeignToForeign(
         Account fromAccount,
         Account toAccount,
         BigDecimal amount
@@ -650,14 +563,9 @@ public class TransactionServiceImpl implements TransactionService {
         // Transfer ForeignFrom from client to ForeignFrom bank account (EUR Client -> EUR Bank)
         Account foreignBankAccount =
             bankAccountServiceImpl.getBankAccountForCurrency(fromAccount.getCurrency());
-        fromAccount.setBalance(
-            fromAccount.getBalance()
-                .subtract(amount)
-        );
-        foreignBankAccount.setBalance(
-            foreignBankAccount.getBalance()
-                .add(amount)
-        );
+
+        transferAmount(fromAccount, foreignBankAccount, amount);
+
         createBankTransferTransaction(
             fromAccount,
             foreignBankAccount,
@@ -673,10 +581,9 @@ public class TransactionServiceImpl implements TransactionService {
                 fromAccount.getCurrency(),
                 CurrencyCode.RSD
             );
-        rsdBankAccount.setBalance(
-            rsdBankAccount.getBalance()
-                .add(amountInRSD)
-        );
+
+        transferAmountDifferentCurrencies(foreignBankAccount, rsdBankAccount, amount, amountInRSD);
+
         createBankTransferTransaction(
             foreignBankAccount,
             rsdBankAccount,
@@ -685,21 +592,10 @@ public class TransactionServiceImpl implements TransactionService {
         );
 
         // Fee
-        fromAccount.setBalance(
-            fromAccount.getBalance()
-                .subtract(fee)
-        );
-        foreignBankAccount.setBalance(
-            foreignBankAccount.getBalance()
-                .add(fee)
-        );
+        transferAmount(fromAccount, foreignBankAccount, fee);
+
         createFeeTransaction(fromAccount, foreignBankAccount, fee);
 
-        // Transfer RSD from RSD bank account to ForeignTo bank account (RSD Bank -> USD Bank)
-        rsdBankAccount.setBalance(
-            rsdBankAccount.getBalance()
-                .subtract(amountInRSD)
-        );
         BigDecimal amountInForeignTo =
             exchangeRateService.convertCurrency(
                 amountInRSD,
@@ -708,20 +604,19 @@ public class TransactionServiceImpl implements TransactionService {
             );
         Account foreignToBankAccount =
             bankAccountServiceImpl.getBankAccountForCurrency(CurrencyCode.USD);
-        foreignToBankAccount.setBalance(
-            foreignToBankAccount.getBalance()
-                .add(amountInForeignTo)
+
+        // Transfer RSD from RSD bank account to ForeignTo bank account (RSD Bank -> USD Bank)
+        transferAmountDifferentCurrencies(
+            rsdBankAccount,
+            foreignToBankAccount,
+            amountInRSD,
+            amountInForeignTo
         );
 
         // Transfer ForeignTo from ForeignTo bank account to client (USD Bank -> USD Client)
-        foreignToBankAccount.setBalance(
-            foreignToBankAccount.getBalance()
-                .subtract(amountInForeignTo)
-        );
-        toAccount.setBalance(
-            toAccount.getBalance()
-                .add(amountInForeignTo)
-        );
+
+        transferAmount(foreignToBankAccount, toAccount, amountInForeignTo);
+
         createBankTransferTransaction(
             foreignToBankAccount,
             toAccount,
@@ -757,8 +652,8 @@ public class TransactionServiceImpl implements TransactionService {
                 UUID.randomUUID()
                     .toString()
             )
-            .fromAccount(fromAccount)
-            .toAccount(toAccount)
+            .fromAccount(fromAccount.getAccountNumber())
+            .toAccount(toAccount.getAccountNumber())
             .from(new MonetaryAmount(createPaymentDto.fromAmount(), fromAccount.getCurrency()))
             .to(new MonetaryAmount(toAmount, toAccount.getCurrency()))
             .fee(new MonetaryAmount(fee, fromAccount.getCurrency()))
@@ -790,8 +685,8 @@ public class TransactionServiceImpl implements TransactionService {
                 UUID.randomUUID()
                     .toString()
             )
-            .fromAccount(fromAccount)
-            .toAccount(toAccount)
+            .fromAccount(fromAccount.getAccountNumber())
+            .toAccount(toAccount.getAccountNumber())
             .from(new MonetaryAmount(createTransferDto.fromAmount(), fromAccount.getCurrency()))
             .to(new MonetaryAmount(toAmount, toAccount.getCurrency()))
             .fee(new MonetaryAmount(fee, fromAccount.getCurrency()))
@@ -892,8 +787,8 @@ public class TransactionServiceImpl implements TransactionService {
                 UUID.randomUUID()
                     .toString()
             )
-            .fromAccount(fromAccount)
-            .toAccount(toAccount)
+            .fromAccount(fromAccount.getAccountNumber())
+            .toAccount(toAccount.getAccountNumber())
             .from(new MonetaryAmount(fromAmount, fromAccount.getCurrency()))
             .to(new MonetaryAmount(toAmount, toAccount.getCurrency()))
             .fee(new MonetaryAmount(fee, fromAccount.getCurrency()))
@@ -925,18 +820,124 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Transactional
-    protected Map<String, Account> lockAccounts(String... accountNumbers) {
-        return Arrays.stream(accountNumbers)
-            .distinct() // Remove duplicates
-            .map(
-                accNum -> accountRepository.findAccountByAccountNumber(accNum)
-                    .orElseThrow(AccountNotFound::new)
-            )
-            .sorted(Comparator.comparing(Account::getId)) // Deadlock prevention
-            .peek(account -> {
-                entityManager.lock(account, LockModeType.PESSIMISTIC_WRITE);
-                entityManager.refresh(account); // Refresh data
-            })
-            .collect(Collectors.toMap(Account::getAccountNumber, acc -> acc));
+    protected void transferAmount(Account fromAccount, Account toAccount, BigDecimal amount) {
+        fromAccount.setBalance(
+            fromAccount.getBalance()
+                .subtract(amount)
+        );
+        toAccount.setBalance(
+            toAccount.getBalance()
+                .add(amount)
+        );
+
+        fromAccount.setAvailableBalance(
+            fromAccount.getAvailableBalance()
+                .subtract(amount)
+        );
+        toAccount.setAvailableBalance(
+            toAccount.getAvailableBalance()
+                .add(amount)
+        );
     }
+
+    /**
+     * Transfers an amount between two accounts with different currencies.
+     * <p>
+     * Used to handle transfers between two bank accounts in different currencies.
+     * </p>
+     *
+     * @param bankAccount1 bank account from which the amount is transferred
+     * @param bankAccount2 bank account to which the amount is transferred
+     * @param amount amount to be transferred
+     * @param converted converted amount in the target currency
+     */
+    @Transactional
+    protected void transferAmountDifferentCurrencies(
+        Account bankAccount1,
+        Account bankAccount2,
+        BigDecimal amount,
+        BigDecimal converted
+    ) {
+        bankAccount1.setBalance(
+            bankAccount1.getBalance()
+                .subtract(amount)
+        );
+        bankAccount2.setBalance(
+            bankAccount2.getBalance()
+                .add(converted)
+        );
+
+        bankAccount1.setAvailableBalance(
+            bankAccount1.getAvailableBalance()
+                .subtract(amount)
+        );
+        bankAccount2.setAvailableBalance(
+            bankAccount2.getAvailableBalance()
+                .add(converted)
+        );
+    }
+
+    @Transactional
+    protected Transaction processTransaction(
+        Account fromAccount,
+        Account toAccount,
+        CreateTransactionDto createTransactionDto
+    ) {
+        BigDecimal fromAmount;
+        String message;
+        if (createTransactionDto instanceof CreatePaymentDto) {
+            fromAmount = ((CreatePaymentDto) createTransactionDto).fromAmount();
+            message = ((CreatePaymentDto) createTransactionDto).paymentPurpose();
+        } else {
+            fromAmount = ((CreateTransferDto) createTransactionDto).fromAmount();
+            message = "Internal transfer";
+        }
+
+        Posting posting =
+            new Posting(
+                new TxAccount.Account(fromAccount.getAccountNumber()),
+                fromAmount,
+                new TxAsset.Monas(fromAccount.getCurrency())
+            );
+
+        List<Posting> postings =
+            txExecutor.ensurePostingCurrency(
+                posting,
+                toAccount.getCurrency(),
+                new TxAccount.Account(toAccount.getAccountNumber())
+            );
+
+        DoubleEntryTransaction transaction =
+            new DoubleEntryTransaction(postings, message, ForeignBankId.our(UUID.randomUUID()));
+
+        Transaction tx;
+        ForeignBankId id = txExecutor.submitTx(transaction);
+        BigDecimal fee = exchangeRateService.calculateFee(fromAmount);
+
+        if (createTransactionDto instanceof CreatePaymentDto) {
+            tx =
+                buildTransaction(
+                    fromAccount,
+                    toAccount,
+                    (CreatePaymentDto) createTransactionDto,
+                    fee,
+                    TransactionStatus.IN_PROGRESS
+                );
+        } else {
+            tx =
+                buildTransfer(
+                    fromAccount,
+                    toAccount,
+                    (CreateTransferDto) createTransactionDto,
+                    fee,
+                    TransactionStatus.IN_PROGRESS
+                );
+        }
+
+        tx.setExecutingTransaction(id);
+        transactionRepository.save(tx);
+
+        return tx;
+    }
+
 }

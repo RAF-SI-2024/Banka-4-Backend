@@ -29,6 +29,7 @@ import rs.banka4.bank_service.domain.auth.dtos.UserVerificationRequestDto;
 import rs.banka4.bank_service.service.abstraction.AuthService;
 import rs.banka4.bank_service.service.abstraction.ClientService;
 import rs.banka4.bank_service.service.abstraction.EmployeeService;
+import rs.banka4.bank_service.tx.config.InterbankConfig;
 import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 
 @WebMvcTest(AuthController.class)
@@ -161,6 +162,11 @@ public class AuthControllerTests {
         @Bean
         public EmployeeService employeeService() {
             return Mockito.mock(EmployeeService.class);
+        }
+
+        @Bean
+        public InterbankConfig interbankConfig() {
+            return new InterbankConfig();
         }
 
         @Bean

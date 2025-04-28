@@ -1,18 +1,21 @@
 package rs.banka4.bank_service.controller;
 
 import jakarta.validation.Valid;
-import java.util.UUID;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.bank_service.controller.docs.OtcApiDocumentation;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.domain.trading.db.OtcMapper;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestCreateDto;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestDto;
 import rs.banka4.bank_service.domain.trading.db.dtos.OtcRequestUpdateDto;
+import rs.banka4.bank_service.exceptions.InterbankError;
 import rs.banka4.bank_service.service.abstraction.ForeignBankService;
 import rs.banka4.bank_service.service.abstraction.ListingService;
 import rs.banka4.bank_service.service.abstraction.OtcRequestService;
@@ -21,6 +24,7 @@ import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
 @RestController
 @RequestMapping("/stock/otc")
 @RequiredArgsConstructor
+@Slf4j
 public class OtcController implements OtcApiDocumentation {
     private final OtcMapper otcMapper;
     private final OtcRequestService otcRequestService;
@@ -48,20 +52,27 @@ public class OtcController implements OtcApiDocumentation {
     }
 
     @Override
-    @PatchMapping("/reject/{requestId}")
-    public ResponseEntity<Void> rejectOtcRequest(@PathVariable UUID requestId) {
+    @PatchMapping("/reject/{idId}/{routingNumber}")
+    public ResponseEntity<Void> rejectOtcRequest(
+        @PathVariable("idId") String idId,
+        @PathVariable("routingNumber") long routingNumber
+    ) {
+        ForeignBankId requestId = new ForeignBankId(routingNumber, idId);
         otcRequestService.rejectOtc(requestId);
         return ResponseEntity.ok()
             .build();
     }
 
     @Override
-    @PatchMapping("/update/{id}")
+    @PatchMapping("/update/{idId}/{routingNumber}")
     public ResponseEntity<Void> updateOtcRequest(
         @RequestBody OtcRequestUpdateDto otcRequestUpdateDto,
-        @PathVariable UUID id,
+        @PathVariable("idId") String idId,
+        @PathVariable("routingNumber") long routingNumber,
         Authentication auth
     ) {
+        ForeignBankId id = new ForeignBankId(routingNumber, idId);
+
         final var ourAuth = (AuthenticatedBankUserAuthentication) auth;
         var myId =
             ourAuth.getPrincipal()
@@ -87,11 +98,13 @@ public class OtcController implements OtcApiDocumentation {
     }
 
     @Override
-    @PatchMapping("/accept/{requestId}")
+    @PatchMapping("/accept/{idId}/{routingNumber}")
     public ResponseEntity<Void> acceptOtcRequest(
-        @PathVariable UUID requestId,
+        @PathVariable("idId") String idId,
+        @PathVariable("routingNumber") long routingNumber,
         Authentication auth
     ) {
+        ForeignBankId requestId = new ForeignBankId(routingNumber, idId);
         final var ourAuth = (AuthenticatedBankUserAuthentication) auth;
         var myId =
             ourAuth.getPrincipal()
@@ -117,25 +130,26 @@ public class OtcController implements OtcApiDocumentation {
                 : otcRequestService.getMyRequests(PageRequest.of(page, size), myId);
 
         Page<OtcRequestDto> dtoPage = requests.map(it -> {
-            /*
-             * TODO(arsen): when establishing code to handle talking to other banks, add username
-             * resolution here.
-             */
             var latestPrice =
                 listingService.getLatestPriceForStock(
                     it.getStock()
                         .getId()
                 );
-            return otcMapper.toOtcRequestDto(
-                it,
-                foreignBankService.getUsernameFor(it.getMadeBy())
-                    .orElseGet(it.getMadeBy()::toString),
-                foreignBankService.getUsernameFor(it.getMadeFor())
-                    .orElseGet(it.getMadeFor()::toString),
-                foreignBankService.getUsernameFor(it.getModifiedBy())
-                    .orElseGet(it.getModifiedBy()::toString),
-                latestPrice
-            );
+            try {
+                return otcMapper.toOtcRequestDto(
+                    it,
+                    foreignBankService.getUsernameFor(it.getMadeBy())
+                        .orElseGet(it.getMadeBy()::toString),
+                    foreignBankService.getUsernameFor(it.getMadeFor())
+                        .orElseGet(it.getMadeFor()::toString),
+                    foreignBankService.getUsernameFor(it.getModifiedBy())
+                        .orElseGet(it.getModifiedBy()::toString),
+                    latestPrice
+                );
+            } catch (IOException error) {
+                log.error("failed to resolve username for {}", it, error);
+                throw new InterbankError();
+            }
         });
 
         return ResponseEntity.ok(dtoPage);

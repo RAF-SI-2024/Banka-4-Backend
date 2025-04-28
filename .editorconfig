@@ -12,6 +12,7 @@ indent_style = tab
 [*.java]
 indent_style = space
 indent_size = 4
+max_line_length = 100
 
 [*.sql]
 indent_style = space

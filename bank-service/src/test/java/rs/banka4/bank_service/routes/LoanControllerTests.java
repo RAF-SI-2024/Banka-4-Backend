@@ -29,6 +29,7 @@ import rs.banka4.bank_service.domain.loan.dtos.LoanInformationDto;
 import rs.banka4.bank_service.generator.LoanObjectMother;
 import rs.banka4.bank_service.service.abstraction.LoanInstallmentService;
 import rs.banka4.bank_service.service.abstraction.LoanService;
+import rs.banka4.bank_service.tx.config.InterbankConfig;
 import rs.banka4.bank_service.util.MockMvcUtil;
 import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 
@@ -86,6 +87,11 @@ public class LoanControllerTests {
         @Bean
         public LoanInstallmentService loanInstallmentService() {
             return Mockito.mock(LoanInstallmentService.class);
+        }
+
+        @Bean
+        public InterbankConfig interbankConfig() {
+            return new InterbankConfig();
         }
 
         @Bean

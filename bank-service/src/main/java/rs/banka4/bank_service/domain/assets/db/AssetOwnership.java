@@ -2,6 +2,7 @@ package rs.banka4.bank_service.domain.assets.db;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "asset_ownership")
 public class AssetOwnership {
     @EmbeddedId
@@ -22,4 +24,9 @@ public class AssetOwnership {
 
     @Column(nullable = false)
     private int reservedAmount;
+
+    public String getTicker() {
+        return getId().getAsset()
+            .getTicker();
+    }
 }

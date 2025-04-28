@@ -29,6 +29,8 @@ services:
     depends_on:
       bank_service_db:
         condition: service_healthy
+      valkey:
+        condition: service_healthy
       broker:
         condition: service_started
     volumes:
@@ -160,6 +162,13 @@ services:
     ports:
       # Management interface.
       - "15672:15672"
+
+  # Dictionary server.
+  valkey:
+    image: valkey/valkey:8.1
+    # No persistence yet.
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/valkey-cli", "ping"]
 
   # API docs viewer.
   swagger_ui:

@@ -31,6 +31,7 @@ import rs.banka4.bank_service.domain.user.client.dtos.CreateClientDto;
 import rs.banka4.bank_service.domain.user.client.dtos.UpdateClientDto;
 import rs.banka4.bank_service.generator.ClientObjectMother;
 import rs.banka4.bank_service.service.abstraction.ClientService;
+import rs.banka4.bank_service.tx.config.InterbankConfig;
 import rs.banka4.bank_service.util.MockMvcUtil;
 import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 
@@ -115,6 +116,11 @@ public class ClientControllerTests {
         @Bean
         public ClientService clientService() {
             return Mockito.mock(ClientService.class);
+        }
+
+        @Bean
+        public InterbankConfig interbankConfig() {
+            return new InterbankConfig();
         }
 
         @Bean

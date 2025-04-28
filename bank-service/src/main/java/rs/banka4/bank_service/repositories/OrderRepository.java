@@ -54,6 +54,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
         boolean isDone
     );
 
+    List<Order> findByUserIdAndDirectionAndIsDone(UUID userId, Direction direction, boolean isDone);
+
     @Query("""
              SELECT o FROM Order o
              WHERE o.user.id = :userId

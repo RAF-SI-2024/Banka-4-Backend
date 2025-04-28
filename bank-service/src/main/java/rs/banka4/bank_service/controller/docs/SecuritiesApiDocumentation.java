@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestParam;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.actuaries.db.dto.ActuaryProfitDto;
 import rs.banka4.bank_service.domain.security.SecurityDto;
 import rs.banka4.bank_service.domain.security.forex.dtos.ForexPairDto;
 import rs.banka4.bank_service.domain.security.future.dtos.FutureDto;
@@ -137,4 +138,40 @@ public interface SecuritiesApiDocumentation {
         }
     )
     public ResponseEntity<UserTaxInfoDto> getMyTax(Authentication auth);
+
+
+    @Operation(
+        summary = "Retrieve Actuary Profit Summary",
+        description = "Returns a paginated list of actuaries along with their total realized profit in RSD, "
+            + "calculated from all completed sell orders (including partially filled). "
+            + "Supports filtering by first name, last name, position, and email.",
+        security = @SecurityRequirement(name = "bearerAuth"),
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successfully retrieved profit summary",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ActuaryProfitDto.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Invalid request parameters"
+            ),
+            @ApiResponse(
+                responseCode = "403",
+                description = "Forbidden"
+            )
+        }
+    )
+    ResponseEntity<Page<ActuaryProfitDto>> getBankProfit(
+        @RequestParam(required = false) String firstName,
+        @RequestParam(required = false) String lastName,
+        @RequestParam(required = false) String position,
+        @RequestParam(required = false) String email,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    );
+
 }

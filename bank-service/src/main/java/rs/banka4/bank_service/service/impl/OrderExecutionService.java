@@ -1,6 +1,7 @@
 package rs.banka4.bank_service.service.impl;
 
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -9,13 +10,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import rs.banka4.bank_service.domain.actuaries.db.ActuaryInfo;
+import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.orders.db.Direction;
 import rs.banka4.bank_service.domain.orders.db.Order;
 import rs.banka4.bank_service.domain.orders.db.Status;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.exceptions.ActuaryNotFoundException;
 import rs.banka4.bank_service.exceptions.InsufficientVolume;
+import rs.banka4.bank_service.exceptions.TradingLimitException;
+import rs.banka4.bank_service.repositories.ActuaryRepository;
 import rs.banka4.bank_service.repositories.OrderRepository;
+import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
 import rs.banka4.bank_service.service.abstraction.ListingService;
 import rs.banka4.bank_service.service.abstraction.TaxService;
+import rs.banka4.bank_service.tx.TxExecutor;
+import rs.banka4.bank_service.tx.data.*;
+import rs.banka4.rafeisen.common.security.Privilege;
 
 @Slf4j
 @Service
@@ -25,6 +36,9 @@ public class OrderExecutionService {
     private final OrderRepository orderRepository;
     private final ListingService listingService;
     private final TaxService taxService;
+    private final TxExecutor txExecutor;
+    private final AssetOwnershipService assetOwnershipService;
+    private final ActuaryRepository actuaryRepository;
 
     /**
      * Processes an order in an all-or-nothing manner. If a matching order is found, it executes the
@@ -55,6 +69,8 @@ public class OrderExecutionService {
             return CompletableFuture.completedFuture(false);
         }
 
+        ensureUsedLimitExceeded(order);
+
         Order matchedOrder = match.get();
         matchedOrder.setRemainingPortions(
             matchedOrder.getRemainingPortions() - order.getQuantity()
@@ -69,7 +85,12 @@ public class OrderExecutionService {
         order.setUsed(true);
         orderRepository.save(order);
 
-        // TODO: Make transaction between order's client and matchedOrder's client
+        try {
+            createOrderTransaction(order, matchedOrder);
+        } catch (Exception e) {
+            log.error("Failed to submit transaction for orders {} {}", order, matchedOrder, e);
+        }
+
         /**
          * Calculates and records tax for a SELL order. BUY orders are ignored.
          * <p>
@@ -80,6 +101,8 @@ public class OrderExecutionService {
          */
         taxService.addTaxForOrderToDB(order);
         orderRepository.save(matchedOrder);
+
+        calculateAssetOwnerships(order, matchedOrder);
 
         log.info(
             "[AON] Order {} fully executed against order {}.",
@@ -134,6 +157,8 @@ public class OrderExecutionService {
             }
             matchedOrder = match.get();
 
+            ensureUsedLimitExceeded(order);
+
             while (remainingPortions > 0) {
                 int portionsToExecute = Math.min(remainingPortions, chunk);
 
@@ -160,7 +185,6 @@ public class OrderExecutionService {
                 orderRepository.save(matchedOrder);
                 orderRepository.save(lockedOrder);
 
-                // TODO: Make transaction between order's client and matchedOrder's client
                 /**
                  * Calculates and records tax for a SELL order. BUY orders are ignored.
                  * <p>
@@ -217,6 +241,14 @@ public class OrderExecutionService {
 
             }
 
+            try {
+                createOrderTransaction(order, matchedOrder);
+            } catch (Exception e) {
+                log.error("Failed to submit transaction for orders {} {}", order, matchedOrder, e);
+            }
+
+            calculateAssetOwnerships(order, matchedOrder);
+
             if (lockedOrder.getRemainingPortions() == 0) {
                 lockedOrder.setDone(true);
                 lockedOrder.setUsed(true);
@@ -248,6 +280,150 @@ public class OrderExecutionService {
             );
             return CompletableFuture.completedFuture(false);
         }
+    }
+
+    @Transactional
+    protected void createOrderTransaction(Order order, Order matchedOrder) {
+        Posting orderPosting =
+            new Posting(
+                new TxAccount.Account(
+                    order.getAccount()
+                        .getAccountNumber()
+                ),
+                order.getDirection() == Direction.BUY
+                    ? order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity()))
+                        .negate()
+                    : order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity())),
+                new TxAsset.Monas(
+                    order.getPricePerUnit()
+                        .getCurrency()
+                )
+            );
+
+        Posting matchOrderPosting =
+            new Posting(
+                new TxAccount.Account(
+                    matchedOrder.getAccount()
+                        .getAccountNumber()
+                ),
+                order.getDirection() == Direction.SELL
+                    ? order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity()))
+                        .negate()
+                    : order.getPricePerUnit()
+                        .getAmount()
+                        .multiply(BigDecimal.valueOf(order.getQuantity())),
+                new TxAsset.Monas(
+                    order.getPricePerUnit()
+                        .getCurrency()
+                )
+            );
+
+        DoubleEntryTransaction transaction =
+            new DoubleEntryTransaction(
+                List.of(orderPosting, matchOrderPosting),
+                "Order execution between buyer and seller",
+                ForeignBankId.our(UUID.randomUUID())
+            );
+
+        try {
+            txExecutor.submitImmediateTx(transaction);
+        } catch (Exception e) {
+            log.error("Failed to submit transaction for orders {} {}", order, matchedOrder, e);
+            throw new RuntimeException("Failed to submit transaction", e);
+        }
+    }
+
+    @Transactional
+    protected void calculateAssetOwnerships(Order order, Order matchedOrder) {
+        if (order.getDirection() == Direction.BUY) {
+            assetOwnershipService.changeAssetOwnership(
+                order.getAsset(),
+                order.getUser(),
+                order.getQuantity(),
+                0,
+                0
+            );
+            assetOwnershipService.changeAssetOwnership(
+                matchedOrder.getAsset(),
+                matchedOrder.getUser(),
+                -order.getQuantity(),
+                0,
+                0
+            );
+        } else {
+            assetOwnershipService.changeAssetOwnership(
+                order.getAsset(),
+                order.getUser(),
+                -matchedOrder.getQuantity(),
+                0,
+                0
+            );
+            assetOwnershipService.changeAssetOwnership(
+                matchedOrder.getAsset(),
+                matchedOrder.getUser(),
+                matchedOrder.getQuantity(),
+                0,
+                0
+            );
+        }
+    }
+
+    @Transactional
+    protected void ensureUsedLimitExceeded(Order order) {
+        if (order.getDirection() != Direction.BUY) return;
+        if (
+            !order.getUser()
+                .getPrivileges()
+                .contains(Privilege.AGENT)
+        ) return;
+
+        ActuaryInfo actuaryInfo =
+            actuaryRepository.findByUserId(
+                order.getUser()
+                    .getId()
+            )
+                .orElseThrow(
+                    () -> new ActuaryNotFoundException(
+                        order.getUser()
+                            .getId()
+                    )
+                );
+
+        BigDecimal cost =
+            order.getPricePerUnit()
+                .getAmount()
+                .multiply(BigDecimal.valueOf(order.getQuantity()));
+
+        if (
+            actuaryInfo.getUsedLimit()
+                .getAmount()
+                .add(cost)
+                .compareTo(
+                    actuaryInfo.getLimit()
+                        .getAmount()
+                )
+                > 0
+        ) {
+            throw new TradingLimitException();
+        }
+
+        actuaryInfo.setUsedLimit(
+            new MonetaryAmount(
+                actuaryInfo.getUsedLimit()
+                    .getAmount()
+                    .add(cost),
+                actuaryInfo.getUsedLimit()
+                    .getCurrency()
+            )
+        );
+
+        actuaryRepository.save(actuaryInfo);
     }
 
     /**

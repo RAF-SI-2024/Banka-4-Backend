@@ -91,8 +91,8 @@ public class TaxServiceImp implements TaxService {
 
     @Transactional
     @Override
-    public void addTaxForOtcToDB(Option option, Account account) {
-        var profit = profitCalculationService.calculateOptionProfit(option);
+    public void addTaxForOtcToDB(Option option, Account account, int amount) {
+        var profit = profitCalculationService.calculateOptionProfit(option, amount);
         addTaxAmountToDB(profit, account);
     }
 

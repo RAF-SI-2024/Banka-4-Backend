@@ -6,7 +6,9 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
-import rs.banka4.bank_service.domain.account.db.Account;
+import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.tx.TxExecutor;
 
 @Entity
 @Builder
@@ -27,19 +29,17 @@ public class Transaction {
     )
     private String transactionNumber;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(
-        name = "from_account_id",
+    @Column(
+        name = "from_account",
         nullable = false
     )
-    private Account fromAccount;
+    private String fromAccount;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(
-        name = "to_account_id",
+    @Column(
+        name = "to_account",
         nullable = false
     )
-    private Account toAccount;
+    private String toAccount;
 
     @Embedded
     private MonetaryAmount from;
@@ -74,6 +74,13 @@ public class Transaction {
 
     @Builder.Default
     private boolean isTransfer = false;
+
+    /**
+     * Set to an ID returned by a {@link TxExecutor} to have the executor automatically update this
+     * transactions {@link #status}.
+     */
+    @Column
+    private ForeignBankId executingTransaction;
 
     @Override
     public final boolean equals(Object o) {

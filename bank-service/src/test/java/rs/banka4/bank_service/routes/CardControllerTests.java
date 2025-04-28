@@ -24,6 +24,7 @@ import rs.banka4.bank_service.domain.card.dtos.CreateCardDto;
 import rs.banka4.bank_service.exceptions.authenticator.NotValidTotpException;
 import rs.banka4.bank_service.generator.CardObjectMother;
 import rs.banka4.bank_service.service.abstraction.CardService;
+import rs.banka4.bank_service.tx.config.InterbankConfig;
 import rs.banka4.bank_service.util.MockMvcUtil;
 import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 
@@ -111,6 +112,11 @@ public class CardControllerTests {
         @Bean
         public CardService cardService() {
             return Mockito.mock(CardService.class);
+        }
+
+        @Bean
+        public InterbankConfig interbankConfig() {
+            return new InterbankConfig();
         }
 
         @Bean

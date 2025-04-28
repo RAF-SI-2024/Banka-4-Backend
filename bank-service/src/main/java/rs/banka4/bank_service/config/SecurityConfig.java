@@ -19,12 +19,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import rs.banka4.bank_service.config.filters.*;
+import rs.banka4.bank_service.security.InterbankAuthentication;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final InterbankAuthFilter interbankAuthFilter;
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final RateLimitingFilter rateLimitingFilter;
     private final ExceptionHandlingFilter exceptionHandlingFilter;
@@ -126,6 +128,16 @@ public class SecurityConfig {
                             AuthorityAuthorizationManager.hasAuthority("ADMIN")
                         )
                     )
+                    .requestMatchers(HttpMethod.GET, "/stock/stock/securities/bank/profit")
+                    .access(
+                        AuthorizationManagers.anyOf(
+                            AuthorityAuthorizationManager.hasAuthority("SUPERVISOR"),
+                            AuthorityAuthorizationManager.hasAuthority("ADMIN")
+                        )
+                    )
+                    /* All inter-bank routes. */
+                    .requestMatchers("/interbank/**")
+                    .hasAuthority(InterbankAuthentication.OTHER_BANK_AUTHORITY)
                     /* Global fallback. */
                     .anyRequest()
                     .authenticated()
@@ -135,7 +147,8 @@ public class SecurityConfig {
             .addFilterBefore(exceptionHandlingFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(invalidRouteFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(interbankAuthFilter, JwtAuthenticationFilter.class);
 
         return httpSecurity.build();
     }

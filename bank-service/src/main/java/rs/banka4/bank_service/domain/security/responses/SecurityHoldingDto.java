@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.options.db.OptionType;
 
 
 public record SecurityHoldingDto(
@@ -13,6 +14,7 @@ public record SecurityHoldingDto(
         description = "Ticker symbol of the security.",
         example = "AAPL"
     ) String ticker,
+    OptionType optionType,
 
     @Schema(
         description = "Total number of units owned.",

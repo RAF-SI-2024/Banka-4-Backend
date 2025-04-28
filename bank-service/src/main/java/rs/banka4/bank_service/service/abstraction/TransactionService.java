@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import rs.banka4.bank_service.domain.transaction.db.TransactionStatus;
-import rs.banka4.bank_service.domain.transaction.dtos.CreateFeeTransactionDto;
 import rs.banka4.bank_service.domain.transaction.dtos.CreatePaymentDto;
 import rs.banka4.bank_service.domain.transaction.dtos.CreateTransferDto;
 import rs.banka4.bank_service.domain.transaction.dtos.TransactionDto;
@@ -22,8 +21,6 @@ public interface TransactionService {
         Authentication authentication,
         CreateTransferDto createTransferDto
     );
-
-    void createFeeTransaction(CreateFeeTransactionDto createFeeTransactionDto);
 
     Page<TransactionDto> getAllTransactionsForClient(
         String token,

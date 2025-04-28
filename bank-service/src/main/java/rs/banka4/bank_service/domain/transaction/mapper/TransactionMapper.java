@@ -12,14 +12,6 @@ public interface TransactionMapper {
     TransactionMapper INSTANCE = Mappers.getMapper(TransactionMapper.class);
 
     @Mapping(
-        source = "fromAccount.accountNumber",
-        target = "fromAccount"
-    )
-    @Mapping(
-        source = "toAccount.accountNumber",
-        target = "toAccount"
-    )
-    @Mapping(
         source = "from.amount",
         target = "fromAmount"
     )

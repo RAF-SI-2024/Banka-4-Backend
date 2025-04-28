@@ -38,6 +38,7 @@ import rs.banka4.bank_service.exceptions.user.employee.EmployeeNotFound;
 import rs.banka4.bank_service.repositories.*;
 import rs.banka4.bank_service.service.abstraction.*;
 import rs.banka4.bank_service.utils.specification.AccountSpecification;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.rafeisen.common.dto.AccountNumberDto;
 import rs.banka4.rafeisen.common.security.AuthenticatedBankUserAuthentication;
 import rs.banka4.rafeisen.common.security.UserType;
@@ -53,6 +54,8 @@ public class AccountServiceImpl implements AccountService {
     private final CompanyMapper companyMapper;
     private final AccountRepository accountRepository;
     private final ClientRepository clientRepository;
+    private final EmployeeRepository employeeRepository;
+    private final BankAccountService bankAccountService;
     private final EmployeeService employeeService;
     private final CardService cardService;
     private final JwtService jwtService;
@@ -75,15 +78,22 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Set<AccountNumberDto> getAccountsForUser(UUID userId) {
+        /* hella ugly. */
         Optional<Client> client = clientRepository.findById(userId);
-        if (client.isEmpty()) {
-            throw new ClientNotFound(userId.toString());
+        Optional<Employee> employee = employeeRepository.findById(userId);
+        if (client.isPresent()) {
+            Set<Account> accounts = accountRepository.findAllByClient(client.get());
+            return accounts.stream()
+                .map(AccountMapper.INSTANCE::toAccountNumberDto)
+                .collect(Collectors.toSet());
+        } else if (employee.isPresent()) {
+            List<Account> accounts = bankAccountService.getBankAccounts();
+            return accounts.stream()
+                .map(AccountMapper.INSTANCE::toAccountNumberDto)
+                .collect(Collectors.toSet());
         }
 
-        Set<Account> accounts = accountRepository.findAllByClient(client.get());
-        return accounts.stream()
-            .map(AccountMapper.INSTANCE::toAccountNumberDto)
-            .collect(Collectors.toSet());
+        throw new ClientNotFound(userId.toString());
     }
 
     @Override
@@ -120,10 +130,10 @@ public class AccountServiceImpl implements AccountService {
      * it will be set to {@link AccountType#DOO}. Currency will be set if the provided currency code
      * exists.
      *
-     * @throws CompanyNotFound if the company with the given id is not found
-     * @throws ClientNotFound if the client with the given id is not found
      * @param createAccountDto the details of the account to be created
      * @param auth the authentication details of the client
+     * @throws CompanyNotFound if the company with the given id is not found
+     * @throws ClientNotFound if the client with the given id is not found
      */
     @Transactional
     @Override
@@ -313,9 +323,9 @@ public class AccountServiceImpl implements AccountService {
      * Connects a client to an account. If the client id is null, a new one will be created,
      * otherwise it will check for an existing client with the given id.
      *
-     * @throws ClientNotFound if the given client id is not found
      * @param account the account to connect a client to
      * @param createAccountDto with the details of the client given in {@link AccountClientIdDto}
+     * @throws ClientNotFound if the given client id is not found
      */
     private void connectClientToAccount(Account account, CreateAccountDto createAccountDto) {
         if (
@@ -427,4 +437,22 @@ public class AccountServiceImpl implements AccountService {
         );
     }
 
+    @Override
+    public Optional<AccountNumberDto> getRequiredAccount(
+        UUID userId,
+        CurrencyCode currencyCode,
+        BigDecimal premium
+    ) {
+        final var accounts = this.getAccountsForUser(userId);
+        for (var account : accounts) {
+            if (
+                account.currency()
+                    .equals(currencyCode)
+                    && account.availableBalance()
+                        .compareTo(premium)
+                        >= 0
+            ) return Optional.of(account);
+        }
+        return Optional.empty();
+    }
 }

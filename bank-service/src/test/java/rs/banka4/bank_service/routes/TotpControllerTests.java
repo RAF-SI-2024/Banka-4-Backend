@@ -19,6 +19,7 @@ import rs.banka4.bank_service.controller.TotpController;
 import rs.banka4.bank_service.domain.authenticator.db.SentCode;
 import rs.banka4.bank_service.domain.authenticator.dtos.RegenerateAuthenticatorResponseDto;
 import rs.banka4.bank_service.service.impl.TotpServiceImpl;
+import rs.banka4.bank_service.tx.config.InterbankConfig;
 import rs.banka4.bank_service.util.MockMvcUtil;
 import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 
@@ -74,6 +75,11 @@ public class TotpControllerTests {
         @Bean
         public TotpServiceImpl totpService() {
             return Mockito.mock(TotpServiceImpl.class);
+        }
+
+        @Bean
+        public InterbankConfig interbankConfig() {
+            return new InterbankConfig();
         }
 
         @Bean

@@ -27,6 +27,7 @@ import rs.banka4.bank_service.domain.transaction.dtos.TransactionDto;
 import rs.banka4.bank_service.generator.TransactionObjectMother;
 import rs.banka4.bank_service.service.abstraction.JwtService;
 import rs.banka4.bank_service.service.abstraction.TransactionService;
+import rs.banka4.bank_service.tx.config.InterbankConfig;
 import rs.banka4.bank_service.util.MockMvcUtil;
 import rs.banka4.rafeisen.common.exceptions.ErrorResponseHandler;
 
@@ -98,6 +99,12 @@ public class TransactionControllerTests {
         public JwtService jwtUtil() {
             return Mockito.mock(JwtService.class);
         }
+
+        @Bean
+        public InterbankConfig interbankConfig() {
+            return new InterbankConfig();
+        }
+
 
         @Bean
         public JwtAuthenticationFilter jwtAuthenticationFilter() {

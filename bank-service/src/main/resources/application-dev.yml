@@ -65,3 +65,9 @@ listings:
 
 services:
   exchange: 'http://exchange_office:8000/'
+
+rafeisen:
+  cache:
+    valkey:
+      host: valkey
+      port: 6379

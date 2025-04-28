@@ -282,10 +282,8 @@ public class TransactionServiceGetTests {
                             if (
                                 accountNumber != null
                                     && !transaction.getFromAccount()
-                                        .getAccountNumber()
                                         .equals(accountNumber)
                                     && !transaction.getToAccount()
-                                        .getAccountNumber()
                                         .equals(accountNumber)
                             ) return false;
                             return true;

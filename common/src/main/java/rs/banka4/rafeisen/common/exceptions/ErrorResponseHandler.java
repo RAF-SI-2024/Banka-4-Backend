@@ -14,6 +14,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import rs.banka4.rafeisen.common.exceptions.jwt.ExpiredJwt;
+import rs.banka4.rafeisen.common.exceptions.jwt.NoJwtProvided;
+import rs.banka4.rafeisen.common.exceptions.jwt.Unauthorized;
 
 @RestControllerAdvice
 @Log4j2
@@ -45,7 +48,12 @@ public class ErrorResponseHandler {
 
     @ExceptionHandler(BaseApiException.class)
     public ResponseEntity<Map<String, ?>> handleErrorResponse(BaseApiException ex) {
-        log.debug("Reporting API error in API call", ex);
+        if (
+            !(ex instanceof NoJwtProvided)
+                && !(ex instanceof ExpiredJwt)
+                && !(ex instanceof Unauthorized)
+                && !(ex instanceof RouteNotFound)
+        ) log.debug("Reporting API error in API call", ex);
         return ResponseEntity.status(ex.getStatus())
             .body(formatErrorBody(ex.getClass(), ex.getExtra()));
     }
@@ -87,23 +95,17 @@ public class ErrorResponseHandler {
     @ExceptionHandler(TypeMismatchException.class)
     public ResponseEntity<Map<String, ?>> handleTypeMismatchException(TypeMismatchException e) {
         log.debug("Reporting type-mismatch error in API call", e);
+        final var extraData = new HashMap<String, Object>();
+        extraData.put("errorCode", e.getErrorCode());
+        extraData.put("propertyName", e.getPropertyName());
+        extraData.put(
+            /* Nullable. lmao. */
+            "expectedType",
+            Optional.ofNullable(e.getRequiredType())
+                .map(Class::getSimpleName)
+                .orElse(null)
+        );
         return ResponseEntity.badRequest()
-            .body(
-                formatErrorBody(
-                    "TypeMismatch",
-                    Map.ofEntries(
-                        Map.entry("errorCode", e.getErrorCode()),
-                        Map.entry("propertyName", e.getPropertyName()),
-                        Map.entry(
-                            /* Nullable. lmao. */
-                            "expectedType",
-                            Optional.ofNullable(e.getRequiredType())
-                                .map(Class::getSimpleName)
-                                .orElse(null)
-                        ),
-                        Map.entry("badValue", e.getValue())
-                    )
-                )
-            );
+            .body(formatErrorBody("TypeMismatch", extraData));
     }
 }

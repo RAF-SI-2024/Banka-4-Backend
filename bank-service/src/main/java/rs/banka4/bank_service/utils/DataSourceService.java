@@ -12,10 +12,14 @@ import rs.banka4.bank_service.domain.account.db.Account;
 import rs.banka4.bank_service.domain.account.db.AccountType;
 import rs.banka4.bank_service.domain.actuaries.db.ActuaryInfo;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.assets.db.AssetOwnership;
+import rs.banka4.bank_service.domain.assets.db.AssetOwnershipId;
 import rs.banka4.bank_service.domain.card.db.*;
 import rs.banka4.bank_service.domain.company.db.ActivityCode;
 import rs.banka4.bank_service.domain.company.db.Company;
 import rs.banka4.bank_service.domain.loan.db.*;
+import rs.banka4.bank_service.domain.options.db.Asset;
+import rs.banka4.bank_service.domain.user.User;
 import rs.banka4.bank_service.domain.user.client.db.Client;
 import rs.banka4.bank_service.domain.user.client.db.ClientContact;
 import rs.banka4.bank_service.domain.user.employee.db.Employee;
@@ -50,6 +54,8 @@ public class DataSourceService {
     public static final UUID EMPLOYEE_CHRIS =
         UUID.fromString("D55C2670-F40D-4DF6-B06A-0CADB80AE023");
 
+    public static final UUID CLIENT_SINISA_MALI =
+        UUID.fromString("39e006da-722c-4118-8a42-9bbf3d2c9d9b");
     public static final UUID CLIENT_JOHN = UUID.fromString("D96CBD90-4DA2-44C4-866C-E0E37754F95D");
     public static final UUID CLIENT_JANE = UUID.fromString("44ADDAB9-F74D-4974-9733-4B23E6D4DCC9");
     public static final UUID CLIENT_DANIEL =
@@ -146,6 +152,8 @@ public class DataSourceService {
     public static final UUID JOHN_CONTACT = UUID.fromString("25A92DCD-A4CE-4AFA-BDF7-37B391E27B58");
     public static final UUID JANE_CONTACT = UUID.fromString("8A2DD617-9EB3-4216-AFB0-26C54CB8DDA9");
 
+    public static final UUID ASSET_APPLE = UUID.fromString("00000000-0000-0000-0000-000000085249");
+    public static final UUID ASSET_AMAZON = UUID.fromString("00000000-0000-0000-0000-00000008524b");
 
     private final ClientRepository clientRepository;
     private final EmployeeRepository employeeRepository;
@@ -158,6 +166,8 @@ public class DataSourceService {
     private final InterestRateRepository interestRateRepository;
     private final CardRepository cardRepository;
     private final ActuaryRepository actuaryRepository;
+    private final AssetRepository assetRepository;
+    private final AssetOwnershipRepository assetOwnershipRepository;
 
     public void insertData(boolean devData) {
         /* Production seeders. */
@@ -179,6 +189,7 @@ public class DataSourceService {
             cardSeeder();
             authorizedUserSeeder();
             actuaryInfoSeeder();
+            assetOwnershipSeeder();
         }
     }
 
@@ -1020,17 +1031,32 @@ public class DataSourceService {
     }
 
     private void seedStateCompany() {
-        Company stateCompany =
-            Company.builder()
-                .id(STATE_COMPANY)
-                .name("The State")
-                .tin("100100100")
-                .crn("200200200")
-                .address("Government Square, Belgrade")
-                .build();
+        final var theState =
+            companyRepository.saveAndFlush(
+                Company.builder()
+                    .id(STATE_COMPANY)
+                    .name("The State")
+                    .tin("100100100")
+                    .crn("200200200")
+                    .address("Government Square, Belgrade")
+                    .build()
+            );
 
-        companyRepository.saveAndFlush(stateCompany);
-
+        final var siniša =
+            clientRepository.saveAndFlush(
+                Client.builder()
+                    .id(CLIENT_SINISA_MALI)
+                    .firstName("Sinisa")
+                    .lastName("Mali")
+                    .dateOfBirth(LocalDate.of(1995, 5, 15))
+                    .gender(Gender.MALE)
+                    .email("sinisa@kradja.com")
+                    .phone("+38162798543")
+                    .address("Dedinje 8")
+                    .password(passwordEncoder.encode("password"))
+                    .enabled(true)
+                    .build()
+            );
 
         Account stateAccount =
             Account.builder()
@@ -1046,8 +1072,9 @@ public class DataSourceService {
                 )
                 .active(true)
                 .accountType(AccountType.DOO)
-                .company(stateCompany)
+                .company(theState)
                 .currency(CurrencyCode.RSD)
+                .client(siniša)
                 .build();
 
         accountRepository.saveAndFlush(stateAccount);
@@ -1181,6 +1208,46 @@ public class DataSourceService {
             );
 
         actuaryRepository.saveAllAndFlush(actuaries);
+    }
+
+    private void assetOwnershipSeeder() {
+
+        User user1 =
+            employeeRepository.findById(EMPLOYEE_DANIEL)
+                .orElse(null);
+        User user2 =
+            employeeRepository.findById(EMPLOYEE_ALICE)
+                .orElse(null);
+
+        Asset asset1 =
+            assetRepository.findById(ASSET_AMAZON)
+                .orElse(null);
+        Asset asset2 =
+            assetRepository.findById(ASSET_AMAZON)
+                .orElse(null);
+
+        if (user1 == null || user2 == null || asset1 == null || asset2 == null) {
+            return;
+        }
+
+        List<AssetOwnership> assetOwnerships =
+            List.of(
+                AssetOwnership.builder()
+                    .id(new AssetOwnershipId(user1, asset1))
+                    .privateAmount(1000)
+                    .publicAmount(1000)
+                    .reservedAmount(0)
+                    .build(),
+
+                AssetOwnership.builder()
+                    .id(new AssetOwnershipId(user2, asset2))
+                    .privateAmount(800)
+                    .publicAmount(800)
+                    .reservedAmount(0)
+                    .build()
+            );
+
+        assetOwnershipRepository.saveAllAndFlush(assetOwnerships);
     }
 
 }

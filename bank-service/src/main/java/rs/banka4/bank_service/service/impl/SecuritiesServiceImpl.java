@@ -15,6 +15,7 @@ import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
 import rs.banka4.bank_service.domain.listing.db.Listing;
 import rs.banka4.bank_service.domain.options.db.Asset;
 import rs.banka4.bank_service.domain.options.db.Option;
+import rs.banka4.bank_service.domain.options.db.OptionType;
 import rs.banka4.bank_service.domain.security.SecurityDto;
 import rs.banka4.bank_service.domain.security.forex.db.ForexPair;
 import rs.banka4.bank_service.domain.security.future.db.Future;
@@ -25,6 +26,7 @@ import rs.banka4.bank_service.domain.taxes.db.dto.UserTaxInfoDto;
 import rs.banka4.bank_service.exceptions.AssetNotFound;
 import rs.banka4.bank_service.repositories.AssetOwnershipRepository;
 import rs.banka4.bank_service.repositories.ListingRepository;
+import rs.banka4.bank_service.repositories.OtcRequestRepository;
 import rs.banka4.bank_service.repositories.UserTaxDebtsRepository;
 import rs.banka4.bank_service.service.abstraction.ExchangeRateService;
 import rs.banka4.bank_service.service.abstraction.ProfitCalculationService;
@@ -42,6 +44,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
     private final ExchangeRateService exchangeRateService;
     private final UserTaxDebtsRepository userTaxDebtsRepository;
     private final TaxCalculationService taxCalculationService;
+    private final OtcRequestRepository otcRequestRepository;
 
     @Override
     public ResponseEntity<Page<SecurityDto>> getSecurities(
@@ -56,6 +59,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
     public Page<SecurityHoldingDto> getMyPortfolio(UUID myId, Pageable pageable) {
         var ownerships = assetOwnershipRepository.findByUserId(myId, pageable);
         return ownerships.map(ownership -> {
+            OptionType optionType = null;
             var asset =
                 ownership.getId()
                     .getAsset();
@@ -63,12 +67,18 @@ public class SecuritiesServiceImpl implements SecuritiesService {
             int totalAmount = ownership.getPrivateAmount() + publicAmount;
             Optional<Listing> optionalListing;
             if (asset instanceof Option option) {
+                optionType = option.getOptionType();
                 optionalListing =
                     listingRepository.getLatestListing(
                         option.getStock()
                             .getId(),
                         Limit.of(1)
                     );
+                var otc = otcRequestRepository.findByOptionId(option.getId());
+                if (otc.isPresent())
+                    totalAmount =
+                        otc.get()
+                            .getAmount();
             } else {
                 optionalListing = listingRepository.getLatestListing(asset.getId(), Limit.of(1));
             }
@@ -82,8 +92,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
                 )
                     .orElseThrow(AssetNotFound::new);
 
-            var profit = profitCalculator.calculateProfit(myId, asset, currentPrice);
-
+            var profit = profitCalculator.calculateProfit(myId, asset, currentPrice, totalAmount);
             var ticker = asset.getTicker();
 
 //            var lastModified=orderRepository.findNewestOrder(myId,asset,true);
@@ -91,6 +100,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
                 asset.getId(),
                 mapToAssetTypeDto(asset),
                 ticker,
+                optionType,
                 totalAmount,
                 currentPrice,
                 profit,
@@ -120,7 +130,12 @@ public class SecuritiesServiceImpl implements SecuritiesService {
                             )
                         )
                             .orElseThrow(AssetNotFound::new);
-                    return profitCalculator.calculateProfit(myId, asset, currentPrice);
+                    return profitCalculator.calculateProfit(
+                        myId,
+                        asset,
+                        currentPrice,
+                        ownership.getPrivateAmount() + ownership.getPublicAmount()
+                    );
                 }
                 return null;
             })

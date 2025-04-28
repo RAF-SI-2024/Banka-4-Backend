@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.UUID;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 
 @Schema(
     description = "Data Transfer Object representing an OTC request (negotiation) for trading securities"
@@ -13,7 +14,7 @@ public record OtcRequestCreateDto(
     @Schema(
         description = "id of asset owner",
         example = "1fad2c01-f82f-41a6-822c-8ca1b3232575"
-    ) @NotNull UUID userId,
+    ) @NotNull ForeignBankId userId,
     @Schema(
         description = "id of asset",
         example = "1fad2c01-f82f-41a6-822c-8ca1b3232575"
