@@ -75,18 +75,20 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
                             publicOwnerships.get(i)
                                 .getTicker()
                         ),
-                        List.of(
-                            new Seller(
-                                new ForeignBankId(
-                                    444,
+                        new ArrayList<>(
+                            List.of(
+                                new Seller(
+                                    new ForeignBankId(
+                                        444,
+                                        publicOwnerships.get(i)
+                                            .getId()
+                                            .getUser()
+                                            .getId()
+                                            .toString()
+                                    ),
                                     publicOwnerships.get(i)
-                                        .getId()
-                                        .getUser()
-                                        .getId()
-                                        .toString()
-                                ),
-                                publicOwnerships.get(i)
-                                    .getPublicAmount()
+                                        .getPublicAmount()
+                                )
                             )
                         )
                     );
