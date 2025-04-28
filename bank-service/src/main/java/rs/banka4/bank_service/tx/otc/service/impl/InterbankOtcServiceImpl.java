@@ -193,7 +193,7 @@ public class InterbankOtcServiceImpl implements InterbankOtcService {
             request.getModifiedBy()
                 .equals(offer.lastModifiedBy())
         ) throw new WrongTurn();
-        request = InterbankOtcMapper.INSTANCE.toOtcRequest(offer);
+        InterbankOtcMapper.INSTANCE.updateFromIncomingOffer(request, offer);
         otcRequestRepository.save(request);
     }
 
