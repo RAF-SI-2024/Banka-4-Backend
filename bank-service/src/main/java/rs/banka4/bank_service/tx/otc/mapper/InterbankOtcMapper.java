@@ -3,8 +3,10 @@ package rs.banka4.bank_service.tx.otc.mapper;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -101,4 +103,31 @@ public interface InterbankOtcMapper {
         return OffsetDateTime.of(otcRequest.getSettlementDate(), LocalTime.of(0, 0), ZoneOffset.UTC)
             .plusDays(1);
     }
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(
+        target = "original.modifiedBy",
+        source = "offer.lastModifiedBy"
+    )
+    @Mapping(
+        target = "original.pricePerStock",
+        source = "offer.pricePerUnit"
+    )
+    @Mapping(
+        target = "original.premium",
+        source = "offer.premium"
+    )
+    @Mapping(
+        target = "original.settlementDate",
+        expression = "java(offer.settlementDate().toLocalDate())"
+    )
+    @Mapping(
+        target = "original.id",
+        ignore = true
+    )
+    @Mapping(
+        target = "original.stock",
+        ignore = true
+    )
+    void updateFromIncomingOffer(@MappingTarget OtcRequest original, OtcOffer offer);
 }

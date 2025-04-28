@@ -14,7 +14,7 @@ public interface InterbankService {
     Call<ForeignBankId> sendCreateOtc(@Body OtcOffer offer);
 
     @PUT("negotiations/{routingNumber}/{id}")
-    Call<ForeignBankId> sendUpdateOtc(
+    Call<Void> sendUpdateOtc(
         @Body OtcOffer offer,
         @Path("routingNumber") long routingNumber,
         @Path("id") String id

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import rs.banka4.bank_service.domain.assets.db.AssetOwnership;
@@ -40,4 +41,8 @@ public interface AssetOwnershipRepository extends JpaRepository<AssetOwnership, 
         value = "select a from AssetOwnership a where a.id.user.id = :userId and a.id.asset.id = :assetId"
     )
     Optional<AssetOwnership> findAndLockByMyId(UUID userId, UUID assetId);
+
+    @Query("DELETE FROM AssetOwnership o WHERE o.id.asset.id = :assetId")
+    @Modifying
+    void deleteAllWithAssetId(UUID assetId);
 }

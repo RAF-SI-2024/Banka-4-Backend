@@ -118,4 +118,8 @@ public class AssetOwnershipServiceImpl implements AssetOwnershipService {
             return true;
         }
     }
+
+    public void clearOwnership(UUID assetId) {
+        assetOwnershipRepository.deleteAllWithAssetId(assetId);
+    }
 }

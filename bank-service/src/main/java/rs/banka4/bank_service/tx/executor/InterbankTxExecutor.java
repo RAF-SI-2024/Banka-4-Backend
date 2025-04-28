@@ -491,24 +491,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         assert seller.routingNumber() == ForeignBankId.OUR_ROUTING_NUMBER;
         final var sellerUuid = UUID.fromString(seller.id());
 
-        /* HACK: if the user is ours, take away their option.  This is a hack because it is Sunday,
-         * two days before this suffering that befell us ends.  In reality, the option should be
-         * disposed of via a posting.  I don't care, however.  I'm even ignoring whether
-         * changeAssetOwnership failed because there's multiple postings for each TX for each option
-         * and this is called on all of them, so this is bound to fail, as privateAmount == 1 before
-         * an option is used up.
-         */
-        final var buyer = offer.getMadeBy();
-        if (buyer.routingNumber() == ForeignBankId.OUR_ROUTING_NUMBER) {
-            assetOwnershipService.changeAssetOwnership(
-                option.getId(),
-                UUID.fromString(buyer.id()),
-                -1,
-                0,
-                0
-            );
-        }
-
         switch (posting.asset()) {
             case TxAsset.Monas(MonetaryAsset(CurrencyCode currency)) -> {
                 final var depositAcc =
@@ -868,6 +850,19 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
     @Transactional(propagation = Propagation.MANDATORY)
     protected void executeLocalPhase2(DoubleEntryTransaction tx) {
         for (final var posting : tx.postings()) {
+            if (posting.account() instanceof TxAccount.Option option) {
+                /* HACK: take the option away from everyone.  This is a hack because it is Monday,
+                 * 18 hours before this suffering that befell us ends.  In reality, the option
+                 * should be disposed of via a posting.  I don't care, however.
+                 *
+                 * Each option is guaranteed a unique owner as a result of the fact that each
+                 * negotiation produces at most one option, and only one buyer exists per
+                 * negotiation.
+                 */
+                optionsRepo.findByFBId(option.id()).ifPresent(opt ->
+                    assetOwnershipService.clearOwnership(opt.getId()));
+            }
+
             if (
                 posting.account()
                     .routingNumber()
@@ -1035,7 +1030,10 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     messageAsString,
                     false,
                     Instant.now()
-                        .minusSeconds(1)
+                        .minus(
+                            interbankConfig.getResendDuration()
+                                .multipliedBy(2)
+                        )
                 )
             );
         }
