@@ -49,6 +49,7 @@ import rs.banka4.bank_service.domain.trading.db.OtcRequest;
 import rs.banka4.bank_service.domain.trading.db.RequestStatus;
 import rs.banka4.bank_service.domain.transaction.db.Transaction;
 import rs.banka4.bank_service.domain.user.User;
+import rs.banka4.bank_service.exceptions.InvalidTxAsset;
 import rs.banka4.bank_service.repositories.AccountRepository;
 import rs.banka4.bank_service.repositories.OptionsRepository;
 import rs.banka4.bank_service.repositories.OtcRequestRepository;
@@ -1523,9 +1524,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 return handleForeignAndRsdTx(posting, targetCurrencyCode, targetAccount);
             }
         }
-
-        // TODO: myb exception?
-        return new ArrayList<>();
+        throw new InvalidTxAsset();
     }
 
     private List<Posting> handleForeignToForeignTx(
@@ -1540,7 +1539,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 bankAccountService.getBankAccountForCurrency(asset.currency());
             Account bankAccountTo =
                 bankAccountService.getBankAccountForCurrency(targetCurrencyCode);
-            Account bankAccountRsd = bankAccountService.getBankAccountForCurrency(CurrencyCode.RSD);
 
             postings.addAll(createFeePostings(posting, bankAccountFrom));
 
@@ -1566,40 +1564,11 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     CurrencyCode.RSD
                 );
 
-            Posting removeFromBankAccountFrom =
-                new Posting(
-                    new TxAccount.Account(bankAccountFrom.getAccountNumber()),
-                    posting.amount()
-                        .negate(),
-                    new TxAsset.Monas(asset.currency())
-                );
-
-            Posting addToBankAccountRsd =
-                new Posting(
-                    new TxAccount.Account(bankAccountRsd.getAccountNumber()),
-                    convertedAmountToRsd,
-                    new TxAsset.Monas(CurrencyCode.RSD)
-                );
-
             BigDecimal convertedAmountToSpecificForeignCurrency =
                 exchangeRateService.convertCurrency(
-                    addToBankAccountFrom.amount(),
+                    convertedAmountToRsd,
                     CurrencyCode.RSD,
                     targetCurrencyCode
-                );
-
-            Posting removeFromBankAccountRsd =
-                new Posting(
-                    new TxAccount.Account(bankAccountRsd.getAccountNumber()),
-                    convertedAmountToRsd.negate(),
-                    new TxAsset.Monas(asset.currency())
-                );
-
-            Posting addToBankAccountTo =
-                new Posting(
-                    new TxAccount.Account(bankAccountTo.getAccountNumber()),
-                    convertedAmountToSpecificForeignCurrency,
-                    new TxAsset.Monas(targetCurrencyCode)
                 );
 
             Posting removeFromBankTo =
@@ -1617,20 +1586,7 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                 );
 
             postings.addAll(
-                List.of(
-                    addToBankAccountFrom,
-                    addToBankAccountRsd,
-                    addToBankAccountTo,
-                    addToTargetClient
-                )
-            );
-            postings.addAll(
-                List.of(
-                    removeFromClient,
-                    removeFromBankAccountFrom,
-                    removeFromBankAccountRsd,
-                    removeFromBankTo
-                )
+                List.of(removeFromClient, addToBankAccountFrom, removeFromBankTo, addToTargetClient)
             );
         }
 
@@ -1674,21 +1630,6 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     targetCurrency
                 );
 
-            Posting removeFromBankAccountFrom =
-                new Posting(
-                    new TxAccount.Account(bankAccountFrom.getAccountNumber()),
-                    posting.amount()
-                        .negate(),
-                    new TxAsset.Monas(asset.currency())
-                );
-
-            Posting addToBankAccountTo =
-                new Posting(
-                    new TxAccount.Account(bankAccountTo.getAccountNumber()),
-                    convertedAmount,
-                    new TxAsset.Monas(targetCurrency)
-                );
-
             Posting removeFromBankTo =
                 new Posting(
                     new TxAccount.Account(bankAccountTo.getAccountNumber()),
@@ -1703,8 +1644,8 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
                     new TxAsset.Monas(targetCurrency)
                 );
 
-            postings.addAll(List.of(addToBankAccountFrom, addToBankAccountTo, addToTargetClient));
-            postings.addAll(List.of(removeFromClient, removeFromBankAccountFrom, removeFromBankTo));
+            postings.addAll(List.of(removeFromClient, addToBankAccountFrom));
+            postings.addAll(List.of(removeFromBankTo, addToTargetClient));
         }
 
         return postings;

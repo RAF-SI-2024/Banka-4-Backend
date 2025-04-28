@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rs.banka4.bank_service.domain.account.db.Account;
 import rs.banka4.bank_service.domain.actuaries.db.MonetaryAmount;
+import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
 import rs.banka4.bank_service.domain.transaction.db.Transaction;
 import rs.banka4.bank_service.domain.transaction.db.TransactionStatus;
 import rs.banka4.bank_service.domain.transaction.dtos.*;
@@ -37,6 +38,11 @@ import rs.banka4.bank_service.service.abstraction.ExchangeRateService;
 import rs.banka4.bank_service.service.abstraction.JwtService;
 import rs.banka4.bank_service.service.abstraction.TotpService;
 import rs.banka4.bank_service.service.abstraction.TransactionService;
+import rs.banka4.bank_service.tx.data.DoubleEntryTransaction;
+import rs.banka4.bank_service.tx.data.Posting;
+import rs.banka4.bank_service.tx.data.TxAccount;
+import rs.banka4.bank_service.tx.data.TxAsset;
+import rs.banka4.bank_service.tx.executor.InterbankTxExecutor;
 import rs.banka4.bank_service.utils.specification.PaymentSpecification;
 import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.rafeisen.common.utils.specification.SpecificationCombinator;
@@ -54,6 +60,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final BankAccountServiceImpl bankAccountServiceImpl;
     private final JwtService jwtService;
     private final EntityManager entityManager;
+    private final InterbankTxExecutor txExecutor;
 
     @Override
     @Transactional
@@ -89,13 +96,7 @@ public class TransactionServiceImpl implements TransactionService {
         );
         validateDailyAndMonthlyLimit(fromAccount, createPaymentDto.fromAmount());
 
-        Transaction transaction =
-            processTransaction(
-                fromAccount,
-                toAccount,
-                createPaymentDto.fromAmount(),
-                createPaymentDto
-            );
+        Transaction transaction = processTransaction(fromAccount, toAccount, createPaymentDto);
 
         if (createPaymentDto.saveRecipient()) {
             ClientContact clientContact =
@@ -135,13 +136,7 @@ public class TransactionServiceImpl implements TransactionService {
         validateClientAccountOwnership(client, fromAccount, toAccount);
         validateSufficientFunds(fromAccount, createTransferDto.fromAmount());
 
-        Transaction transaction =
-            processTransaction(
-                fromAccount,
-                toAccount,
-                createTransferDto.fromAmount(),
-                createTransferDto
-            );
+        Transaction transaction = processTransaction(fromAccount, toAccount, createTransferDto);
 
         return TransactionMapper.INSTANCE.toDto(transaction);
     }
@@ -898,4 +893,68 @@ public class TransactionServiceImpl implements TransactionService {
                 .add(converted)
         );
     }
+
+    @Transactional
+    protected Transaction processTransaction(
+        Account fromAccount,
+        Account toAccount,
+        CreateTransactionDto createTransactionDto
+    ) {
+        BigDecimal fromAmount;
+        String message;
+        if (createTransactionDto instanceof CreatePaymentDto) {
+            fromAmount = ((CreatePaymentDto) createTransactionDto).fromAmount();
+            message = "Payment transaction";
+        } else {
+            fromAmount = ((CreateTransferDto) createTransactionDto).fromAmount();
+            message = "Transfer transaction";
+        }
+
+        Posting posting =
+            new Posting(
+                new TxAccount.Account(fromAccount.getAccountNumber()),
+                fromAmount,
+                new TxAsset.Monas(fromAccount.getCurrency())
+            );
+
+        List<Posting> postings =
+            txExecutor.ensurePostingCurrency(
+                posting,
+                toAccount.getCurrency(),
+                new TxAccount.Account(toAccount.getAccountNumber())
+            );
+
+        DoubleEntryTransaction transaction =
+            new DoubleEntryTransaction(postings, message, ForeignBankId.our(UUID.randomUUID()));
+
+        Transaction tx;
+        ForeignBankId id = txExecutor.submitTx(transaction);
+        BigDecimal fee = exchangeRateService.calculateFee(fromAmount);
+
+        if (createTransactionDto instanceof CreatePaymentDto) {
+            tx =
+                buildTransaction(
+                    fromAccount,
+                    toAccount,
+                    (CreatePaymentDto) createTransactionDto,
+                    fee,
+                    TransactionStatus.IN_PROGRESS
+                );
+        } else {
+            tx =
+                buildTransfer(
+                    fromAccount,
+                    toAccount,
+                    (CreateTransferDto) createTransactionDto,
+                    fee,
+                    TransactionStatus.IN_PROGRESS
+                );
+        }
+
+        tx.setExecutingTransaction(id);
+        transactionRepository.save(tx);
+
+        return tx;
+    }
+
 }
