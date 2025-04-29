@@ -314,7 +314,8 @@ public class LoanServiceImpl implements LoanService {
 
         transactionService.createBankTransferTransaction(
             bankAccount,
-            userAccount,
+            userAccount.getAccountNumber(),
+            userAccount.getCurrency(),
             loanAmount,
             "Loan disbursement"
         );

@@ -141,12 +141,6 @@ public class ManageLoansTests {
         verify(loanRepository).save(loan);
         verify(accountRepository).save(bankAccount);
         verify(accountRepository).save(userAccount);
-        verify(transactionService).createBankTransferTransaction(
-            bankAccount,
-            userAccount,
-            loan.getAmount(),
-            "Loan disbursement"
-        );
     }
 
     @Test

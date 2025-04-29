@@ -16,6 +16,7 @@ import rs.banka4.bank_service.domain.orders.db.Direction;
 import rs.banka4.bank_service.domain.orders.db.Order;
 import rs.banka4.bank_service.domain.orders.db.Status;
 import rs.banka4.bank_service.domain.trading.db.ForeignBankId;
+import rs.banka4.bank_service.domain.transaction.dtos.CreatePaymentDto;
 import rs.banka4.bank_service.exceptions.ActuaryNotFoundException;
 import rs.banka4.bank_service.exceptions.InsufficientVolume;
 import rs.banka4.bank_service.exceptions.TradingLimitException;
@@ -24,8 +25,11 @@ import rs.banka4.bank_service.repositories.OrderRepository;
 import rs.banka4.bank_service.service.abstraction.AssetOwnershipService;
 import rs.banka4.bank_service.service.abstraction.ListingService;
 import rs.banka4.bank_service.service.abstraction.TaxService;
+import rs.banka4.bank_service.service.abstraction.TransactionService;
 import rs.banka4.bank_service.tx.TxExecutor;
 import rs.banka4.bank_service.tx.data.*;
+import rs.banka4.bank_service.tx.executor.InterbankTxExecutor;
+import rs.banka4.rafeisen.common.currency.CurrencyCode;
 import rs.banka4.rafeisen.common.security.Privilege;
 
 @Slf4j
@@ -39,6 +43,7 @@ public class OrderExecutionService {
     private final TxExecutor txExecutor;
     private final AssetOwnershipService assetOwnershipService;
     private final ActuaryRepository actuaryRepository;
+    private final TransactionService transactionService;
 
     /**
      * Processes an order in an all-or-nothing manner. If a matching order is found, it executes the
@@ -50,6 +55,7 @@ public class OrderExecutionService {
     @Async("orderExecutor")
     @Transactional
     public CompletableFuture<Boolean> processAllOrNothingOrderAsync(Order order) {
+        if (order.getDirection() == Direction.SELL) return CompletableFuture.completedFuture(false);
         log.info("[AON] Starting async processing for order {}", order.getId());
 
         Optional<Order> match =
@@ -124,6 +130,7 @@ public class OrderExecutionService {
     @Async("orderExecutor")
     @Transactional
     public CompletableFuture<Boolean> processPartialOrderAsync(Order order) {
+        if (order.getDirection() == Direction.SELL) return CompletableFuture.completedFuture(false);
         log.info("[Partial] Starting async processing for order {}", order.getId());
 
         /*
@@ -304,35 +311,70 @@ public class OrderExecutionService {
                 )
             );
 
-        Posting matchOrderPosting =
-            new Posting(
+//        Posting matchOrderPosting =
+//            new Posting(
+//                new TxAccount.Account(
+//                    matchedOrder.getAccount()
+//                        .getAccountNumber()
+//                ),
+//                order.getDirection() == Direction.SELL
+//                    ? order.getPricePerUnit()
+//                        .getAmount()
+//                        .multiply(BigDecimal.valueOf(order.getQuantity()))
+//                        .negate()
+//                    : order.getPricePerUnit()
+//                        .getAmount()
+//                        .multiply(BigDecimal.valueOf(order.getQuantity())),
+//                new TxAsset.Monas(
+//                    order.getPricePerUnit()
+//                        .getCurrency()
+//                )
+//            );
+
+        CurrencyCode toCurrency =
+            matchedOrder.getAccount()
+                .getCurrency();
+
+        List<Posting> postings =
+            ((InterbankTxExecutor) txExecutor).ensurePostingCurrency(
+                orderPosting,
+                toCurrency,
                 new TxAccount.Account(
                     matchedOrder.getAccount()
                         .getAccountNumber()
-                ),
-                order.getDirection() == Direction.SELL
-                    ? order.getPricePerUnit()
-                        .getAmount()
-                        .multiply(BigDecimal.valueOf(order.getQuantity()))
-                        .negate()
-                    : order.getPricePerUnit()
-                        .getAmount()
-                        .multiply(BigDecimal.valueOf(order.getQuantity())),
-                new TxAsset.Monas(
-                    order.getPricePerUnit()
-                        .getCurrency()
                 )
             );
 
         DoubleEntryTransaction transaction =
             new DoubleEntryTransaction(
-                List.of(orderPosting, matchOrderPosting),
+                postings,
                 "Order execution between buyer and seller",
                 ForeignBankId.our(UUID.randomUUID())
             );
 
         try {
-            txExecutor.submitImmediateTx(transaction);
+            ForeignBankId id = txExecutor.submitImmediateTx(transaction);
+
+            transactionService.createOrderTransaction(
+                new CreatePaymentDto(
+                    order.getAccount()
+                        .getAccountNumber(),
+                    matchedOrder.getAccount()
+                        .getAccountNumber(),
+                    orderPosting.amount()
+                        .negate(),
+                    matchedOrder.getAccount()
+                        .getClient()
+                        .getFirstName(),
+                    false,
+                    "289",
+                    "O-2131",
+                    "Order payment",
+                    "0"
+                ),
+                toCurrency,
+                id
+            );
         } catch (Exception e) {
             log.error("Failed to submit transaction for orders {} {}", order, matchedOrder, e);
             throw new RuntimeException("Failed to submit transaction", e);

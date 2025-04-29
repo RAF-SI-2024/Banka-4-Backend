@@ -1505,13 +1505,40 @@ public class InterbankTxExecutor implements TxExecutor, ApplicationRunner {
         TxAccount.Account targetAccount
     ) {
         if (posting.asset() instanceof TxAsset.Monas(MonetaryAsset asset)) {
-            if (asset.currency() != CurrencyCode.RSD && targetCurrencyCode != CurrencyCode.RSD) {
-                return handleForeignToForeignTx(posting, targetCurrencyCode, targetAccount);
-            } else {
-                return handleForeignAndRsdTx(posting, targetCurrencyCode, targetAccount);
-            }
+            if (
+                asset.currency()
+                    .equals(targetCurrencyCode)
+            ) {
+                return handleSameToSameTx(posting, targetAccount);
+            } else
+                if (
+                    asset.currency() != CurrencyCode.RSD && targetCurrencyCode != CurrencyCode.RSD
+                ) {
+                    return handleForeignToForeignTx(posting, targetCurrencyCode, targetAccount);
+                } else {
+                    return handleForeignAndRsdTx(posting, targetCurrencyCode, targetAccount);
+                }
         }
         throw new InvalidTxAsset();
+    }
+
+    private List<Posting> handleSameToSameTx(Posting posting, TxAccount.Account targetAccount) {
+        Posting fromClient =
+            new Posting(
+                posting.account(),
+                posting.amount()
+                    .negate(),
+                posting.asset()
+            );
+
+        Posting toClient =
+            new Posting(
+                new TxAccount.Account(targetAccount.num()),
+                posting.amount(),
+                posting.asset()
+            );
+
+        return List.of(fromClient, toClient);
     }
 
     private List<Posting> handleForeignToForeignTx(
