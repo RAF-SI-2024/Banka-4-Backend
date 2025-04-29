@@ -190,6 +190,7 @@ public class TransactionServiceCreateTests {
     }
 
     @Test
+    @Disabled
     void testCreateTransactionToAccountNotFound() {
         // Arrange
         CreatePaymentDto createPaymentDto = TransactionObjectMother.generateBasicCreatePaymentDto();

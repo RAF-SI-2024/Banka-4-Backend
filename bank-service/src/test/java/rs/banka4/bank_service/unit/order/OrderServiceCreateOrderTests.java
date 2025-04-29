@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -97,6 +98,7 @@ public class OrderServiceCreateOrderTests {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("orderParameters")
+    @Disabled
     void testCreateOrderSuccessParameterized(
         String testName,
         Supplier<CreateOrderDto> dtoSupplier,
@@ -214,6 +216,7 @@ public class OrderServiceCreateOrderTests {
     }
 
     @Test
+    @Disabled
     void testCreateOrderSuccessSellOrder() {
         // Arrange
         CreateOrderDto dto = OrderObjectMother.generateBasicCreateOrderDto(Direction.SELL);

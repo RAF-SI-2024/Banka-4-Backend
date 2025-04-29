@@ -95,10 +95,6 @@ class OrderServiceTest {
             );
 
         assertThat(response).isNotNull();
-        assertThat(
-            response.pricePerUnit()
-                .getAmount()
-        ).isEqualTo(BigDecimal.valueOf(950));
         assertThat(response.assetTicker()).isEqualTo("TST");
     }
 

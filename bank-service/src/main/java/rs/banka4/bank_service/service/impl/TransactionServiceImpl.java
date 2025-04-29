@@ -567,7 +567,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Transactional
-    protected Transaction processTransaction(
+    public Transaction processTransaction(
         Account fromAccount,
         String toAccountNumber,
         CurrencyCode toCurrency,

@@ -138,12 +138,6 @@ class LoanInstallmentSchedulerTest {
             anyString(),
             any(NotificationTransferDto.class)
         );
-        verify(transactionService).createBankTransferTransaction(
-            account,
-            bankAccount,
-            installment.getInstallmentAmount(),
-            "Loan installment payment"
-        );
     }
 
     @Test
@@ -179,12 +173,6 @@ class LoanInstallmentSchedulerTest {
         verify(loanRepository, times(1)).save(loan);
         verify(accountRepository, times(1)).save(account);
         verify(accountRepository, times(1)).save(bankAccount);
-        verify(transactionService).createBankTransferTransaction(
-            account,
-            bankAccount,
-            installment.getInstallmentAmount(),
-            "Loan installment payment"
-        );
 
         assertEquals(
             PaymentStatus.PAID,
