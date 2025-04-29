@@ -55,6 +55,7 @@ public class OrderExecutionService {
     @Async("orderExecutor")
     @Transactional
     public CompletableFuture<Boolean> processAllOrNothingOrderAsync(Order order) {
+        if (order.getDirection() == Direction.SELL) return CompletableFuture.completedFuture(false);
         log.info("[AON] Starting async processing for order {}", order.getId());
 
         Optional<Order> match =
@@ -129,6 +130,7 @@ public class OrderExecutionService {
     @Async("orderExecutor")
     @Transactional
     public CompletableFuture<Boolean> processPartialOrderAsync(Order order) {
+        if (order.getDirection() == Direction.SELL) return CompletableFuture.completedFuture(false);
         log.info("[Partial] Starting async processing for order {}", order.getId());
 
         /*
@@ -329,15 +331,9 @@ public class OrderExecutionService {
 //                )
 //            );
 
-        CurrencyCode toCurrency;
-        if (order.getDirection() == Direction.BUY) {
-            toCurrency =
-                matchedOrder.getAccount()
-                    .getCurrency();
-        } else
-            toCurrency =
-                order.getAccount()
-                    .getCurrency();
+        CurrencyCode toCurrency =
+            matchedOrder.getAccount()
+                .getCurrency();
 
         List<Posting> postings =
             ((InterbankTxExecutor) txExecutor).ensurePostingCurrency(
